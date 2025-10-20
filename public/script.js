@@ -369,21 +369,22 @@ async function buscarDirigente() {
         searchResult.classList.remove('hidden');
         
         if (data.encontrado) {
-            const dirigente = data.dirigente;
-            const claseParticipacion = `participacion-${dirigente.participacion}`;
-            
-            searchResult.innerHTML = `
-                <div class="result-found">
-                    <h3>¡Dirigente encontrado!</h3>
-                    <p><strong>Nombre:</strong> ${dirigente.nombre}</p>
-                    <p><strong>Cédula:</strong> ${dirigente.cedula}</p>
-                    <p><strong>Corregimiento:</strong> ${dirigente.corregimiento}</p>
-                    <p><strong>Comunidad:</strong> ${dirigente.comunidad}</p>
-                    <p><strong>Coordinador:</strong> ${dirigente.coordinador}</p>
-                    <p><strong>Participación:</strong> <span class="${claseParticipacion}">${dirigente.participacion}</span></p>
-                </div>
-            `;
-        } else {
+    const dirigente = data.dirigente;
+    const claseParticipacion = `participacion-${dirigente.participacion}`;
+    
+    searchResult.innerHTML = `
+        <div class="result-found">
+            <h3>¡Dirigente encontrado!</h3>
+            <p><strong>Nombre:</strong> ${dirigente.nombre}</p>
+            <p><strong>Cédula:</strong> ${dirigente.cedula}</p>
+            <p><strong>Teléfono:</strong> ${dirigente.telefono || 'No registrado'}</p>
+            <p><strong>Corregimiento:</strong> ${dirigente.corregimiento}</p>
+            <p><strong>Comunidad:</strong> ${dirigente.comunidad}</p>
+            <p><strong>Coordinador:</strong> ${dirigente.coordinador}</p>
+            <p><strong>Participación:</strong> <span class="${claseParticipacion}">${dirigente.participacion}</span></p>
+        </div>
+    `;
+} else {
             searchResult.innerHTML = `
                 <div class="result-not-found">
                     <h3>Dirigente no encontrado</h3>
@@ -424,4 +425,5 @@ function mostrarNotificacion(mensaje, tipo) {
     }, 3000);
 
 }
+
 
