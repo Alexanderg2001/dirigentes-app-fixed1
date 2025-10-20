@@ -64,11 +64,11 @@ app.get('/api/dirigentes', requireAuth, (req, res) => {
 });
 
 app.post('/api/dirigentes', requireAuth, (req, res) => {
-  const { nombre, cedula, corregimiento, comunidad, coordinador } = req.body;
+  const { nombre, cedula, telefono, corregimiento, comunidad, coordinador } = req.body;
   
   db.run(
-    'INSERT INTO dirigentes (nombre, cedula, corregimiento, comunidad, coordinador) VALUES (?, ?, ?, ?, ?)',
-    [nombre, cedula, corregimiento, comunidad, coordinador],
+    'INSERT INTO dirigentes (nombre, cedula, telefono, corregimiento, comunidad, coordinador) VALUES (?, ?, ?, ?, ?, ?)',
+    [nombre, cedula, telefono, corregimiento, comunidad, coordinador],
     function(err) {
       if (err) {
         return res.status(500).json({ error: 'Error al crear dirigente' });
@@ -79,11 +79,11 @@ app.post('/api/dirigentes', requireAuth, (req, res) => {
 });
 
 app.put('/api/dirigentes/:id', requireAuth, (req, res) => {
-  const { nombre, cedula, corregimiento, comunidad, coordinador, participacion } = req.body;
+  const { nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion } = req.body;
   const id = req.params.id;
   
   db.run(
-    'UPDATE dirigentes SET nombre = ?, cedula = ?, corregimiento = ?, comunidad = ?, coordinador = ?, participacion = ? WHERE id = ?',
+    'UPDATE dirigentes SET nombre = ?, cedula = ?, telefono = ?, corregimiento = ?, comunidad = ?, coordinador = ?, participacion = ? WHERE id = ?',
     [nombre, cedula, corregimiento, comunidad, coordinador, participacion, id],
     function(err) {
       if (err) {
@@ -215,4 +215,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+
 });
