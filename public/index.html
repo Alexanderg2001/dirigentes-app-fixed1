@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Dirigentes</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Encabezado -->
+        <header>
+            <h1>Sistema de Gestión de Dirigentes Comunitarios</h1>
+            <div id="auth-section">
+                <div id="login-form" class="auth-form">
+                    <h3>Iniciar Sesión</h3>
+                    <input type="text" id="username" placeholder="Usuario">
+                    <input type="password" id="password" placeholder="Contraseña">
+                    <button onclick="login()">Ingresar</button>
+                </div>
+                <div id="user-info" class="hidden">
+                    <span id="welcome-message">Bienvenido, Admin</span>
+                    <button onclick="logout()">Cerrar Sesión</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido principal -->
+        <main>
+            <!-- Sección de búsqueda pública -->
+            <section id="public-search" class="section">
+                <h2>Verificar Dirigente</h2>
+                <div class="search-container">
+                    <input type="text" id="search-cedula" placeholder="Ingrese número de cédula">
+                    <button onclick="buscarDirigente()">Buscar</button>
+                </div>
+                <div id="search-result" class="hidden"></div>
+            </section>
+
+            <!-- Panel de administración (solo para usuarios autenticados) -->
+            <div id="admin-panel" class="hidden">
+                <!-- Gestión de dirigentes -->
+                <section id="gestion-dirigentes" class="section">
+                    <h2>Gestión de Dirigentes</h2>
+                    <button onclick="mostrarFormDirigente()">Agregar Dirigente</button>
+                    
+                    <div id="form-dirigente" class="hidden form-container">
+                        <h3 id="form-title">Nuevo Dirigente</h3>
+                        <form id="dirigente-form">
+                            <input type="hidden" id="dirigente-id">
+                            <input type="text" id="dirigente-nombre" placeholder="Nombre completo" required>
+                            <input type="text" id="dirigente-cedula" placeholder="Cédula" required>
+                            <input type="text" id="dirigente-corregimiento" placeholder="Corregimiento" required>
+                            <input type="text" id="dirigente-comunidad" placeholder="Comunidad" required>
+                            <input type="text" id="dirigente-coordinador" placeholder="Coordinador" required>
+                            <select id="dirigente-participacion">
+                                <option value="buena">Buena participación</option>
+                                <option value="regular" selected>Participación regular</option>
+                                <option value="mala">Mala participación</option>
+                            </select>
+                            <div class="form-buttons">
+                                <button type="submit">Guardar</button>
+                                <button type="button" onclick="ocultarFormDirigente()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="lista-dirigentes" class="table-container">
+                        <table id="tabla-dirigentes">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cédula</th>
+                                    <th>Corregimiento</th>
+                                    <th>Comunidad</th>
+                                    <th>Coordinador</th>
+                                    <th>Participación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dirigentes-body">
+                                <!-- Los datos se cargan dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Gestión de apoyos -->
+                <section id="gestion-apoyos" class="section">
+                    <h2>Registro de Apoyos</h2>
+                    <button onclick="mostrarFormApoyo()">Registrar Apoyo</button>
+                    
+                    <div id="form-apoyo" class="hidden form-container">
+                        <h3>Nuevo Apoyo</h3>
+                        <form id="apoyo-form">
+                            <select id="apoyo-dirigente" required>
+                                <option value="">Seleccionar dirigente</option>
+                            </select>
+                            <select id="apoyo-tipo" required>
+                                <option value="">Tipo de apoyo</option>
+                                <option value="economico">Económico</option>
+                                <option value="viveres">Víveres</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                            <input type="text" id="apoyo-descripcion" placeholder="Descripción">
+                            <input type="number" id="apoyo-monto" placeholder="Monto (si es económico)" step="0.01">
+                            <input type="date" id="apoyo-fecha" required>
+                            <div class="form-buttons">
+                                <button type="submit">Registrar</button>
+                                <button type="button" onclick="ocultarFormApoyo()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div id="lista-apoyos" class="table-container">
+                        <table id="tabla-apoyos">
+                            <thead>
+                                <tr>
+                                    <th>Dirigente</th>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                    <th>Monto</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apoyos-body">
+                                <!-- Los datos se cargan dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

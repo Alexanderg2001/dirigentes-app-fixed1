@@ -1,0 +1,19 @@
+{
+  "name": "dirigentes-app",
+  "version": "1.0.0",
+  "description": "Sistema de gestión de dirigentes comunitarios",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "bcryptjs": "^2.4.3",
+    "express-session": "^1.17.3",
+    "path": "^0.12.7"
+  },
+  "keywords": ["dirigentes", "comunidad", "gestión"],
+  "author": "Tu nombre",
+  "license": "MIT"
+}
