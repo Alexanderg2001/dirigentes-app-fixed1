@@ -132,7 +132,7 @@ app.get('/api/apoyos', requireAuth, (req, res) => {
 });
 
 app.post('/api/apoyos', requireAuth, (req, res) => {
-  const { dirigente_id, tipo, descripcion, monto, fecha } = req.body;
+  const { dirigente_id, tipo, descripcion, monto, } = req.body;
   const fecha = new Date().toISOString().split('T')[0];
   
   db.run(
@@ -218,4 +218,5 @@ app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 
 });
+
 
