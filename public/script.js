@@ -201,6 +201,7 @@ function renderizarDirigentes() {
         tr.innerHTML = `
             <td>${dirigente.nombre}</td>
             <td>${dirigente.cedula}</td>
+            <td>${dirigente.telefono || 'No registrado'}</td>
             <td>${dirigente.corregimiento}</td>
             <td>${dirigente.comunidad}</td>
             <td>${dirigente.coordinador}</td>
@@ -425,5 +426,6 @@ function mostrarNotificacion(mensaje, tipo) {
     }, 3000);
 
 }
+
 
 
