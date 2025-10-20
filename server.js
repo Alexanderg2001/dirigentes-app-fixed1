@@ -133,7 +133,10 @@ app.get('/api/apoyos', requireAuth, (req, res) => {
 
 app.post('/api/apoyos', requireAuth, (req, res) => {
   const { dirigente_id, tipo, descripcion, monto, } = req.body;
-  const fecha = new Date().toISOString().split('T')[0];
+  
+  // Obtener fecha en zona horaria local (Panamá)
+const ahora = new Date();
+const fecha = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
   
   db.run(
     'INSERT INTO apoyos (dirigente_id, tipo, descripcion, monto, fecha) VALUES (?, ?, ?, ?, ?)',
@@ -218,5 +221,6 @@ app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 
 });
+
 
 
