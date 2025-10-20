@@ -43,6 +43,19 @@
                 <section id="gestion-dirigentes" class="section">
                     <h2>Gestión de Dirigentes</h2>
                     <button onclick="mostrarFormDirigente()">Agregar Dirigente</button>
+                    <!-- Después del botón "Agregar Dirigente" -->
+<div class="search-filters">
+    <input type="text" id="buscar-dirigente" placeholder="🔍 Buscar por nombre, cédula, comunidad..." onkeyup="filtrarDirigentes()">
+    <select id="filtro-corregimiento" onchange="filtrarDirigentes()">
+        <option value="">Todos los corregimientos</option>
+    </select>
+    <select id="filtro-participacion" onchange="filtrarDirigentes()">
+        <option value="">Toda participación</option>
+        <option value="buena">Buena</option>
+        <option value="regular">Regular</option>
+        <option value="mala">Mala</option>
+    </select>
+</div>
                     
                     <div id="form-dirigente" class="hidden form-container">
                         <h3 id="form-title">Nuevo Dirigente</h3>
@@ -139,5 +152,6 @@
 </body>
 
 </html>
+
 
 
