@@ -405,25 +405,7 @@ async function buscarDirigente() {
 async function cargarDatos() {
     await cargarDirigentes();
     await cargarApoyos();function cargarDirigentes() {
-    // ... código existente ...
     
-    // Después de cargar los dirigentes, llenar el filtro de corregimientos
-    llenarFiltroCorregimientos();
-}
-
-function llenarFiltroCorregimientos() {
-    const select = document.getElementById('filtro-corregimiento');
-    const corregimientos = [...new Set(appState.dirigentes.map(d => d.corregimiento))].sort();
-    
-    // Mantener la opción "Todos"
-    select.innerHTML = '<option value="">Todos los corregimientos</option>';
-    
-    corregimientos.forEach(corregimiento => {
-        const option = document.createElement('option');
-        option.value = corregimiento;
-        option.textContent = corregimiento;
-        select.appendChild(option);
-    });
 }
 
 // Utilidades
@@ -475,3 +457,4 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
         block: 'center'
     });
 }
+
