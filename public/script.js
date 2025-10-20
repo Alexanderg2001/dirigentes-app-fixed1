@@ -120,7 +120,7 @@ async function guardarDirigente(event) {
     const id = document.getElementById('dirigente-id').value;
 const nombre = document.getElementById('dirigente-nombre').value;
 const cedula = document.getElementById('dirigente-cedula').value;
-const telefono = document.getElementById('dirigente-telefono').value; // ← NUEVO
+const telefono = document.getElementById('dirigente-telefono').value;
 const corregimiento = document.getElementById('dirigente-corregimiento').value;
 const comunidad = document.getElementById('dirigente-comunidad').value;
 const coordinador = document.getElementById('dirigente-coordinador').value;
@@ -424,3 +424,4 @@ function mostrarNotificacion(mensaje, tipo) {
     }, 3000);
 
 }
+
