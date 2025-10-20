@@ -118,16 +118,18 @@ async function guardarDirigente(event) {
     event.preventDefault();
     
     const id = document.getElementById('dirigente-id').value;
-    const nombre = document.getElementById('dirigente-nombre').value;
-    const cedula = document.getElementById('dirigente-cedula').value;
-    const corregimiento = document.getElementById('dirigente-corregimiento').value;
-    const comunidad = document.getElementById('dirigente-comunidad').value;
-    const coordinador = document.getElementById('dirigente-coordinador').value;
-    const participacion = document.getElementById('dirigente-participacion').value;
+const nombre = document.getElementById('dirigente-nombre').value;
+const cedula = document.getElementById('dirigente-cedula').value;
+const telefono = document.getElementById('dirigente-telefono').value; // ← NUEVO
+const corregimiento = document.getElementById('dirigente-corregimiento').value;
+const comunidad = document.getElementById('dirigente-comunidad').value;
+const coordinador = document.getElementById('dirigente-coordinador').value;
+const participacion = document.getElementById('dirigente-participacion').value;
     
     const dirigenteData = {
         nombre,
         cedula,
+        telefono,
         corregimiento,
         comunidad,
         coordinador,
@@ -218,6 +220,7 @@ function editarDirigente(id) {
     const dirigente = appState.dirigentes.find(d => d.id === id);
     if (dirigente) {
         mostrarFormDirigente(dirigente);
+        document.getElementById('dirigente-telefono').value = dirigente.telefono || '';
     }
 }
 
@@ -419,4 +422,5 @@ function mostrarNotificacion(mensaje, tipo) {
             notificacion.parentNode.removeChild(notificacion);
         }
     }, 3000);
+
 }
