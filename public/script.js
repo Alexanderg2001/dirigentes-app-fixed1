@@ -256,6 +256,7 @@ function generarConstancia(id) {
 // Funciones para apoyos
 function mostrarFormApoyo() {
     document.getElementById('form-apoyo').classList.remove('hidden');
+    configurarFechaAutomatica();
 }
 
 function ocultarFormApoyo() {
@@ -434,6 +435,7 @@ function configurarFechaAutomatica() {
         fechaInput.value = hoy;
     }
 }
+
 
 
 
