@@ -210,6 +210,7 @@ function renderizarDirigentes() {
                 <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
                 <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
                 <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
+                <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
             </td>
         `;
         
@@ -437,6 +438,7 @@ function configurarFechaAutomatica() {
         fechaInput.value = fechaLocal;
     }
 }
+
 
 
 
