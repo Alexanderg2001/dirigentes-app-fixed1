@@ -431,10 +431,13 @@ function mostrarNotificacion(mensaje, tipo) {
 function configurarFechaAutomatica() {
     const fechaInput = document.getElementById('apoyo-fecha');
     if (fechaInput) {
-        const hoy = new Date().toISOString().split('T')[0];
-        fechaInput.value = hoy;
+        // Obtener fecha local del navegador (Panamá)
+        const hoy = new Date();
+        const fechaLocal = new Date(hoy.getTime() - (hoy.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        fechaInput.value = fechaLocal;
     }
 }
+
 
 
 
