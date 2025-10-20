@@ -439,6 +439,23 @@ function configurarFechaAutomatica() {
     }
 }
 
+function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
+    // Mostrar el formulario de apoyo
+    mostrarFormApoyo();
+    
+    // Seleccionar automáticamente el dirigente
+    const selectDirigente = document.getElementById('apoyo-dirigente');
+    selectDirigente.value = dirigenteId;
+    
+    // Mostrar notificación de confirmación
+    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
+    
+    // Hacer scroll suave al formulario
+    document.getElementById('form-apoyo').scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+    });
+}
 
 
 
