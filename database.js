@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, 'dirigentes.db');
+const dbPath = path.join(__dirname, 'data', 'dirigentes.db');
 const db = new sqlite3.Database(dbPath);
 
 // Crear tablas si no existen
@@ -58,4 +58,5 @@ db.serialize(() => {
 
 
 module.exports = db;
+
 
