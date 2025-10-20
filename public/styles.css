@@ -304,4 +304,13 @@ tr:hover {
     .actions {
         flex-direction: column;
     }
+
+}
+
+button.apoyo {
+    background-color: #9b59b6; /* Color morado para diferenciar */
+}
+
+button.apoyo:hover {
+    background-color: #8e44ad;
 }
