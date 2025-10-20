@@ -427,5 +427,14 @@ function mostrarNotificacion(mensaje, tipo) {
 
 }
 
+function configurarFechaAutomatica() {
+    const fechaInput = document.getElementById('apoyo-fecha');
+    if (fechaInput) {
+        const hoy = new Date().toISOString().split('T')[0];
+        fechaInput.value = hoy;
+    }
+}
+
+
 
 
