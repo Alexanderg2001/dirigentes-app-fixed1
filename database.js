@@ -20,7 +20,7 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
     cedula TEXT UNIQUE NOT NULL,
-    telefono TEXT, //
+    telefono TEXT,
     corregimiento TEXT NOT NULL,
     comunidad TEXT NOT NULL,
     coordinador TEXT NOT NULL,
@@ -58,3 +58,4 @@ db.serialize(() => {
 
 
 module.exports = db;
+
