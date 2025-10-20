@@ -235,18 +235,36 @@ tr:hover {
 }
 
 .participacion-buena {
-    color: var(--success-color);
+    color: white;
+    background-color: var(--success-color);
     font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
 }
 
 .participacion-regular {
-    color: var(--warning-color);
+    color: white;
+    background-color: var(--warning-color);
     font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
 }
 
 .participacion-mala {
-    color: var(--danger-color);
+    color: white;
+    background-color: var(--danger-color);
     font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    text-align: center;
+    display: inline-block;
+    min-width: 80px;
 }
 
 .actions {
@@ -314,3 +332,4 @@ button.apoyo {
 button.apoyo:hover {
     background-color: #8e44ad;
 }
+
