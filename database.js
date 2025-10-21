@@ -8,7 +8,7 @@ let dbPath;
 
 if (process.env.NODE_ENV === 'production') {
     // En Render con disk, usar esta ruta:
-    dbPath = '/opt/render/project/src/dirigentes.db';
+    dbPath = '/opt/render/project/src/data/dirigentes.db';
 } else {
     dbPath = path.join(__dirname, 'dirigentes.db');
 }
@@ -17,6 +17,7 @@ if (process.env.NODE_ENV === 'production') {
 const dbDir = path.dirname(dbPath);
 if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
+    console.log('Directorio de BD creado:', dbDir);
 }
 
 const db = new sqlite3.Database(dbPath);
@@ -74,4 +75,5 @@ db.serialize(() => {
 });
 
 module.exports = db;
+
 
