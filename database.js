@@ -7,10 +7,9 @@ const fs = require('fs');
 let dbPath;
 
 if (process.env.NODE_ENV === 'production') {
-    // En Render, intentamos usar /tmp que es más persistente
-    dbPath = '/tmp/dirigentes.db';
+    // En Render con disk, usar esta ruta:
+    dbPath = '/opt/render/project/src/dirigentes.db';
 } else {
-    // En desarrollo, usar local
     dbPath = path.join(__dirname, 'dirigentes.db');
 }
 
@@ -75,3 +74,4 @@ db.serialize(() => {
 });
 
 module.exports = db;
+
