@@ -84,7 +84,7 @@ app.put('/api/dirigentes/:id', requireAuth, (req, res) => {
   
   db.run(
     'UPDATE dirigentes SET nombre = ?, cedula = ?, telefono = ?, corregimiento = ?, comunidad = ?, coordinador = ?, participacion = ? WHERE id = ?',
-    [nombre, cedula, corregimiento, comunidad, coordinador, participacion, id],
+    [nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion, id],
     function(err) {
       if (err) {
         return res.status(500).json({ error: 'Error al actualizar dirigente' });
@@ -221,6 +221,7 @@ app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 
 });
+
 
 
 
