@@ -404,8 +404,7 @@ async function buscarDirigente() {
 // Cargar todos los datos necesarios
 async function cargarDatos() {
     await cargarDirigentes();
-    await cargarApoyos();function cargarDirigentes() {
-    
+    await cargarApoyos();  
 }
 
 // Utilidades
@@ -457,4 +456,5 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
         block: 'center'
     });
 }
+
 
