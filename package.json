@@ -13,12 +13,14 @@
     "express-session": "^1.17.3",
     "path": "^0.12.7"
   },
-  "keywords": ["dirigentes", "comunidad", "gestión"],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "dirigentes",
+    "comunidad",
+    "gestión"
+  ],
   "author": "Tu nombre",
   "license": "MIT"
-
 }
-
-"engines": {
-  "node": ">=18.0.0"
-},
