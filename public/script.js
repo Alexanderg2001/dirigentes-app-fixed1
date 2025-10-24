@@ -457,4 +457,215 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
     });
 }
 
+// ========== NUEVAS FUNCIONALIDADES ==========
+
+// Cargar dashboard con estadísticas
+async function cargarDashboard() {
+    if (!appState.isAuthenticated) return;
+    
+    try {
+        const response = await fetch('/api/estadisticas');
+        const estadisticas = await response.json();
+        
+        if (response.ok) {
+            renderizarDashboard(estadisticas);
+        }
+    } catch (error) {
+        console.error('Error cargando dashboard:', error);
+    }
+}
+
+function renderizarDashboard(estadisticas) {
+    const dashboardHTML = `
+        <div class="dashboard-cards">
+            <div class="card">
+                <h3>Total Dirigentes</h3>
+                <div class="number">${estadisticas.totalDirigentes}</div>
+                <div class="description">Registrados en el sistema</div>
+            </div>
+            <div class="card">
+                <h3>Total Apoyos</h3>
+                <div class="number">${estadisticas.totalApoyos}</div>
+                <div class="description">Apoyos registrados</div>
+            </div>
+            <div class="card">
+                <h3>Buena Participación</h3>
+                <div class="number">${estadisticas.participacion.find(p => p.participacion === 'buena')?.total || 0}</div>
+                <div class="description">Dirigentes activos</div>
+            </div>
+            <div class="card">
+                <h3>Apoyos Económicos</h3>
+                <div class="number">$${estadisticas.apoyos.find(a => a.tipo === 'economico')?.total_monto || 0}</div>
+                <div class="description">Total distribuido</div>
+            </div>
+        </div>
+    `;
+    
+    // Insertar dashboard al inicio del admin-panel
+    const adminPanel = document.getElementById('admin-panel');
+    const existingDashboard = adminPanel.querySelector('.dashboard-cards');
+    
+    if (existingDashboard) {
+        existingDashboard.innerHTML = dashboardHTML;
+    } else {
+        adminPanel.insertAdjacentHTML('afterbegin', dashboardHTML);
+    }
+}
+
+// Búsqueda avanzada
+function configurarBusquedaAvanzada() {
+    const buscarInput = document.getElementById('buscar-dirigente');
+    const filtroCorregimiento = document.getElementById('filtro-corregimiento');
+    const filtroParticipacion = document.getElementById('filtro-participacion');
+    
+    if (buscarInput) {
+        buscarInput.addEventListener('input', debounce(filtrarDirigentes, 300));
+    }
+    if (filtroCorregimiento) {
+        filtroCorregimiento.addEventListener('change', filtrarDirigentes);
+    }
+    if (filtroParticipacion) {
+        filtroParticipacion.addEventListener('change', filtrarDirigentes);
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+async function filtrarDirigentes() {
+    if (!appState.isAuthenticated) return;
+    
+    const query = document.getElementById('buscar-dirigente')?.value || '';
+    const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
+    const participacion = document.getElementById('filtro-participacion')?.value || '';
+    
+    const params = new URLSearchParams();
+    if (query) params.append('q', query);
+    if (corregimiento) params.append('corregimiento', corregimiento);
+    if (participacion) params.append('participacion', participacion);
+    
+    try {
+        const response = await fetch(`/api/dirigentes/buscar?${params}`);
+        const dirigentesFiltrados = await response.json();
+        
+        if (response.ok) {
+            appState.dirigentes = dirigentesFiltrados;
+            renderizarDirigentes();
+        }
+    } catch (error) {
+        console.error('Error filtrando dirigentes:', error);
+    }
+}
+
+// Exportación de datos
+function agregarBotonesExportacion() {
+    const seccionDirigentes = document.getElementById('gestion-dirigentes');
+    if (seccionDirigentes && !seccionDirigentes.querySelector('.export-buttons')) {
+        const exportHTML = `
+            <div class="export-buttons">
+                <button class="btn-export csv" onclick="exportarDirigentesCSV()">
+                    📊 Exportar a CSV
+                </button>
+            </div>
+        `;
+        seccionDirigentes.querySelector('h2').insertAdjacentHTML('afterend', exportHTML);
+    }
+}
+
+async function exportarDirigentesCSV() {
+    try {
+        const response = await fetch('/api/exportar/dirigentes');
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'dirigentes.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            mostrarNotificacion('Archivo CSV descargado exitosamente', 'success');
+        }
+    } catch (error) {
+        console.error('Error exportando CSV:', error);
+        mostrarNotificacion('Error al exportar datos', 'error');
+    }
+}
+
+// Sistema de notificaciones
+async function cargarNotificaciones() {
+    if (!appState.isAuthenticated) return;
+    
+    try {
+        const response = await fetch('/api/notificaciones');
+        const notificaciones = await response.json();
+        
+        if (response.ok) {
+            renderizarNotificaciones(notificaciones);
+        }
+    } catch (error) {
+        console.error('Error cargando notificaciones:', error);
+    }
+}
+
+function renderizarNotificaciones(notificaciones) {
+    // Aquí puedes implementar la UI de notificaciones
+    console.log('Notificaciones:', notificaciones);
+    
+    // Ejemplo: Mostrar badge con cantidad de notificaciones
+    const notificacionBadge = document.getElementById('notificacion-badge');
+    if (notificaciones.length > 0) {
+        if (!notificacionBadge) {
+            const badge = document.createElement('span');
+            badge.id = 'notificacion-badge';
+            badge.className = 'notificacion-badge';
+            badge.textContent = notificaciones.length;
+            document.querySelector('header').appendChild(badge);
+        } else {
+            notificacionBadge.textContent = notificaciones.length;
+        }
+    }
+}
+
+// Actualizar la función cargarDatos para incluir las nuevas funcionalidades
+async function cargarDatos() {
+    if (!appState.isAuthenticated) return;
+    
+    await Promise.all([
+        cargarDirigentes(),
+        cargarApoyos(),
+        cargarDashboard(),
+        cargarNotificaciones()
+    ]);
+    
+    configurarBusquedaAvanzada();
+    agregarBotonesExportacion();
+}
+
+// Inicializar mejoras cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Tu código existente...
+    
+    // Agregar estas líneas al final del event listener
+    setTimeout(() => {
+        if (appState.isAuthenticated) {
+            configurarBusquedaAvanzada();
+            agregarBotonesExportacion();
+        }
+    }, 1000);
+});
+
+
 
