@@ -608,6 +608,226 @@ app.get('/api/comunidades', requireAuth, (req, res) => {
   });
 });
 
+// Ruta para generar constancia por APOYO INDIVIDUAL
+app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
+  const apoyoId = req.params.apoyoId;
+  
+  // Obtener datos del apoyo Y del dirigente
+  db.get(`
+    SELECT a.*, d.nombre as dirigente_nombre, d.cedula, d.telefono, 
+           d.corregimiento, d.comunidad, d.coordinador, d.participacion
+    FROM apoyos a 
+    LEFT JOIN dirigentes d ON a.dirigente_id = d.id 
+    WHERE a.id = ?
+  `, [apoyoId], (err, resultado) => {
+    if (err || !resultado) {
+      return res.status(404).send('Apoyo no encontrado');
+    }
+    
+    const { dirigente_nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion, ...apoyo } = resultado;
+    
+    // Formatear monto si es apoyo económico
+    const montoFormateado = apoyo.tipo === 'economico' && apoyo.monto ? 
+      `$${parseFloat(apoyo.monto).toFixed(2)}` : 'N/A';
+    
+    // Generar HTML de la constancia individual
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Constancia de Apoyo - ${dirigente_nombre}</title>
+        <style>
+          body { 
+            font-family: 'Arial', sans-serif; 
+            margin: 40px; 
+            line-height: 1.6;
+            color: #333;
+          }
+          .header { 
+            text-align: center; 
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
+          }
+          .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 24px;
+          }
+          .content { 
+            margin: 30px 0; 
+          }
+          .info-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+          }
+          .apoyo-details {
+            background: #e8f4fd;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 5px solid #3498db;
+            margin: 25px 0;
+          }
+          .firma { 
+            margin-top: 100px; 
+            text-align: center;
+          }
+          .firma-line { 
+            width: 400px; 
+            border-top: 2px solid #000; 
+            margin: 0 auto 15px;
+          }
+          .footer { 
+            margin-top: 50px; 
+            text-align: center; 
+            font-size: 12px;
+            color: #666;
+          }
+          .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+          }
+          .detail-label {
+            font-weight: bold;
+            width: 200px;
+            color: #2c3e50;
+          }
+          .detail-value {
+            flex: 1;
+          }
+          .sello {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+          }
+          @media print { 
+            button { display: none; } 
+            body { margin: 15px; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
+          <p>Sistema de Gestión de Dirigentes Comunitarios</p>
+          <p><strong>N° de Constancia:</strong> AP-${apoyo.id.toString().padStart(4, '0')}</p>
+        </div>
+        
+        <div class="content">
+          <!-- Información del dirigente -->
+          <div class="info-section">
+            <h3>INFORMACIÓN DEL DIRIGENTE BENEFICIADO</h3>
+            <div class="detail-row">
+              <div class="detail-label">Nombre Completo:</div>
+              <div class="detail-value">${dirigente_nombre}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Cédula de Identidad:</div>
+              <div class="detail-value">${cedula}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Teléfono:</div>
+              <div class="detail-value">${telefono || 'No registrado'}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Corregimiento:</div>
+              <div class="detail-value">${corregimiento}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Comunidad:</div>
+              <div class="detail-value">${comunidad}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Coordinador:</div>
+              <div class="detail-value">${coordinador}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Nivel de Participación:</div>
+              <div class="detail-value" style="text-transform: uppercase; font-weight: bold;">
+                ${participacion}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Detalles del apoyo -->
+          <div class="apoyo-details">
+            <h3>DETALLES DEL APOYO ENTREGADO</h3>
+            <div class="detail-row">
+              <div class="detail-label">Tipo de Apoyo:</div>
+              <div class="detail-value" style="text-transform: uppercase; font-weight: bold; color: #2c3e50;">
+                ${apoyo.tipo}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Descripción:</div>
+              <div class="detail-value">${apoyo.descripcion || 'Sin descripción adicional'}</div>
+            </div>
+            ${apoyo.tipo === 'economico' ? `
+            <div class="detail-row">
+              <div class="detail-label">Monto Entregado:</div>
+              <div class="detail-value" style="font-size: 18px; font-weight: bold; color: #27ae60;">
+                ${montoFormateado}
+              </div>
+            </div>
+            ` : ''}
+            <div class="detail-row">
+              <div class="detail-label">Fecha de Entrega:</div>
+              <div class="detail-value" style="font-weight: bold;">
+                ${new Date(apoyo.fecha).toLocaleDateString('es-PA', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">N° de Registro:</div>
+              <div class="detail-value">AP-${apoyo.id.toString().padStart(4, '0')}</div>
+            </div>
+          </div>
+          
+          <div class="sello">
+            <p style="font-style: italic; color: #666;">
+              "Por medio de la presente se hace constar la entrega del apoyo descrito al dirigente comunitario arriba mencionado."
+            </p>
+          </div>
+        </div>
+        
+        <div class="firma">
+          <div class="firma-line"></div>
+          <p><strong>FIRMA DEL DIRIGENTE BENEFICIADO</strong></p>
+          <p>${dirigente_nombre}</p>
+          <p>Cédula: ${cedula}</p>
+        </div>
+        
+        <div class="footer">
+          <p>Constancia generada automáticamente el ${new Date().toLocaleDateString('es-PA')}</p>
+          <p>Este documento es válido como constancia de recepción</p>
+        </div>
+        
+        <div class="no-print" style="text-align: center; margin-top: 30px;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px;">
+            🖨️ Imprimir Constancia
+          </button>
+          <button onclick="window.close()" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px;">
+            ❌ Cerrar
+          </button>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    res.send(html);
+  });
+});
+
 
 
 
