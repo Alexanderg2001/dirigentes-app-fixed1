@@ -667,5 +667,115 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
 });
 
+// ========== 🆕 NUEVAS FUNCIONALIDADES - AGREGAR AL FINAL ==========
+
+// 1. Dashboard con estadísticas
+async function cargarDashboard() {
+    if (!appState.isAuthenticated) return;
+    
+    try {
+        const response = await fetch('/api/estadisticas');
+        if (!response.ok) {
+            throw new Error('Error en la respuesta');
+        }
+        const estadisticas = await response.json();
+        renderizarDashboard(estadisticas);
+    } catch (error) {
+        console.log('⚠️  Dashboard no disponible, mostrando valores por defecto');
+        renderizarDashboard({
+            totalDirigentes: 0,
+            totalApoyos: 0,
+            participacion: [],
+            apoyos: []
+        });
+    }
+}
+
+function renderizarDashboard(estadisticas) {
+    const dashboardHTML = `
+        <div class="dashboard-cards">
+            <div class="card">
+                <h3>Total Dirigentes</h3>
+                <div class="number">${estadisticas.totalDirigentes}</div>
+                <div class="description">Registrados en el sistema</div>
+            </div>
+            <div class="card">
+                <h3>Total Apoyos</h3>
+                <div class="number">${estadisticas.totalApoyos}</div>
+                <div class="description">Apoyos registrados</div>
+            </div>
+            <div class="card">
+                <h3>Buena Participación</h3>
+                <div class="number">${estadisticas.participacion.find(p => p.participacion === 'buena')?.total || 0}</div>
+                <div class="description">Dirigentes activos</div>
+            </div>
+            <div class="card">
+                <h3>Apoyos Económicos</h3>
+                <div class="number">$${estadisticas.apoyos.find(a => a.tipo === 'economico')?.total_monto || 0}</div>
+                <div class="description">Total distribuido</div>
+            </div>
+        </div>
+    `;
+    
+    const adminPanel = document.getElementById('admin-panel');
+    const existingDashboard = adminPanel.querySelector('.dashboard-cards');
+    
+    if (existingDashboard) {
+        existingDashboard.innerHTML = dashboardHTML;
+    } else {
+        adminPanel.insertAdjacentHTML('afterbegin', dashboardHTML);
+    }
+}
+
+// 2. Exportación de datos
+function agregarBotonesExportacion() {
+    const seccionDirigentes = document.getElementById('gestion-dirigentes');
+    if (seccionDirigentes && !seccionDirigentes.querySelector('.export-buttons')) {
+        const exportHTML = `
+            <div class="export-buttons">
+                <button class="btn-export" onclick="exportarDirigentesCSV()">
+                    📊 Exportar a CSV
+                </button>
+            </div>
+        `;
+        seccionDirigentes.querySelector('h2').insertAdjacentHTML('afterend', exportHTML);
+    }
+}
+
+async function exportarDirigentesCSV() {
+    try {
+        const response = await fetch('/api/exportar/dirigentes');
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'dirigentes.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            mostrarNotificacion('Archivo CSV descargado exitosamente', 'success');
+        }
+    } catch (error) {
+        console.error('Error exportando CSV:', error);
+        mostrarNotificacion('Error al exportar datos', 'error');
+    }
+}
+
+// 3. Actualizar la función cargarDatos existente
+// 📍 UBICACIÓN: Busca la función cargarDatos existente y REEMPLÁZALA con:
+async function cargarDatos() {
+    if (!appState.isAuthenticated) return;
+    
+    await cargarDirigentes();
+    await cargarApoyos();
+    await cargarDashboard(); // 🆕 AGREGAR ESTA LÍNEA
+    agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
+}
+
+
 
 
