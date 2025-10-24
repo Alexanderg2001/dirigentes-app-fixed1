@@ -6,6 +6,59 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Después de: app.use(session({ ... }));
+
+// Middleware de rate limiting básico
+const rateLimit = {};
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/login')) {
+    const ip = req.ip;
+    const now = Date.now();
+    
+    if (!rateLimit[ip]) {
+      rateLimit[ip] = { count: 1, firstRequest: now };
+    } else {
+      const timeDiff = now - rateLimit[ip].firstRequest;
+      if (timeDiff < 60000) {
+        rateLimit[ip].count++;
+        if (rateLimit[ip].count > 100) {
+          return res.status(429).json({ error: 'Demasiadas solicitudes' });
+        }
+      } else {
+        rateLimit[ip] = { count: 1, firstRequest: now };
+      }
+    }
+  }
+  next();
+});
+
+// Función de auditoría (agregar después de los middlewares)
+const auditar = (tabla, registroId, accion, datosAnteriores, datosNuevos, usuarioId) => {
+  db.run(
+    'INSERT INTO auditoria (tabla_afectada, registro_id, accion, datos_anteriores, datos_nuevos, usuario_id) VALUES (?, ?, ?, ?, ?, ?)',
+    [tabla, registroId, accion, JSON.stringify(datosAnteriores), JSON.stringify(datosNuevos), usuarioId]
+  );
+};
+
+// Función de validación
+const validarDirigente = (dirigente) => {
+  const errores = [];
+  
+  if (!dirigente.nombre || dirigente.nombre.length < 2) {
+    errores.push('El nombre debe tener al menos 2 caracteres');
+  }
+  
+  if (!dirigente.cedula || !/^\d+$/.test(dirigente.cedula)) {
+    errores.push('La cédula debe contener solo números');
+  }
+  
+  if (dirigente.telefono && !/^[\d\s\-()+]+$/.test(dirigente.telefono)) {
+    errores.push('Formato de teléfono inválido');
+  }
+  
+  return errores;
+};
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -221,6 +274,7 @@ app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 
 });
+
 
 
 
