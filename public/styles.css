@@ -654,4 +654,17 @@ button.apoyo:hover {
   }
 }
 
+/* Estilos para botones de constancia en tabla de apoyos */
+.actions button.constancia {
+    background-color: #3498db;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.actions button.constancia:hover {
+    background-color: #2980b9;
+}
+
 
