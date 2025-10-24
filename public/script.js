@@ -293,10 +293,21 @@ async function registrarApoyo(event) {
         const data = await response.json();
         
         if (response.ok) {
-            mostrarNotificacion(data.message, 'success');
+            mostrarNotificacion('Apoyo registrado exitosamente', 'success');
             ocultarFormApoyo();
             document.getElementById('apoyo-form').reset();
-            cargarApoyos();
+            await cargarApoyos();
+            
+            // 🆕 GENERAR CONSTANCIA AUTOMÁTICAMENTE
+            if (data.id) {
+                setTimeout(() => {
+                    const nuevaVentana = window.open(`/constancia-apoyo/${data.id}`, '_blank');
+                    if (nuevaVentana) {
+                        nuevaVentana.focus();
+                    }
+                }, 1000);
+            }
+            
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -775,6 +786,7 @@ async function cargarDatos() {
     await cargarDashboard(); // 🆕 AGREGAR ESTA LÍNEA
     agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
 }
+
 
 
 
