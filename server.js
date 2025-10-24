@@ -275,6 +275,175 @@ app.listen(PORT, () => {
 
 });
 
+// ========== NUEVAS RUTAS - AGREGAR DESPUÉS DE LAS RUTAS EXISTENTES ==========
+
+// Dashboard con estadísticas
+app.get('/api/estadisticas', requireAuth, (req, res) => {
+  const estadisticas = {};
+
+  // Contar dirigentes por participación
+  db.all(`
+    SELECT participacion, COUNT(*) as total 
+    FROM dirigentes 
+    GROUP BY participacion
+  `, (err, rows) => {
+    if (err) {
+      console.error('Error en estadísticas de participación:', err);
+      return res.status(500).json({ error: 'Error en estadísticas' });
+    }
+    
+    estadisticas.participacion = rows;
+
+    // Contar apoyos por tipo
+    db.all(`
+      SELECT tipo, COUNT(*) as total, SUM(monto) as total_monto 
+      FROM apoyos 
+      GROUP BY tipo
+    `, (err, rows) => {
+      if (err) {
+        console.error('Error en estadísticas de apoyos:', err);
+        return res.status(500).json({ error: 'Error en estadísticas' });
+      }
+      
+      estadisticas.apoyos = rows;
+
+      // Total de dirigentes
+      db.get('SELECT COUNT(*) as total FROM dirigentes', (err, row) => {
+        if (err) {
+          console.error('Error contando dirigentes:', err);
+          return res.status(500).json({ error: 'Error en estadísticas' });
+        }
+        
+        estadisticas.totalDirigentes = row.total;
+        
+        // Total de apoyos
+        db.get('SELECT COUNT(*) as total FROM apoyos', (err, row) => {
+          if (err) {
+            console.error('Error contando apoyos:', err);
+            return res.status(500).json({ error: 'Error en estadísticas' });
+          }
+          
+          estadisticas.totalApoyos = row.total;
+          res.json(estadisticas);
+        });
+      });
+    });
+  });
+});
+
+// Búsqueda avanzada de dirigentes
+app.get('/api/dirigentes/buscar', requireAuth, (req, res) => {
+  const { q, corregimiento, participacion, comunidad } = req.query;
+  let sql = 'SELECT * FROM dirigentes WHERE 1=1';
+  let params = [];
+
+  if (q) {
+    sql += ' AND (nombre LIKE ? OR cedula LIKE ? OR coordinador LIKE ?)';
+    params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+  }
+  if (corregimiento) {
+    sql += ' AND corregimiento = ?';
+    params.push(corregimiento);
+  }
+  if (participacion) {
+    sql += ' AND participacion = ?';
+    params.push(participacion);
+  }
+  if (comunidad) {
+    sql += ' AND comunidad LIKE ?';
+    params.push(`%${comunidad}%`);
+  }
+
+  sql += ' ORDER BY nombre';
+
+  db.all(sql, params, (err, rows) => {
+    if (err) {
+      console.error('Error en búsqueda avanzada:', err);
+      return res.status(500).json({ error: 'Error en la búsqueda' });
+    }
+    res.json(rows);
+  });
+});
+
+// Exportar dirigentes a CSV
+app.get('/api/exportar/dirigentes', requireAuth, (req, res) => {
+  db.all('SELECT * FROM dirigentes ORDER BY corregimiento, comunidad', (err, rows) => {
+    if (err) {
+      console.error('Error exportando dirigentes:', err);
+      return res.status(500).json({ error: 'Error exportando datos' });
+    }
+
+    let csv = 'Nombre,Cédula,Teléfono,Corregimiento,Comunidad,Coordinador,Participación\n';
+    
+    rows.forEach(dirigente => {
+      csv += `"${dirigente.nombre}","${dirigente.cedula}","${dirigente.telefono || ''}","${dirigente.corregimiento}","${dirigente.comunidad}","${dirigente.coordinador}","${dirigente.participacion}"\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=dirigentes.csv');
+    res.send(csv);
+  });
+});
+
+// Gestión de notificaciones
+app.get('/api/notificaciones', requireAuth, (req, res) => {
+  db.all('SELECT * FROM notificaciones WHERE leida = FALSE ORDER BY creado_en DESC LIMIT 10', (err, rows) => {
+    if (err) {
+      console.error('Error cargando notificaciones:', err);
+      return res.status(500).json({ error: 'Error cargando notificaciones' });
+    }
+    res.json(rows);
+  });
+});
+
+app.post('/api/notificaciones/:id/leer', requireAuth, (req, res) => {
+  db.run('UPDATE notificaciones SET leida = TRUE WHERE id = ?', [req.params.id], function(err) {
+    if (err) {
+      console.error('Error actualizando notificación:', err);
+      return res.status(500).json({ error: 'Error actualizando notificación' });
+    }
+    res.json({ message: 'Notificación marcada como leída' });
+  });
+});
+
+// Gestión de corregimientos y comunidades
+app.get('/api/corregimientos', requireAuth, (req, res) => {
+  db.all('SELECT * FROM corregimientos ORDER BY nombre', (err, rows) => {
+    if (err) {
+      console.error('Error cargando corregimientos:', err);
+      return res.status(500).json({ error: 'Error cargando corregimientos' });
+    }
+    res.json(rows);
+  });
+});
+
+app.get('/api/comunidades', requireAuth, (req, res) => {
+  const { corregimiento_id } = req.query;
+  let sql = `
+    SELECT c.*, cor.nombre as corregimiento_nombre 
+    FROM comunidades c 
+    LEFT JOIN corregimientos cor ON c.corregimiento_id = cor.id 
+    WHERE 1=1
+  `;
+  let params = [];
+
+  if (corregimiento_id) {
+    sql += ' AND c.corregimiento_id = ?';
+    params.push(corregimiento_id);
+  }
+
+  sql += ' ORDER BY c.nombre';
+
+  db.all(sql, params, (err, rows) => {
+    if (err) {
+      console.error('Error cargando comunidades:', err);
+      return res.status(500).json({ error: 'Error cargando comunidades' });
+    }
+    res.json(rows);
+  });
+});
+
+
 
 
 
