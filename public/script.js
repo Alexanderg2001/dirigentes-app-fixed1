@@ -345,14 +345,24 @@ function renderizarApoyos() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${nombreDirigente}</td>
-            <td>${apoyo.tipo}</td>
+            <td style="text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
             <td>${apoyo.descripcion || '-'}</td>
             <td>${apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}</td>
             <td>${new Date(apoyo.fecha).toLocaleDateString()}</td>
+            <td class="actions">
+                <button class="constancia" onclick="generarConstanciaApoyo(${apoyo.id})">
+                    📄 Constancia
+                </button>
+            </td>
         `;
         
         tbody.appendChild(tr);
     });
+}
+
+// 🆕 FUNCIÓN PARA GENERAR CONSTANCIA DE APOYO
+function generarConstanciaApoyo(apoyoId) {
+    window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
 }
 
 function actualizarSelectDirigentes() {
@@ -786,6 +796,7 @@ async function cargarDatos() {
     await cargarDashboard(); // 🆕 AGREGAR ESTA LÍNEA
     agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
 }
+
 
 
 
