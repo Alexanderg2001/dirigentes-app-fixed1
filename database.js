@@ -76,4 +76,51 @@ db.serialize(() => {
 
 module.exports = db;
 
+// Después de crear las tablas existentes, agregar estas nuevas:
+
+// Tabla de notificaciones
+db.run(`CREATE TABLE IF NOT EXISTS notificaciones (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  titulo TEXT NOT NULL,
+  mensaje TEXT NOT NULL,
+  tipo TEXT DEFAULT 'info',
+  leida BOOLEAN DEFAULT FALSE,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+)`);
+
+// Tabla de corregimientos
+db.run(`CREATE TABLE IF NOT EXISTS corregimientos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT UNIQUE NOT NULL
+)`);
+
+// Tabla de comunidades
+db.run(`CREATE TABLE IF NOT EXISTS comunidades (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  corregimiento_id INTEGER,
+  FOREIGN KEY (corregimiento_id) REFERENCES corregimientos (id)
+)`);
+
+// Tabla de auditoría
+db.run(`CREATE TABLE IF NOT EXISTS auditoria (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  tabla_afectada TEXT NOT NULL,
+  registro_id INTEGER,
+  accion TEXT NOT NULL,
+  datos_anteriores TEXT,
+  datos_nuevos TEXT,
+  usuario_id INTEGER,
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+)`);
+
+// Insertar algunos corregimientos por defecto
+const corregimientosDefault = ['San Francisco', 'El Valle', 'Bethania', 'Pacora', 'Tocumen'];
+corregimientosDefault.forEach(nombre => {
+  db.run('INSERT OR IGNORE INTO corregimientos (nombre) VALUES (?)', [nombre]);
+});
+
+console.log('Tablas adicionales creadas exitosamente');
+
+
 
