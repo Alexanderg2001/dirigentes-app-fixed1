@@ -627,9 +627,25 @@ async function filtrarDirigentes() {
         if (response.ok) {
             appState.dirigentes = dirigentesFiltrados;
             renderizarDirigentes();
+            
+            // 🆕 Mostrar información de resultados filtrados
+            const infoContainer = document.getElementById('info-resultados');
+            if (infoContainer) {
+                if (dirigentesFiltrados.length === 0) {
+                    infoContainer.innerHTML = `<p>🔍 No se encontraron dirigentes con los filtros aplicados</p>`;
+                } else {
+                    infoContainer.innerHTML = `
+                        <p>🔍 Mostrando <strong>${dirigentesFiltrados.length} dirigentes</strong> que coinciden con la búsqueda</p>
+                        <button onclick="cargarDirigentes()" class="btn-ver-recientes">
+                            ⏰ Volver a ver los últimos 10
+                        </button>
+                    `;
+                }
+            }
         }
     } catch (error) {
         console.error('Error filtrando dirigentes:', error);
+        mostrarNotificacion('Error al conectar con el servidor', 'error');
     }
 }
 
@@ -842,6 +858,7 @@ async function cargarDatos() {
     await cargarDashboard(); // 🆕 AGREGAR ESTA LÍNEA
     agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
 }
+
 
 
 
