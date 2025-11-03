@@ -108,7 +108,8 @@ const requireAuth = (req, res, next) => {
 
 // Rutas de la API
 app.get('/api/dirigentes', requireAuth, (req, res) => {
-  db.all('SELECT * FROM dirigentes', (err, rows) => {
+  // Obtener los 10 últimos dirigentes ordenados por los más recientes primero
+  db.all('SELECT * FROM dirigentes ORDER BY creado_en DESC, id DESC LIMIT 10', (err, rows) => {
     if (err) {
       return res.status(500).json({ error: 'Error al obtener dirigentes' });
     }
@@ -283,7 +284,8 @@ app.get('/api/dirigentes/buscar', requireAuth, (req, res) => {
     params.push(`%${comunidad}%`);
   }
 
-  sql += ' ORDER BY nombre';
+  // Agregar orden y límite para mostrar solo 10 resultados
+  sql += ' ORDER BY creado_en DESC, id DESC LIMIT 10';
 
   db.all(sql, params, (err, rows) => {
     if (err) {
@@ -827,6 +829,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     res.send(html);
   });
 });
+
 
 
 
