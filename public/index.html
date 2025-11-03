@@ -105,27 +105,32 @@
                     <button onclick="mostrarFormApoyo()">Registrar Apoyo</button>
                     
                     <div id="form-apoyo" class="hidden form-container">
-                        <h3>Nuevo Apoyo</h3>
-                        <form id="apoyo-form">
-                            <select id="apoyo-dirigente" required>
-                                <option value="">Seleccionar dirigente</option>
-                            </select>
-                            <select id="apoyo-tipo" required>
-                                <option value="">Tipo de apoyo</option>
-                                <option value="economico">Económico</option>
-                                <option value="viveres">Víveres</option>
-                                <option value="otro">Otro</option>
-                            </select>
-                            <input type="text" id="apoyo-descripcion" placeholder="Descripción">
-                            <input type="number" id="apoyo-monto" placeholder="Monto (si es económico)" step="0.01">
-                            <input type="date" id="apoyo-fecha" required readonly style="background-color: #f0f0f0;">
-                            <div class="form-buttons">
-                                <button type="submit">Registrar</button>
-                                <button type="button" onclick="ocultarFormApoyo()">Cancelar</button>
-                            </div>
-                        </form>
-                    </div>
-
+    <h3>Nuevo Apoyo</h3>
+    <form id="apoyo-form">
+        <select id="apoyo-dirigente" required>
+            <option value="">Seleccionar dirigente</option>
+        </select>
+        
+        <!-- 🆕 AGREGAR ESTE SELECT DE COLABORADORES -->
+        <select id="apoyo-colaborador" required>
+            <option value="">Seleccionar colaborador que entrega</option>
+        </select>
+        
+        <select id="apoyo-tipo" required>
+            <option value="">Tipo de apoyo</option>
+            <option value="economico">Económico</option>
+            <option value="viveres">Víveres</option>
+            <option value="otro">Otro</option>
+        </select>
+        <input type="text" id="apoyo-descripcion" placeholder="Descripción">
+        <input type="number" id="apoyo-monto" placeholder="Monto (si es económico)" step="0.01">
+        <input type="date" id="apoyo-fecha" required readonly style="background-color: #f0f0f0;">
+        <div class="form-buttons">
+            <button type="submit">Registrar</button>
+            <button type="button" onclick="ocultarFormApoyo()">Cancelar</button>
+        </div>
+    </form>
+</div>
                     <div id="lista-apoyos" class="table-container">
                         <table id="tabla-apoyos">
                             <thead>
@@ -151,6 +156,7 @@
 </body>
 
 </html>
+
 
 
 
