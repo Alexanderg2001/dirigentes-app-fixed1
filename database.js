@@ -186,3 +186,24 @@ db.on('error', (err) => {
 });
 
 module.exports = db;
+
+// En la función inicializarTablas(), agrega esta tabla:
+`CREATE TABLE IF NOT EXISTS colaboradores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    cedula TEXT NOT NULL,
+    cargo TEXT NOT NULL,
+    activo BOOLEAN DEFAULT TRUE,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+)`,
+
+// Y modifica la tabla de administradores para agregar rol:
+`CREATE TABLE IF NOT EXISTS administradores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    rol TEXT DEFAULT 'admin', -- 'admin' o 'colaborador'
+    activo BOOLEAN DEFAULT TRUE,
+    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+)`,
+
