@@ -1007,21 +1007,27 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
           </div>
           
           <!-- FIRMAS -->
-          <div class="signatures">
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div class="signature-label">FIRMA DEL DIRIGENTE BENEFICIADO</div>
-              <div class="signature-name">${dirigente_nombre}</div>
-              <div class="signature-label">Cédula: ${cedula}</div>
-            </div>
-            
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div class="signature-label">FIRMA DEL COORDINADOR</div>
-              <div class="signature-name">${coordinador}</div>
-              <div class="signature-label">Coordinador Comunitario</div>
-            </div>
-          </div>
+<div class="signatures">
+  <div class="signature-box">
+    <div class="signature-line"></div>
+    <div class="signature-label">FIRMA DEL DIRIGENTE BENEFICIADO</div>
+    <div class="signature-name">${dirigente_nombre}</div>
+    <div class="signature-label">Cédula: ${cedula}</div>
+  </div>
+  
+  <div class="signature-box">
+    <div class="signature-line"></div>
+    <div class="signature-label">FIRMA DEL COLABORADOR AUTORIZADO</div>
+    <div class="signature-name">_________________________</div>
+    <div class="signature-label">Persona Autorizada para Entrega</div>
+    <div style="font-size: 9px; color: #666; margin-top: 5px;">
+      <strong>Colaboradores Autorizados:</strong><br>
+      - [Nombre Colaborador 1]<br>
+      - [Nombre Colaborador 2]<br>
+      - [Nombre Colaborador 3]
+    </div>
+  </div>
+</div>
           
           <!-- PIE DE PÁGINA -->
           <div class="footer">
@@ -1076,6 +1082,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     res.send(html);
   });
 });
+
 
 
 
