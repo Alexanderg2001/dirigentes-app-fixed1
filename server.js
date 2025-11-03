@@ -185,6 +185,22 @@ app.delete('/api/dirigentes/:id', requireAuth, (req, res) => {
   });
 });
 
+// 🆕 RUTA TEMPORAL PARA AGREGAR COLABORADORES
+app.post('/api/colaboradores', requireAuth, (req, res) => {
+  const { nombre, cedula, cargo } = req.body;
+  
+  db.run(
+    'INSERT INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)',
+    [nombre, cedula, cargo],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Error al crear colaborador' });
+      }
+      res.json({ id: this.lastID, message: 'Colaborador creado exitosamente' });
+    }
+  );
+});
+
 // 🆕 RUTA PARA OBTENER TODOS LOS DIRIGENTES (sin límite)
 app.get('/api/dirigentes/todos', requireAuth, (req, res) => {
   db.all('SELECT * FROM dirigentes ORDER BY nombre', (err, rows) => {
@@ -934,3 +950,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
