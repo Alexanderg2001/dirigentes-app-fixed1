@@ -44,15 +44,36 @@ async function login() {
         
         if (data.success) {
             appState.isAuthenticated = true;
+            appState.userRol = data.rol; // 🆕 Guardar rol
+            appState.username = data.username; // 🆕 Guardar username
+            
             actualizarUI();
+            await cargarUsuarioActual(); // 🆕 Cargar datos completos
             cargarDatos();
-            mostrarNotificacion('Sesión iniciada correctamente', 'success');
+            mostrarNotificacion(`Sesión iniciada como ${data.rol}`, 'success');
         } else {
             mostrarNotificacion(data.error || 'Credenciales incorrectas', 'error');
         }
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
         mostrarNotificacion('Error al conectar con el servidor', 'error');
+    }
+}
+
+// 🆕 FUNCIÓN PARA CARGAR DATOS DEL USUARIO ACTUAL
+async function cargarUsuarioActual() {
+    try {
+        const response = await fetch('/api/usuario-actual');
+        const data = await response.json();
+        
+        if (response.ok) {
+            appState.userRol = data.rol;
+            appState.username = data.username;
+            appState.isAdmin = data.isAdmin;
+            actualizarPermisosUI(); // 🆕 Actualizar interfaz según permisos
+        }
+    } catch (error) {
+        console.error('Error cargando datos usuario:', error);
     }
 }
 
@@ -470,8 +491,16 @@ async function buscarDirigente() {
 
 // Cargar todos los datos necesarios
 async function cargarDatos() {
+    if (!appState.isAuthenticated) return;
+    
+    await cargarColaboradores(); // 🆕 Cargar colaboradores
     await cargarDirigentes();
-    await cargarApoyos();  
+    await cargarApoyos();
+    
+    if (appState.isAdmin) {
+        await cargarDashboard();
+        agregarBotonesExportacion();
+    }
 }
 
 // Utilidades
@@ -858,6 +887,67 @@ async function cargarDatos() {
     await cargarDashboard(); // 🆕 AGREGAR ESTA LÍNEA
     agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
 }
+
+// 🆕 FUNCIÓN PARA CARGAR COLABORADORES
+async function cargarColaboradores() {
+    try {
+        const response = await fetch('/api/colaboradores');
+        const data = await response.json();
+        
+        if (response.ok) {
+            appState.colaboradores = data;
+            actualizarSelectColaboradores();
+        }
+    } catch (error) {
+        console.error('Error al cargar colaboradores:', error);
+    }
+}
+
+// 🆕 FUNCIÓN PARA ACTUALIZAR SELECT DE COLABORADORES
+function actualizarSelectColaboradores() {
+    const select = document.getElementById('apoyo-colaborador');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Seleccionar colaborador que entrega</option>';
+    
+    appState.colaboradores.forEach(colaborador => {
+        const option = document.createElement('option');
+        option.value = colaborador.id;
+        option.textContent = `${colaborador.nombre} - ${colaborador.cargo}`;
+        select.appendChild(option);
+    });
+}
+
+// 🆕 FUNCIÓN PARA VERIFICAR PERMISOS DE USUARIO
+function actualizarPermisosUI() {
+    const esAdmin = appState.userRol === 'admin';
+    const esColaborador = appState.userRol === 'colaborador';
+    
+    // Ocultar/mostrar elementos según permisos
+    const elementosSoloAdmin = [
+        'gestion-dirigentes', // Sección completa de gestión
+        'btn-agregar-dirigente', // Botón agregar dirigente
+        'btn-editar-dirigente', // Botones editar
+        'btn-eliminar-dirigente' // Botones eliminar
+    ];
+    
+    elementosSoloAdmin.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.style.display = esAdmin ? 'block' : 'none';
+        }
+    });
+    
+    // Mostrar información del usuario actual
+    const userInfo = document.getElementById('user-info');
+    if (userInfo) {
+        const welcomeSpan = userInfo.querySelector('#welcome-message');
+        if (welcomeSpan) {
+            welcomeSpan.textContent = `Bienvenido, ${appState.userRol === 'admin' ? 'Administrador' : 'Colaborador'}`;
+        }
+    }
+}
+
 
 
 
