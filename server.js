@@ -159,6 +159,16 @@ app.delete('/api/dirigentes/:id', requireAuth, (req, res) => {
   });
 });
 
+// 🆕 RUTA PARA OBTENER TODOS LOS DIRIGENTES (sin límite)
+app.get('/api/dirigentes/todos', requireAuth, (req, res) => {
+  db.all('SELECT * FROM dirigentes ORDER BY nombre', (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener todos los dirigentes' });
+    }
+    res.json(rows);
+  });
+});
+
 app.get('/api/buscar-dirigente', (req, res) => {
   const cedula = req.query.cedula;
   
@@ -829,6 +839,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     res.send(html);
   });
 });
+
 
 
 
