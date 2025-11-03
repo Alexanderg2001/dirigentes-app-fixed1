@@ -180,6 +180,7 @@ async function cargarDirigentes() {
             appState.dirigentes = data;
             renderizarDirigentes();
             actualizarSelectDirigentes();
+            mostrarInfoResultados(); // 🆕 Mostrar información de resultados
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -216,6 +217,51 @@ function renderizarDirigentes() {
         
         tbody.appendChild(tr);
     });
+}
+
+// 🆕 FUNCIÓN PARA MOSTRAR INFORMACIÓN DE RESULTADOS
+function mostrarInfoResultados() {
+    const infoContainer = document.getElementById('info-resultados');
+    if (!infoContainer) {
+        // Crear contenedor si no existe
+        const listaContainer = document.getElementById('lista-dirigentes');
+        const infoHTML = `
+            <div id="info-resultados" class="info-resultados">
+                <p>📋 Mostrando los <strong>10 últimos dirigentes</strong> registrados o modificados</p>
+                <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
+                    🔍 Ver todos los dirigentes
+                </button>
+            </div>
+        `;
+        // Insertar antes de la tabla
+        const tabla = listaContainer.querySelector('table');
+        listaContainer.insertBefore(document.createElement('div'), tabla).outerHTML = infoHTML;
+    }
+}
+
+// 🆕 FUNCIÓN PARA MOSTRAR TODOS LOS DIRIGENTES (sin límite)
+async function mostrarTodosLosDirigentes() {
+    try {
+        const response = await fetch('/api/dirigentes/todos');
+        const data = await response.json();
+        
+        if (response.ok) {
+            appState.dirigentes = data;
+            renderizarDirigentes();
+            document.getElementById('info-resultados').innerHTML = `
+                <p>📋 Mostrando <strong>todos los ${data.length} dirigentes</strong></p>
+                <button onclick="cargarDirigentes()" class="btn-ver-recientes">
+                    ⏰ Volver a ver solo los últimos 10
+                </button>
+            `;
+            mostrarNotificacion(`Mostrando todos los ${data.length} dirigentes`, 'success');
+        } else {
+            mostrarNotificacion(data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error al cargar todos los dirigentes:', error);
+        mostrarNotificacion('Error al conectar con el servidor', 'error');
+    }
 }
 
 function editarDirigente(id) {
@@ -796,6 +842,7 @@ async function cargarDatos() {
     await cargarDashboard(); // 🆕 AGREGAR ESTA LÍNEA
     agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
 }
+
 
 
 
