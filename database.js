@@ -25,82 +25,6 @@ const db = new sqlite3.Database(dbPath);
 // Función segura para crear tablas si no existen
 function inicializarTablas() {
     console.log('🔄 Verificando estructura de la base de datos...');
-
-    // 🆕 FUNCIÓN PARA ACTUALIZAR TABLAS EXISTENTES (VERSIÓN CORREGIDA)
-function actualizarTablasExistente() {
-    console.log('🔄 Verificando actualizaciones de tablas existentes...');
-    
-    // 1. Agregar columna 'rol' a administradores si no existe
-    db.all("PRAGMA table_info(administradores)", (err, columns) => {
-        if (err) {
-            console.log('⚠️  No se pudo verificar tabla administradores:', err.message);
-            return;
-        }
-        
-        if (!columns) {
-            console.log('⚠️  No se pudieron obtener columnas de administradores');
-            return;
-        }
-        
-        const tieneRol = columns.some(col => col.name === 'rol');
-        if (!tieneRol) {
-            db.run("ALTER TABLE administradores ADD COLUMN rol TEXT DEFAULT 'admin'", (err) => {
-                if (err) {
-                    console.log('⚠️  No se pudo agregar columna rol:', err.message);
-                } else {
-                    console.log('✅ Columna "rol" agregada a tabla administradores');
-                    
-                    // Actualizar administrador existente
-                    db.run("UPDATE administradores SET rol = 'admin' WHERE username = 'admin'", (err) => {
-                        if (err) {
-                            console.log('⚠️  No se pudo actualizar administrador:', err.message);
-                        } else {
-                            console.log('✅ Administrador actualizado con rol "admin"');
-                        }
-                    });
-                }
-            });
-        } else {
-            console.log('✅ Columna "rol" ya existe en administradores');
-        }
-    });
-
-    // 2. Agregar columna 'activo' a administradores si no existe
-    setTimeout(() => {
-        db.all("PRAGMA table_info(administradores)", (err, columns) => {
-            if (err || !columns) return;
-            
-            const tieneActivo = columns.some(col => col.name === 'activo');
-            if (!tieneActivo) {
-                db.run("ALTER TABLE administradores ADD COLUMN activo BOOLEAN DEFAULT TRUE", (err) => {
-                    if (err) {
-                        console.log('⚠️  No se pudo agregar columna activo:', err.message);
-                    } else {
-                        console.log('✅ Columna "activo" agregada a tabla administradores');
-                    }
-                });
-            }
-        });
-    }, 100);
-
-    // 3. Agregar columna 'colaborador_id' a apoyos si no existe
-    setTimeout(() => {
-        db.all("PRAGMA table_info(apoyos)", (err, columns) => {
-            if (err || !columns) return;
-            
-            const tieneColaboradorId = columns.some(col => col.name === 'colaborador_id');
-            if (!tieneColaboradorId) {
-                db.run("ALTER TABLE apoyos ADD COLUMN colaborador_id INTEGER", (err) => {
-                    if (err) {
-                        console.log('⚠️  No se pudo agregar columna colaborador_id:', err.message);
-                    } else {
-                        console.log('✅ Columna "colaborador_id" agregada a tabla apoyos');
-                    }
-                });
-            }
-        });
-    }, 200);
-}
     
     const tablas = [
         // 🆕 MODIFICADA tabla de administradores con rol
@@ -269,31 +193,33 @@ function insertarDatosIniciales() {
     });
 
     // Crear usuario colaborador de ejemplo
-    db.get('SELECT COUNT(*) as count FROM administradores WHERE username = ?', ['colaborador'], (err, row) => {
-        if (err) {
-            console.log('⚠️  No se pudo verificar usuario colaborador:', err.message);
-            return;
-        }
-        
-        if (row.count === 0) {
-            bcrypt.hash('colab123', 10, (err, hash) => {
-                if (err) {
-                    console.error('❌ Error hashing password colaborador:', err);
-                    return;
-                }
-                db.run('INSERT INTO administradores (username, password, rol) VALUES (?, ?, ?)', 
-                    ['colaborador', hash, 'colaborador'], function(err) {
+    setTimeout(() => {
+        db.get('SELECT COUNT(*) as count FROM administradores WHERE username = ?', ['colaborador'], (err, row) => {
+            if (err) {
+                console.log('⚠️  No se pudo verificar usuario colaborador:', err.message);
+                return;
+            }
+            
+            if (row.count === 0) {
+                bcrypt.hash('colab123', 10, (err, hash) => {
                     if (err) {
-                        console.error('❌ Error creando usuario colaborador:', err.message);
-                    } else {
-                        console.log('👤 Usuario colaborador creado: colaborador / colab123');
+                        console.error('❌ Error hashing password colaborador:', err);
+                        return;
                     }
+                    db.run('INSERT INTO administradores (username, password, rol) VALUES (?, ?, ?)', 
+                        ['colaborador', hash, 'colaborador'], function(err) {
+                        if (err) {
+                            console.log('⚠️  Error creando usuario colaborador:', err.message);
+                        } else {
+                            console.log('👤 Usuario colaborador creado: colaborador / colab123');
+                        }
+                    });
                 });
-            });
-        } else {
-            console.log('👤 Usuario colaborador ya existe, omitiendo creación');
-        }
-    });
+            } else {
+                console.log('👤 Usuario colaborador ya existe, omitiendo creación');
+            }
+        });
+    }, 1000);
     
     // Verificar y insertar corregimientos SOLO si la tabla está vacía
     db.get('SELECT COUNT(*) as count FROM corregimientos', (err, row) => {
@@ -327,71 +253,46 @@ function insertarDatosIniciales() {
     });
 }
 
-// 🆕 FUNCIÓN PARA ACTUALIZAR TABLAS EXISTENTES
+// 🆕 FUNCIÓN PARA ACTUALIZAR TABLAS EXISTENTES (VERSIÓN SIMPLIFICADA Y SEGURA)
 function actualizarTablasExistente() {
     console.log('🔄 Verificando actualizaciones de tablas existentes...');
     
-    // 1. Agregar columna 'rol' a administradores si no existe
-    db.run("PRAGMA table_info(administradores)", (err, columns) => {
+    // Intentar agregar columnas directamente (si falla, es porque ya existen)
+    db.run("ALTER TABLE administradores ADD COLUMN rol TEXT DEFAULT 'admin'", (err) => {
         if (err) {
-            console.log('⚠️  No se pudo verificar tabla administradores:', err.message);
-            return;
-        }
-        
-        const tieneRol = columns.some(col => col.name === 'rol');
-        if (!tieneRol) {
-            db.run("ALTER TABLE administradores ADD COLUMN rol TEXT DEFAULT 'admin'", (err) => {
-                if (err) {
-                    console.log('⚠️  No se pudo agregar columna rol:', err.message);
-                } else {
-                    console.log('✅ Columna "rol" agregada a tabla administradores');
-                    
-                    // Actualizar administrador existente
-                    db.run("UPDATE administradores SET rol = 'admin' WHERE username = 'admin'", (err) => {
-                        if (err) {
-                            console.log('⚠️  No se pudo actualizar administrador:', err.message);
-                        } else {
-                            console.log('✅ Administrador actualizado con rol "admin"');
-                        }
-                    });
-                }
-            });
-        } else {
             console.log('✅ Columna "rol" ya existe en administradores');
-        }
-    });
-
-    // 2. Agregar columna 'activo' a administradores si no existe
-    db.run("PRAGMA table_info(administradores)", (err, columns) => {
-        if (err) return;
-        
-        const tieneActivo = columns.some(col => col.name === 'activo');
-        if (!tieneActivo) {
-            db.run("ALTER TABLE administradores ADD COLUMN activo BOOLEAN DEFAULT TRUE", (err) => {
+        } else {
+            console.log('✅ Columna "rol" agregada a tabla administradores');
+            // Actualizar administrador existente
+            db.run("UPDATE administradores SET rol = 'admin' WHERE username = 'admin'", (err) => {
                 if (err) {
-                    console.log('⚠️  No se pudo agregar columna activo:', err.message);
+                    console.log('⚠️  No se pudo actualizar administrador:', err.message);
                 } else {
-                    console.log('✅ Columna "activo" agregada a tabla administradores');
+                    console.log('✅ Administrador actualizado con rol "admin"');
                 }
             });
         }
     });
 
-    // 3. Agregar columna 'colaborador_id' a apoyos si no existe
-    db.run("PRAGMA table_info(apoyos)", (err, columns) => {
-        if (err) return;
-        
-        const tieneColaboradorId = columns.some(col => col.name === 'colaborador_id');
-        if (!tieneColaboradorId) {
-            db.run("ALTER TABLE apoyos ADD COLUMN colaborador_id INTEGER", (err) => {
-                if (err) {
-                    console.log('⚠️  No se pudo agregar columna colaborador_id:', err.message);
-                } else {
-                    console.log('✅ Columna "colaborador_id" agregada a tabla apoyos');
-                }
-            });
-        }
-    });
+    setTimeout(() => {
+        db.run("ALTER TABLE administradores ADD COLUMN activo BOOLEAN DEFAULT TRUE", (err) => {
+            if (err) {
+                console.log('✅ Columna "activo" ya existe en administradores');
+            } else {
+                console.log('✅ Columna "activo" agregada a tabla administradores');
+            }
+        });
+    }, 100);
+
+    setTimeout(() => {
+        db.run("ALTER TABLE apoyos ADD COLUMN colaborador_id INTEGER", (err) => {
+            if (err) {
+                console.log('✅ Columna "colaborador_id" ya existe en apoyos');
+            } else {
+                console.log('✅ Columna "colaborador_id" agregada a tabla apoyos');
+            }
+        });
+    }, 200);
 }
 
 // Inicializar la base de datos cuando se conecte
@@ -401,3 +302,8 @@ db.on('open', () => {
     actualizarTablasExistente(); // 🆕 Agregar esta línea
 });
 
+db.on('error', (err) => {
+    console.error('❌ Error de base de datos:', err);
+});
+
+module.exports = db;
