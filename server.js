@@ -73,6 +73,26 @@ app.use(session({
 // Inicializar base de datos
 const db = require('./database.js');
 
+// 🆕 RUTAS PARA COLABORADORES
+app.get('/api/colaboradores', requireAuth, (req, res) => {
+  db.all('SELECT * FROM colaboradores WHERE activo = TRUE ORDER BY nombre', (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener colaboradores' });
+    }
+    res.json(rows);
+  });
+});
+
+// 🆕 RUTA PARA OBTENER DATOS DE USUARIO ACTUAL
+app.get('/api/usuario-actual', requireAuth, (req, res) => {
+  res.json({
+    id: req.session.userId,
+    username: req.session.username,
+    rol: req.session.rol,
+    isAdmin: req.session.isAdmin
+  });
+});
+
 // Rutas de autenticación
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -1084,6 +1104,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     res.send(html);
   });
 });
+
 
 
 
