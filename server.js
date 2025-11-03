@@ -1017,15 +1017,11 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
   
   <div class="signature-box">
     <div class="signature-line"></div>
-    <div class="signature-label">FIRMA DEL COLABORADOR AUTORIZADO</div>
+    <div class="signature-label">FIRMA DE QUIEN ENTREGA</div>
     <div class="signature-name">_________________________</div>
-    <div class="signature-label">Persona Autorizada para Entrega</div>
-    <div style="font-size: 9px; color: #666; margin-top: 5px;">
-      <strong>Colaboradores Autorizados:</strong><br>
-      - [Nombre Colaborador 1]<br>
-      - [Nombre Colaborador 2]<br>
-      - [Nombre Colaborador 3]
-    </div>
+    <div class="signature-label">Nombre: ___________________</div>
+    <div class="signature-label">Cédula: ___________________</div>
+    <div class="signature-label">Cargo: Colaborador Autorizado</div>
   </div>
 </div>
           
@@ -1082,6 +1078,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     res.send(html);
   });
 });
+
 
 
 
