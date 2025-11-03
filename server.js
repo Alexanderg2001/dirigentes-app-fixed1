@@ -222,15 +222,15 @@ app.get('/api/apoyos', requireAuth, (req, res) => {
 });
 
 app.post('/api/apoyos', requireAuth, (req, res) => {
-  const { dirigente_id, tipo, descripcion, monto, } = req.body;
+  const { dirigente_id, tipo, descripcion, monto, colaborador_id } = req.body; // 🆕 agregar colaborador_id
   
   // Obtener fecha en zona horaria local (Panamá)
-const ahora = new Date();
-const fecha = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+  const ahora = new Date();
+  const fecha = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
   
   db.run(
-    'INSERT INTO apoyos (dirigente_id, tipo, descripcion, monto, fecha) VALUES (?, ?, ?, ?, ?)',
-    [dirigente_id, tipo, descripcion, monto || null, fecha],
+    'INSERT INTO apoyos (dirigente_id, tipo, descripcion, monto, fecha, colaborador_id) VALUES (?, ?, ?, ?, ?, ?)',
+    [dirigente_id, tipo, descripcion, monto || null, fecha, colaborador_id || null],
     function(err) {
       if (err) {
         return res.status(500).json({ error: 'Error al registrar apoyo' });
@@ -650,17 +650,16 @@ app.get('/api/comunidades', requireAuth, (req, res) => {
 app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
   const apoyoId = req.params.apoyoId;
   
-  // Obtener datos del apoyo Y del dirigente
-  db.get(`
-    SELECT a.*, d.nombre as dirigente_nombre, d.cedula, d.telefono, 
-           d.corregimiento, d.comunidad, d.coordinador, d.participacion
-    FROM apoyos a 
-    LEFT JOIN dirigentes d ON a.dirigente_id = d.id 
-    WHERE a.id = ?
-  `, [apoyoId], (err, resultado) => {
-    if (err || !resultado) {
-      return res.status(404).send('Apoyo no encontrado');
-    }
+  // En la ruta /constancia-apoyo/:apoyoId, MODIFICA la consulta SQL:
+db.get(`
+  SELECT a.*, d.nombre as dirigente_nombre, d.cedula, d.telefono, 
+         d.corregimiento, d.comunidad, d.coordinador, d.participacion,
+         c.nombre as colaborador_nombre, c.cedula as colaborador_cedula, c.cargo as colaborador_cargo
+  FROM apoyos a 
+  LEFT JOIN dirigentes d ON a.dirigente_id = d.id 
+  LEFT JOIN colaboradores c ON a.colaborador_id = c.id
+  WHERE a.id = ?
+`, [apoyoId], (err, resultado) => {
     
     const { dirigente_nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion, ...apoyo } = resultado;
     
@@ -1104,6 +1103,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     res.send(html);
   });
 });
+
 
 
 
