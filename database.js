@@ -27,11 +27,13 @@ function inicializarTablas() {
     console.log('🔄 Verificando estructura de la base de datos...');
     
     const tablas = [
-        // Tablas existentes (por si acaso)
+        // 🆕 MODIFICADA tabla de administradores con rol
         `CREATE TABLE IF NOT EXISTS administradores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
+            rol TEXT DEFAULT 'admin',
+            activo BOOLEAN DEFAULT TRUE,
             creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
         )`,
         
@@ -54,11 +56,22 @@ function inicializarTablas() {
             descripcion TEXT,
             monto DECIMAL(10,2),
             fecha DATE NOT NULL,
+            colaborador_id INTEGER,
             creado_en DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (dirigente_id) REFERENCES dirigentes (id)
+            FOREIGN KEY (dirigente_id) REFERENCES dirigentes (id),
+            FOREIGN KEY (colaborador_id) REFERENCES colaboradores (id)
         )`,
         
-        // 🆕 NUEVAS TABLAS - SOLO SI NO EXISTEN
+        // 🆕 NUEVA tabla de colaboradores
+        `CREATE TABLE IF NOT EXISTS colaboradores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            cedula TEXT NOT NULL,
+            cargo TEXT NOT NULL,
+            activo BOOLEAN DEFAULT TRUE,
+            creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`,
+        
         `CREATE TABLE IF NOT EXISTS notificaciones (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             titulo TEXT NOT NULL,
@@ -129,8 +142,8 @@ function insertarDatosIniciales() {
                     return;
                 }
                 
-                db.run('INSERT INTO administradores (username, password) VALUES (?, ?)', 
-                    ['admin', hash], function(err) {
+                db.run('INSERT INTO administradores (username, password, rol) VALUES (?, ?, ?)', 
+                    ['admin', hash, 'admin'], function(err) {
                     if (err) {
                         console.error('❌ Error creando administrador:', err.message);
                     } else {
@@ -144,38 +157,67 @@ function insertarDatosIniciales() {
     });
 
     // Insertar colaboradores de ejemplo
-db.get('SELECT COUNT(*) as count FROM colaboradores', (err, row) => {
-    if (err) return;
-    
-    if (row.count === 0) {
-        const colaboradores = [
-            { nombre: 'Ana Pérez', cedula: '8-123-456', cargo: 'Asistente Social' },
-            { nombre: 'Carlos Rodríguez', cedula: '8-234-567', cargo: 'Coordinador de Campo' },
-            { nombre: 'María González', cedula: '8-345-678', cargo: 'Trabajadora Social' },
-            { nombre: 'José Martínez', cedula: '8-456-789', cargo: 'Promotor Comunitario' }
-        ];
+    db.get('SELECT COUNT(*) as count FROM colaboradores', (err, row) => {
+        if (err) {
+            console.log('⚠️  Tabla colaboradores no disponible aún:', err.message);
+            return;
+        }
         
-        colaboradores.forEach(colab => {
-            db.run('INSERT INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)', 
-                [colab.nombre, colab.cedula, colab.cargo]);
-        });
-        console.log('👥 Colaboradores por defecto creados');
-    }
-});
+        if (row.count === 0) {
+            const colaboradores = [
+                { nombre: 'Ana Pérez', cedula: '8-123-456', cargo: 'Asistente Social' },
+                { nombre: 'Carlos Rodríguez', cedula: '8-234-567', cargo: 'Coordinador de Campo' },
+                { nombre: 'María González', cedula: '8-345-678', cargo: 'Trabajadora Social' },
+                { nombre: 'José Martínez', cedula: '8-456-789', cargo: 'Promotor Comunitario' }
+            ];
+            
+            let insertados = 0;
+            colaboradores.forEach(colab => {
+                db.run('INSERT INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)', 
+                    [colab.nombre, colab.cedula, colab.cargo], function(err) {
+                    if (err) {
+                        console.error(`❌ Error insertando colaborador ${colab.nombre}:`, err.message);
+                    } else {
+                        insertados++;
+                        console.log(`✅ Colaborador "${colab.nombre}" insertado`);
+                    }
+                    
+                    if (insertados === colaboradores.length) {
+                        console.log(`🎉 ${insertados} colaboradores insertados exitosamente`);
+                    }
+                });
+            });
+        } else {
+            console.log(`👥 Ya existen ${row.count} colaboradores, omitiendo inserción`);
+        }
+    });
 
-// Crear usuario colaborador de ejemplo
-db.get('SELECT COUNT(*) as count FROM administradores WHERE username = ?', ['colaborador'], (err, row) => {
-    if (err) return;
-    
-    if (row.count === 0) {
-        bcrypt.hash('colab123', 10, (err, hash) => {
-            if (err) return;
-            db.run('INSERT INTO administradores (username, password, rol) VALUES (?, ?, ?)', 
-                ['colaborador', hash, 'colaborador']);
-            console.log('👤 Usuario colaborador creado: colaborador / colab123');
-        });
-    }
-});
+    // Crear usuario colaborador de ejemplo
+    db.get('SELECT COUNT(*) as count FROM administradores WHERE username = ?', ['colaborador'], (err, row) => {
+        if (err) {
+            console.log('⚠️  No se pudo verificar usuario colaborador:', err.message);
+            return;
+        }
+        
+        if (row.count === 0) {
+            bcrypt.hash('colab123', 10, (err, hash) => {
+                if (err) {
+                    console.error('❌ Error hashing password colaborador:', err);
+                    return;
+                }
+                db.run('INSERT INTO administradores (username, password, rol) VALUES (?, ?, ?)', 
+                    ['colaborador', hash, 'colaborador'], function(err) {
+                    if (err) {
+                        console.error('❌ Error creando usuario colaborador:', err.message);
+                    } else {
+                        console.log('👤 Usuario colaborador creado: colaborador / colab123');
+                    }
+                });
+            });
+        } else {
+            console.log('👤 Usuario colaborador ya existe, omitiendo creación');
+        }
+    });
     
     // Verificar y insertar corregimientos SOLO si la tabla está vacía
     db.get('SELECT COUNT(*) as count FROM corregimientos', (err, row) => {
@@ -220,25 +262,3 @@ db.on('error', (err) => {
 });
 
 module.exports = db;
-
-// En la función inicializarTablas(), agrega esta tabla:
-`CREATE TABLE IF NOT EXISTS colaboradores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    cedula TEXT NOT NULL,
-    cargo TEXT NOT NULL,
-    activo BOOLEAN DEFAULT TRUE,
-    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
-)`,
-
-// Y modifica la tabla de administradores para agregar rol:
-`CREATE TABLE IF NOT EXISTS administradores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    rol TEXT DEFAULT 'admin', -- 'admin' o 'colaborador'
-    activo BOOLEAN DEFAULT TRUE,
-    creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
-)`,
-
-
