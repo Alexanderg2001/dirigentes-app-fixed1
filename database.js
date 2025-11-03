@@ -142,6 +142,40 @@ function insertarDatosIniciales() {
             console.log('👤 Administrador ya existe, omitiendo creación');
         }
     });
+
+    // Insertar colaboradores de ejemplo
+db.get('SELECT COUNT(*) as count FROM colaboradores', (err, row) => {
+    if (err) return;
+    
+    if (row.count === 0) {
+        const colaboradores = [
+            { nombre: 'Ana Pérez', cedula: '8-123-456', cargo: 'Asistente Social' },
+            { nombre: 'Carlos Rodríguez', cedula: '8-234-567', cargo: 'Coordinador de Campo' },
+            { nombre: 'María González', cedula: '8-345-678', cargo: 'Trabajadora Social' },
+            { nombre: 'José Martínez', cedula: '8-456-789', cargo: 'Promotor Comunitario' }
+        ];
+        
+        colaboradores.forEach(colab => {
+            db.run('INSERT INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)', 
+                [colab.nombre, colab.cedula, colab.cargo]);
+        });
+        console.log('👥 Colaboradores por defecto creados');
+    }
+});
+
+// Crear usuario colaborador de ejemplo
+db.get('SELECT COUNT(*) as count FROM administradores WHERE username = ?', ['colaborador'], (err, row) => {
+    if (err) return;
+    
+    if (row.count === 0) {
+        bcrypt.hash('colab123', 10, (err, hash) => {
+            if (err) return;
+            db.run('INSERT INTO administradores (username, password, rol) VALUES (?, ?, ?)', 
+                ['colaborador', hash, 'colaborador']);
+            console.log('👤 Usuario colaborador creado: colaborador / colab123');
+        });
+    }
+});
     
     // Verificar y insertar corregimientos SOLO si la tabla está vacía
     db.get('SELECT COUNT(*) as count FROM corregimientos', (err, row) => {
@@ -206,4 +240,5 @@ module.exports = db;
     activo BOOLEAN DEFAULT TRUE,
     creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
 )`,
+
 
