@@ -1033,21 +1033,20 @@ db.get(`
           
           <!-- FIRMAS -->
 <div class="signatures">
-  <div class="signature-box">
-    <div class="signature-line"></div>
-    <div class="signature-label">FIRMA DEL DIRIGENTE BENEFICIADO</div>
-    <div class="signature-name">${dirigente_nombre}</div>
-    <div class="signature-label">Cédula: ${cedula}</div>
-  </div>
-  
-  <div class="signature-box">
-    <div class="signature-line"></div>
-    <div class="signature-label">FIRMA DE QUIEN ENTREGA</div>
-    <div class="signature-name">_________________________</div>
-    <div class="signature-label">Nombre: ___________________</div>
-    <div class="signature-label">Cédula: ___________________</div>
-    <div class="signature-label">Cargo: Colaborador Autorizado</div>
-  </div>
+    <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">FIRMA DEL DIRIGENTE BENEFICIADO</div>
+        <div class="signature-name">${dirigente_nombre}</div>
+        <div class="signature-label">Cédula: ${cedula}</div>
+    </div>
+    
+    <div class="signature-box">
+        <div class="signature-line"></div>
+        <div class="signature-label">FIRMA DE QUIEN ENTREGA</div>
+        <div class="signature-name">${resultado.colaborador_nombre || '_________________________'}</div>
+        <div class="signature-label">${resultado.colaborador_cargo || 'Colaborador Autorizado'}</div>
+        <div class="signature-label">Cédula: ${resultado.colaborador_cedula || '___________________'}</div>
+    </div>
 </div>
           
           <!-- PIE DE PÁGINA -->
@@ -1103,6 +1102,7 @@ db.get(`
     res.send(html);
   });
 });
+
 
 
 
