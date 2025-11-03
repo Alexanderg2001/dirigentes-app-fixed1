@@ -77,15 +77,21 @@ const db = require('./database.js');
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   
-  db.get('SELECT * FROM administradores WHERE username = ?', [username], async (err, row) => {
+  db.get('SELECT * FROM administradores WHERE username = ? AND activo = TRUE', [username], async (err, row) => {
     if (err) {
       return res.status(500).json({ error: 'Error del servidor' });
     }
     
     if (row && await bcrypt.compare(password, row.password)) {
       req.session.userId = row.id;
-      req.session.isAdmin = true;
-      res.json({ success: true });
+      req.session.username = row.username;
+      req.session.rol = row.rol; // 🆕 Guardar el rol en sesión
+      req.session.isAdmin = row.rol === 'admin'; // 🆕 Definir si es admin
+      res.json({ 
+        success: true, 
+        rol: row.rol,
+        username: row.username 
+      });
     } else {
       res.status(401).json({ error: 'Credenciales incorrectas' });
     }
@@ -1078,6 +1084,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     res.send(html);
   });
 });
+
 
 
 
