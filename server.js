@@ -980,3 +980,27 @@ app.post('/api/crear-colaboradores-ejemplo', requireAuth, (req, res) => {
     });
 });
 
+// 🆕 DIAGNÓSTICO COMPLETO
+function diagnosticarSistema() {
+    console.log('🔍 DIAGNÓSTICO DEL SISTEMA:');
+    console.log('1. Dirigentes en appState:', appState.dirigentes?.length);
+    console.log('2. Todos los dirigentes:', appState.todosLosDirigentes?.length);
+    console.log('3. Colaboradores:', appState.colaboradores?.length);
+    console.log('4. Estado autenticación:', appState.isAuthenticated);
+    
+    // Probar rutas API
+    Promise.all([
+        fetch('/api/dirigentes').then(r => r.json()).then(d => ({dirigentes: d.length})),
+        fetch('/api/dirigentes/todos').then(r => r.json()).then(d => ({todos: d.length})).catch(e => ({error: e.message})),
+        fetch('/api/colaboradores').then(r => r.json()).then(d => ({colaboradores: d.length}))
+    ]).then(results => {
+        console.log('5. Resultados API:', results);
+    }).catch(error => {
+        console.log('6. Error en APIs:', error);
+    });
+}
+
+// Ejecutar diagnóstico
+setTimeout(diagnosticarSistema, 2000);
+
+
