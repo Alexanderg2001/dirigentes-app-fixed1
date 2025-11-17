@@ -718,5 +718,74 @@ button.apoyo:hover {
     }
 }
 
+/* 🆕 ESTILOS PARA BUSCADOR INTELIGENTE */
+.buscador-dirigentes {
+    margin-bottom: 1rem;
+}
+
+.buscador-dirigentes label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+#buscar-dirigente-apoyo {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+#buscar-dirigente-apoyo:focus {
+    border-color: var(--secondary-color);
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* Estilos para el select de dirigentes con scroll */
+#apoyo-dirigente {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.9rem;
+}
+
+#apoyo-dirigente option {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+#apoyo-dirigente option:hover {
+    background-color: #f0f8ff;
+}
+
+#apoyo-dirigente option:checked {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+/* Campo de monto condicional */
+#monto-field {
+    transition: all 0.3s ease;
+}
+
+#monto-field.hidden {
+    display: none;
+}
+
+/* Contador de resultados */
+.contador-resultados {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
 
 
