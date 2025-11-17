@@ -948,6 +948,155 @@ function actualizarPermisosUI() {
     }
 }
 
+// 🆕 FUNCIONES PARA BUSCADOR INTELIGENTE DE DIRIGENTES
+
+function filtrarDirigentesApoyo() {
+    const busqueda = document.getElementById('buscar-dirigente-apoyo').value.toLowerCase();
+    const select = document.getElementById('apoyo-dirigente');
+    const contador = document.getElementById('contador-resultados') || crearContador();
+    
+    // Guardar el select original si no existe
+    if (!appState.dirigentesOriginal) {
+        appState.dirigentesOriginal = Array.from(select.options);
+    }
+    
+    // Limpiar select
+    select.innerHTML = '';
+    
+    // Filtrar dirigentes
+    const dirigentesFiltrados = appState.dirigentes.filter(dirigente => 
+        dirigente.nombre.toLowerCase().includes(busqueda) ||
+        dirigente.cedula.includes(busqueda) ||
+        dirigente.comunidad.toLowerCase().includes(busqueda) ||
+        dirigente.corregimiento.toLowerCase().includes(busqueda)
+    );
+    
+    // Agregar opción por defecto
+    const optionDefault = document.createElement('option');
+    optionDefault.value = '';
+    optionDefault.textContent = dirigentesFiltrados.length === 0 ? 
+        '❌ No se encontraron dirigentes' : 
+        `👥 ${dirigentesFiltrados.length} dirigente(s) encontrado(s)`;
+    optionDefault.disabled = true;
+    select.appendChild(optionDefault);
+    
+    // Agregar dirigentes filtrados
+    dirigentesFiltrados.forEach(dirigente => {
+        const option = document.createElement('option');
+        option.value = dirigente.id;
+        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
+        option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
+        select.appendChild(option);
+    });
+    
+    // Actualizar contador
+    contador.textContent = `${dirigentesFiltrados.length} dirigente(s) encontrado(s)`;
+    
+    // Si hay solo un resultado, seleccionarlo automáticamente
+    if (dirigentesFiltrados.length === 1 && busqueda.length > 2) {
+        select.value = dirigentesFiltrados[0].id;
+        mostrarNotificacion(`Dirigente "${dirigentesFiltrados[0].nombre}" seleccionado automáticamente`, 'success');
+    }
+}
+
+function crearContador() {
+    const contador = document.createElement('div');
+    contador.id = 'contador-resultados';
+    contador.className = 'contador-resultados';
+    document.querySelector('.buscador-dirigentes').appendChild(contador);
+    return contador;
+}
+
+// 🆕 FUNCIÓN PARA MOSTRAR DIRIGENTES EN EL SELECTOR
+function actualizarSelectDirigentes() {
+    const select = document.getElementById('apoyo-dirigente');
+    if (!select) return;
+    
+    // Guardar referencia original
+    appState.dirigentesOriginal = [];
+    
+    // Limpiar select
+    select.innerHTML = '';
+    
+    // Agregar opción por defecto
+    const optionDefault = document.createElement('option');
+    optionDefault.value = '';
+    optionDefault.textContent = `👥 ${appState.dirigentes.length} dirigentes disponibles - Use el buscador arriba`;
+    optionDefault.disabled = true;
+    select.appendChild(optionDefault);
+    
+    // Agregar todos los dirigentes (pero el buscador los filtrará)
+    appState.dirigentes.forEach(dirigente => {
+        const option = document.createElement('option');
+        option.value = dirigente.id;
+        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
+        option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
+        select.appendChild(option);
+        appState.dirigentesOriginal.push(option.cloneNode(true));
+    });
+    
+    // Crear contador si no existe
+    if (!document.getElementById('contador-resultados')) {
+        crearContador();
+    }
+}
+
+// 🆕 FUNCIÓN PARA MOSTRAR/OCULTAR CAMPO MONTO
+function toggleMontoField() {
+    const tipoApoyo = document.getElementById('apoyo-tipo').value;
+    const montoField = document.getElementById('monto-field');
+    const montoInput = document.getElementById('apoyo-monto');
+    
+    if (tipoApoyo === 'economico') {
+        montoField.classList.remove('hidden');
+        montoInput.required = true;
+    } else {
+        montoField.classList.add('hidden');
+        montoInput.required = false;
+        montoInput.value = '';
+    }
+}
+
+// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO DE APOYO
+function mostrarFormApoyo() {
+    document.getElementById('form-apoyo').classList.remove('hidden');
+    configurarFechaAutomatica();
+    
+    // 🆕 ENFOCAR EN EL BUSCADOR AUTOMÁTICAMENTE
+    setTimeout(() => {
+        const buscador = document.getElementById('buscar-dirigente-apoyo');
+        if (buscador) {
+            buscador.focus();
+        }
+    }, 100);
+}
+
+// 🆕 FUNCIÓN MEJORADA PARA REGISTRAR APOYO DESDE TABLA
+function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
+    mostrarFormApoyo();
+    
+    // Seleccionar automáticamente el dirigente en el nuevo sistema
+    const select = document.getElementById('apoyo-dirigente');
+    if (select) {
+        select.value = dirigenteId;
+    }
+    
+    // También llenar el buscador para contexto
+    const buscador = document.getElementById('buscar-dirigente-apoyo');
+    if (buscador) {
+        buscador.value = dirigenteNombre;
+        filtrarDirigentesApoyo(); // Aplicar filtro
+    }
+    
+    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
+    
+    // Hacer scroll suave al formulario
+    document.getElementById('form-apoyo').scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'center'
+    });
+}
+
 
 
 
