@@ -951,4 +951,32 @@ app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
 
+// 🆕 RUTA TEMPORAL PARA CREAR COLABORADORES SI NO EXISTEN
+app.post('/api/crear-colaboradores-ejemplo', requireAuth, (req, res) => {
+    const colaboradores = [
+        { nombre: 'ANA GARCÍA', cedula: '8-123-001', cargo: 'Coordinadora General' },
+        { nombre: 'CARLOS LÓPEZ', cedula: '8-123-002', cargo: 'Asistente Social' },
+        { nombre: 'MARÍA RODRÍGUEZ', cedula: '8-123-003', cargo: 'Promotora Comunitaria' },
+        { nombre: 'JOSÉ MARTÍNEZ', cedula: '8-123-004', cargo: 'Facilitador' }
+    ];
+    
+    let creados = 0;
+    colaboradores.forEach(colab => {
+        db.run(
+            'INSERT OR IGNORE INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)',
+            [colab.nombre, colab.cedula, colab.cargo],
+            function(err) {
+                if (err) {
+                    console.error('Error creando colaborador:', err);
+                } else {
+                    creados++;
+                }
+                
+                if (creados === colaboradores.length) {
+                    res.json({ message: `${creados} colaboradores creados` });
+                }
+            }
+        );
+    });
+});
 
