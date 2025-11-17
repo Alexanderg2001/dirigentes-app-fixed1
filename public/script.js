@@ -941,18 +941,29 @@ async function cargarDatos() {
     agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
 }
 
-// 🆕 FUNCIÓN PARA CARGAR COLABORADORES
+// 🆕 FUNCIÓN MEJORADA PARA CARGAR COLABORADORES
 async function cargarColaboradores() {
     try {
-        const response = await fetch('/api/colaboradores');
-        const data = await response.json();
+        console.log('🔄 Cargando colaboradores...');
         
-        if (response.ok) {
-            appState.colaboradores = data;
-            actualizarSelectColaboradores();
+        const response = await fetch('/api/colaboradores');
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log('✅ Colaboradores cargados:', data);
+        
+        appState.colaboradores = data;
+        actualizarSelectColaboradores();
+        
     } catch (error) {
-        console.error('Error al cargar colaboradores:', error);
+        console.error('❌ Error al cargar colaboradores:', error);
+        mostrarNotificacion('Error al cargar la lista de colaboradores', 'error');
+        
+        // 🆕 SOLUCIÓN TEMPORAL: Crear colaboradores de ejemplo
+        crearColaboradoresTemporalmente();
     }
 }
 
@@ -1149,6 +1160,7 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
         block: 'center'
     });
 }
+
 
 
 
