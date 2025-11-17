@@ -133,14 +133,14 @@ app.get('/api/usuario-actual', requireAuth, (req, res) => {
 });
 
 // Rutas de la API
-app.get('/api/dirigentes', requireAuth, (req, res) => {
-  // Obtener los 10 últimos dirigentes ordenados por los más recientes primero
-  db.all('SELECT * FROM dirigentes ORDER BY creado_en DESC, id DESC LIMIT 10', (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al obtener dirigentes' });
-    }
-    res.json(rows);
-  });
+// 🆕 ESTA RUTA DEBE EXISTIR - Devuelve TODOS los dirigentes
+app.get('/api/dirigentes/todos', requireAuth, (req, res) => {
+    db.all('SELECT * FROM dirigentes ORDER BY nombre', (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al obtener todos los dirigentes' });
+        }
+        res.json(rows);
+    });
 });
 
 app.post('/api/dirigentes', requireAuth, (req, res) => {
@@ -950,4 +950,5 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
 
