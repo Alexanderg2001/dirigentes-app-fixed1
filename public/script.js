@@ -432,16 +432,40 @@ function generarConstanciaApoyo(apoyoId) {
     window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
 }
 
+// 🆕 FUNCIÓN MEJORADA - REEMPLAZAR LA EXISTENTE
 function actualizarSelectDirigentes() {
     const select = document.getElementById('apoyo-dirigente');
-    select.innerHTML = '<option value="">Seleccionar dirigente</option>';
+    if (!select) return;
     
+    // Guardar referencia original
+    appState.dirigentesOriginal = [];
+    
+    // Limpiar select
+    select.innerHTML = '';
+    
+    // Agregar opción por defecto
+    const optionDefault = document.createElement('option');
+    optionDefault.value = '';
+    optionDefault.textContent = `👥 ${appState.dirigentes.length} dirigentes disponibles - Use el buscador arriba`;
+    optionDefault.disabled = true;
+    select.appendChild(optionDefault);
+    
+    // Agregar todos los dirigentes
     appState.dirigentes.forEach(dirigente => {
         const option = document.createElement('option');
         option.value = dirigente.id;
-        option.textContent = `${dirigente.nombre} (${dirigente.cedula})`;
+        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
+        option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
         select.appendChild(option);
+        appState.dirigentesOriginal.push(option.cloneNode(true));
     });
+    
+    // Crear contador si no existe
+    if (!document.getElementById('contador-resultados')) {
+        crearContador();
+    }
+    
+    console.log(`✅ ${appState.dirigentes.length} dirigentes cargados en selector inteligente`);
 }
 
 // Función de búsqueda pública
@@ -1096,6 +1120,7 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
         block: 'center'
     });
 }
+
 
 
 
