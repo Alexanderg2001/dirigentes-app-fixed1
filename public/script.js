@@ -194,14 +194,14 @@ const participacion = document.getElementById('dirigente-participacion').value;
 
 async function cargarDirigentes() {
     try {
-        // 🆕 CAMBIAR: Cargar TODOS los dirigentes en lugar de solo 10
-        const response = await fetch('/api/dirigentes/todos');
+        // 🆕 VOLVER a cargar solo los últimos 10 dirigentes
+        const response = await fetch('/api/dirigentes');
         const data = await response.json();
         
         if (response.ok) {
             appState.dirigentes = data;
             renderizarDirigentes();
-            actualizarSelectDirigentes();
+            actualizarSelectDirigentes(); // 🆕 Esto carga TODOS para el buscador
             mostrarInfoResultados();
         } else {
             mostrarNotificacion(data.error, 'error');
@@ -462,41 +462,49 @@ function generarConstanciaApoyo(apoyoId) {
 }
 
 // 🆕 FUNCIÓN MEJORADA - REEMPLAZAR LA EXISTENTE
-function actualizarSelectDirigentes() {
+async function actualizarSelectDirigentes() {
     const select = document.getElementById('apoyo-dirigente');
     if (!select) return;
     
-    // Guardar referencia original de TODOS los dirigentes
-    appState.dirigentesOriginal = [];
-    
-    // Limpiar select
-    select.innerHTML = '';
-    
-    // 🆕 MOSTRAR que tenemos TODOS los dirigentes
-    const optionDefault = document.createElement('option');
-    optionDefault.value = '';
-    optionDefault.textContent = `👥 ${appState.dirigentes.length} dirigentes disponibles - Use el buscador arriba`;
-    optionDefault.disabled = true;
-    select.appendChild(optionDefault);
-    
-    // Agregar TODOS los dirigentes al selector (aunque no se muestren todos)
-    appState.dirigentes.forEach(dirigente => {
-        const option = document.createElement('option');
-        option.value = dirigente.id;
-        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
-        option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
-        select.appendChild(option);
-        appState.dirigentesOriginal.push(option.cloneNode(true));
-    });
-    
-    // Crear contador si no existe
-    if (!document.getElementById('contador-resultados')) {
-        crearContador();
+    try {
+        // 🆕 CARGAR TODOS los dirigentes SOLO para el selector de apoyos
+        const response = await fetch('/api/dirigentes/todos');
+        const todosLosDirigentes = await response.json();
+        
+        if (!response.ok) {
+            throw new Error('No se pudieron cargar todos los dirigentes');
+        }
+        
+        console.log(`✅ ${todosLosDirigentes.length} dirigentes cargados para el buscador`);
+        
+        // Limpiar select
+        select.innerHTML = '';
+        
+        // Agregar opción por defecto
+        const optionDefault = document.createElement('option');
+        optionDefault.value = '';
+        optionDefault.textContent = `👥 ${todosLosDirigentes.length} dirigentes disponibles - Use el buscador arriba`;
+        optionDefault.disabled = true;
+        select.appendChild(optionDefault);
+        
+        // Agregar TODOS los dirigentes al selector del buscador
+        todosLosDirigentes.forEach(dirigente => {
+            const option = document.createElement('option');
+            option.value = dirigente.id;
+            option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
+            option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
+            select.appendChild(option);
+        });
+        
+        // Guardar referencia para el buscador
+        appState.todosLosDirigentes = todosLosDirigentes;
+        
+    } catch (error) {
+        console.error('Error cargando todos los dirigentes para el selector:', error);
+        // 🆕 Si falla, usar los dirigentes que ya tenemos
+        cargarSelectorConDirigentesDisponibles();
     }
-    
-    console.log(`✅ ${appState.dirigentes.length} dirigentes cargados en selector inteligente`);
 }
-
 // Función de búsqueda pública
 async function buscarDirigente() {
     const cedula = document.getElementById('search-cedula').value.trim();
@@ -1216,6 +1224,32 @@ function diagnosticarColaboradores() {
 
 // Ejecutar diagnóstico después de cargar la página
 setTimeout(diagnosticarColaboradores, 3000);
+
+// 🆕 FUNCIÓN DE RESPALDO SI NO SE PUEDEN CARGAR TODOS LOS DIRIGENTES
+function cargarSelectorConDirigentesDisponibles() {
+    const select = document.getElementById('apoyo-dirigente');
+    if (!select) return;
+    
+    select.innerHTML = '';
+    
+    const optionDefault = document.createElement('option');
+    optionDefault.value = '';
+    optionDefault.textContent = `👥 ${appState.dirigentes.length} dirigentes disponibles (últimos 10)`;
+    optionDefault.disabled = true;
+    select.appendChild(optionDefault);
+    
+    // Usar los dirigentes que ya tenemos cargados
+    appState.dirigentes.forEach(dirigente => {
+        const option = document.createElement('option');
+        option.value = dirigente.id;
+        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
+        select.appendChild(option);
+    });
+    
+    appState.todosLosDirigentes = appState.dirigentes;
+    console.log(`✅ Usando ${appState.dirigentes.length} dirigentes disponibles para el buscador`);
+}
+
 
 
 
