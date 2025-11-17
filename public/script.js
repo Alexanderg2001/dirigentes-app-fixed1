@@ -1048,20 +1048,18 @@ function filtrarDirigentesApoyo() {
     const select = document.getElementById('apoyo-dirigente');
     const contador = document.getElementById('contador-resultados') || crearContador();
     
-    // Guardar el select original si no existe
-    if (!appState.dirigentesOriginal) {
-        appState.dirigentesOriginal = Array.from(select.options);
-    }
+    // 🆕 Usar TODOS los dirigentes para el filtro
+    const dirigentesParaFiltrar = appState.todosLosDirigentes || appState.dirigentes;
     
     // Limpiar select
     select.innerHTML = '';
     
     // Filtrar dirigentes
-    const dirigentesFiltrados = appState.dirigentes.filter(dirigente => 
+    const dirigentesFiltrados = dirigentesParaFiltrar.filter(dirigente => 
         dirigente.nombre.toLowerCase().includes(busqueda) ||
         dirigente.cedula.includes(busqueda) ||
-        dirigente.comunidad.toLowerCase().includes(busqueda) ||
-        dirigente.corregimiento.toLowerCase().includes(busqueda)
+        (dirigente.comunidad && dirigente.comunidad.toLowerCase().includes(busqueda)) ||
+        (dirigente.corregimiento && dirigente.corregimiento.toLowerCase().includes(busqueda))
     );
     
     // Agregar opción por defecto
@@ -1083,12 +1081,11 @@ function filtrarDirigentesApoyo() {
     });
     
     // Actualizar contador
-    contador.textContent = `${dirigentesFiltrados.length} dirigente(s) encontrado(s)`;
+    contador.textContent = `${dirigentesFiltrados.length} dirigente(s) encontrado(s) de ${dirigentesParaFiltrar.length} totales`;
     
     // Si hay solo un resultado, seleccionarlo automáticamente
     if (dirigentesFiltrados.length === 1 && busqueda.length > 2) {
         select.value = dirigentesFiltrados[0].id;
-        mostrarNotificacion(`Dirigente "${dirigentesFiltrados[0].nombre}" seleccionado automáticamente`, 'success');
     }
 }
 
@@ -1249,6 +1246,7 @@ function cargarSelectorConDirigentesDisponibles() {
     appState.todosLosDirigentes = appState.dirigentes;
     console.log(`✅ Usando ${appState.dirigentes.length} dirigentes disponibles para el buscador`);
 }
+
 
 
 
