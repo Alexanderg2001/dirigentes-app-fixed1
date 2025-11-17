@@ -194,14 +194,15 @@ const participacion = document.getElementById('dirigente-participacion').value;
 
 async function cargarDirigentes() {
     try {
-        const response = await fetch('/api/dirigentes');
+        // 🆕 CAMBIAR: Cargar TODOS los dirigentes en lugar de solo 10
+        const response = await fetch('/api/dirigentes/todos');
         const data = await response.json();
         
         if (response.ok) {
             appState.dirigentes = data;
             renderizarDirigentes();
             actualizarSelectDirigentes();
-            mostrarInfoResultados(); // 🆕 Mostrar información de resultados
+            mostrarInfoResultados();
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -215,7 +216,10 @@ function renderizarDirigentes() {
     const tbody = document.getElementById('dirigentes-body');
     tbody.innerHTML = '';
     
-    appState.dirigentes.forEach(dirigente => {
+    // 🆕 MOSTRAR solo los últimos 10 en la tabla
+    const dirigentesParaMostrar = appState.dirigentes.slice(0, 10);
+    
+    dirigentesParaMostrar.forEach(dirigente => {
         const tr = document.createElement('tr');
         
         const claseParticipacion = `participacion-${dirigente.participacion}`;
@@ -244,45 +248,70 @@ function renderizarDirigentes() {
 function mostrarInfoResultados() {
     const infoContainer = document.getElementById('info-resultados');
     if (!infoContainer) {
-        // Crear contenedor si no existe
         const listaContainer = document.getElementById('lista-dirigentes');
         const infoHTML = `
             <div id="info-resultados" class="info-resultados">
-                <p>📋 Mostrando los <strong>10 últimos dirigentes</strong> registrados o modificados</p>
+                <p>📋 Mostrando los <strong>10 últimos dirigentes</strong> de ${appState.dirigentes.length} totales</p>
                 <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
-                    🔍 Ver todos los dirigentes
+                    🔍 Ver todos los ${appState.dirigentes.length} dirigentes
                 </button>
             </div>
         `;
-        // Insertar antes de la tabla
         const tabla = listaContainer.querySelector('table');
         listaContainer.insertBefore(document.createElement('div'), tabla).outerHTML = infoHTML;
+    } else {
+        // 🆕 ACTUALIZAR el contador
+        infoContainer.innerHTML = `
+            <p>📋 Mostrando los <strong>10 últimos dirigentes</strong> de ${appState.dirigentes.length} totales</p>
+            <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
+                🔍 Ver todos los ${appState.dirigentes.length} dirigentes
+            </button>
+        `;
     }
 }
 
 // 🆕 FUNCIÓN PARA MOSTRAR TODOS LOS DIRIGENTES (sin límite)
 async function mostrarTodosLosDirigentes() {
-    try {
-        const response = await fetch('/api/dirigentes/todos');
-        const data = await response.json();
+    // 🆕 YA NO necesitamos hacer fetch porque ya tenemos todos los datos
+    // Simplemente renderizamos todos los dirigentes
+    
+    const tbody = document.getElementById('dirigentes-body');
+    tbody.innerHTML = '';
+    
+    // Renderizar TODOS los dirigentes
+    appState.dirigentes.forEach(dirigente => {
+        const tr = document.createElement('tr');
         
-        if (response.ok) {
-            appState.dirigentes = data;
-            renderizarDirigentes();
-            document.getElementById('info-resultados').innerHTML = `
-                <p>📋 Mostrando <strong>todos los ${data.length} dirigentes</strong></p>
-                <button onclick="cargarDirigentes()" class="btn-ver-recientes">
-                    ⏰ Volver a ver solo los últimos 10
-                </button>
-            `;
-            mostrarNotificacion(`Mostrando todos los ${data.length} dirigentes`, 'success');
-        } else {
-            mostrarNotificacion(data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error al cargar todos los dirigentes:', error);
-        mostrarNotificacion('Error al conectar con el servidor', 'error');
-    }
+        const claseParticipacion = `participacion-${dirigente.participacion}`;
+        
+        tr.innerHTML = `
+            <td>${dirigente.nombre}</td>
+            <td>${dirigente.cedula}</td>
+            <td>${dirigente.telefono || 'No registrado'}</td>
+            <td>${dirigente.corregimiento}</td>
+            <td>${dirigente.comunidad}</td>
+            <td>${dirigente.coordinador}</td>
+            <td class="${claseParticipacion}">${dirigente.participacion}</td>
+            <td class="actions">
+                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
+                <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
+                <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
+                <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+    
+    // Actualizar información
+    document.getElementById('info-resultados').innerHTML = `
+        <p>📋 Mostrando <strong>todos los ${appState.dirigentes.length} dirigentes</strong></p>
+        <button onclick="cargarDirigentes()" class="btn-ver-recientes">
+            ⏰ Volver a ver solo los últimos 10
+        </button>
+    `;
+    
+    mostrarNotificacion(`Mostrando todos los ${appState.dirigentes.length} dirigentes`, 'success');
 }
 
 function editarDirigente(id) {
@@ -437,20 +466,20 @@ function actualizarSelectDirigentes() {
     const select = document.getElementById('apoyo-dirigente');
     if (!select) return;
     
-    // Guardar referencia original
+    // Guardar referencia original de TODOS los dirigentes
     appState.dirigentesOriginal = [];
     
     // Limpiar select
     select.innerHTML = '';
     
-    // Agregar opción por defecto
+    // 🆕 MOSTRAR que tenemos TODOS los dirigentes
     const optionDefault = document.createElement('option');
     optionDefault.value = '';
     optionDefault.textContent = `👥 ${appState.dirigentes.length} dirigentes disponibles - Use el buscador arriba`;
     optionDefault.disabled = true;
     select.appendChild(optionDefault);
     
-    // Agregar todos los dirigentes
+    // Agregar TODOS los dirigentes al selector (aunque no se muestren todos)
     appState.dirigentes.forEach(dirigente => {
         const option = document.createElement('option');
         option.value = dirigente.id;
@@ -1120,6 +1149,7 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
         block: 'center'
     });
 }
+
 
 
 
