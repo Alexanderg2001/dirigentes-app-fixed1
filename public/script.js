@@ -942,9 +942,9 @@ async function cargarDatos() {
 }
 
 // 🆕 FUNCIÓN MEJORADA PARA CARGAR COLABORADORES
-async function cargarColaboradores() {
+async function cargarDatos() {
     try {
-        console.log('🔄 Cargando colaboradores...');
+        console.log('🔄 Cargando todos los datos...');
         
         const response = await fetch('/api/colaboradores');
         
@@ -953,7 +953,7 @@ async function cargarColaboradores() {
         }
         
         const data = await response.json();
-        console.log('✅ Colaboradores cargados:', data);
+        console.log('✅ Datos cargados:', data);
         
         appState.colaboradores = data;
         actualizarSelectColaboradores();
@@ -967,17 +967,38 @@ async function cargarColaboradores() {
     }
 }
 
-// 🆕 FUNCIÓN PARA ACTUALIZAR SELECT DE COLABORADORES
+// 🆕 FUNCIÓN MEJORADA PARA ACTUALIZAR SELECT DE COLABORADORES
 function actualizarSelectColaboradores() {
     const select = document.getElementById('apoyo-colaborador');
-    if (!select) return;
     
+    if (!select) {
+        console.error('❌ Selector de colaboradores no encontrado en el DOM');
+        return;
+    }
+    
+    // Limpiar opciones existentes
     select.innerHTML = '<option value="">Seleccionar colaborador que entrega</option>';
     
+    // Verificar si hay colaboradores
+    if (!appState.colaboradores || appState.colaboradores.length === 0) {
+        console.warn('⚠️ No hay colaboradores disponibles en appState');
+        
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No hay colaboradores disponibles';
+        option.disabled = true;
+        select.appendChild(option);
+        return;
+    }
+    
+    console.log(`✅ Agregando ${appState.colaboradores.length} colaboradores al selector`);
+    
+    // Agregar colaboradores al selector
     appState.colaboradores.forEach(colaborador => {
         const option = document.createElement('option');
         option.value = colaborador.id;
         option.textContent = `${colaborador.nombre} - ${colaborador.cargo}`;
+        option.title = `Cédula: ${colaborador.cedula}`;
         select.appendChild(option);
     });
 }
@@ -1161,8 +1182,40 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
     });
 }
 
+// 🆕 FUNCIÓN DE EMERGENCIA - CREAR COLABORADORES TEMPORALES
+function crearColaboradoresTemporalmente() {
+    console.log('🆘 Creando colaboradores temporales...');
+    
+    appState.colaboradores = [
+        { id: 1, nombre: 'COLABORADOR EJEMPLO 1', cedula: '8-111-111', cargo: 'Coordinador' },
+        { id: 2, nombre: 'COLABORADOR EJEMPLO 2', cedula: '8-222-222', cargo: 'Asistente' },
+        { id: 3, nombre: 'COLABORADOR EJEMPLO 3', cedula: '8-333-333', cargo: 'Promotor' }
+    ];
+    
+    actualizarSelectColaboradores();
+    mostrarNotificacion('Usando colaboradores de ejemplo temporalmente', 'warning');
+}
 
+// 🆕 FUNCIÓN DE DEPURACIÓN - ELIMINAR DESPUÉS DE SOLUCIONAR
+function diagnosticarColaboradores() {
+    console.log('🔍 DIAGNÓSTICO DE COLABORADORES:');
+    console.log('1. appState.colaboradores:', appState.colaboradores);
+    console.log('2. Selector en DOM:', document.getElementById('apoyo-colaborador'));
+    console.log('3. Opciones en selector:', document.getElementById('apoyo-colaborador')?.options?.length);
+    console.log('4. Estado de autenticación:', appState.isAuthenticated);
+    
+    // Verificar si la API responde
+    fetch('/api/colaboradores')
+        .then(response => {
+            console.log('5. Estado de API /api/colaboradores:', response.status);
+            return response.json();
+        })
+        .then(data => console.log('6. Datos de API:', data))
+        .catch(error => console.log('7. Error en API:', error));
+}
 
+// Ejecutar diagnóstico después de cargar la página
+setTimeout(diagnosticarColaboradores, 3000);
 
 
 
