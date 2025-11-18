@@ -729,4 +729,45 @@ async function eliminarDirigente(id) {
 
 function generarConstancia(id) {
     window.open(`/constancia/${id}`, '_blank');
+}// 🆕 FUNCIÓN CORREGIDA PARA GENERAR CONSTANCIA DE APOYO
+function generarConstanciaApoyo(apoyoId) {
+    console.log('Generando constancia para apoyo ID:', apoyoId);
+    
+    // Abrir en nueva ventana
+    const nuevaVentana = window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
+    
+    if (nuevaVentana) {
+        nuevaVentana.focus();
+    } else {
+        mostrarNotificacion('Error: Permite ventanas emergentes para generar constancias', 'error');
+    }
 }
+
+// 🆕 AGREGAR BOTÓN DE CONSTANCIA EN LA TABLA DE APOYOS
+function renderizarApoyos() {
+    const tbody = document.getElementById('apoyos-body');
+    tbody.innerHTML = '';
+    
+    appState.apoyos.forEach(apoyo => {
+        const dirigente = appState.dirigentes.find(d => d.id === apoyo.dirigente_id);
+        const nombreDirigente = dirigente ? dirigente.nombre : 'Desconocido';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${nombreDirigente}</td>
+            <td style="text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
+            <td>${apoyo.descripcion || '-'}</td>
+            <td>${apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}</td>
+            <td>${new Date(apoyo.fecha).toLocaleDateString()}</td>
+            <td class="actions">
+                <button class="constancia" onclick="generarConstanciaApoyo(${apoyo.id})">
+                    📄 Constancia
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+
