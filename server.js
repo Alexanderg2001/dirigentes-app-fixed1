@@ -344,72 +344,408 @@ app.get('/constancia/:dirigenteId', requireAuth, (req, res) => {
   });
 });
 
-// Ruta para generar constancia de apoyo
+// 🆕 RUTA CORREGIDA PARA GENERAR CONSTANCIA DE APOYO
 app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
-  const apoyoId = req.params.apoyoId;
-  
-  db.get(`
-    SELECT a.*, d.nombre as dirigente_nombre, d.cedula, d.telefono, 
-           d.corregimiento, d.comunidad, d.coordinador, d.participacion,
-           c.nombre as colaborador_nombre, c.cargo as colaborador_cargo
-    FROM apoyos a 
-    LEFT JOIN dirigentes d ON a.dirigente_id = d.id 
-    LEFT JOIN colaboradores c ON a.colaborador_id = c.id
-    WHERE a.id = ?
-  `, [apoyoId], (err, resultado) => {
-    if (err || !resultado) {
-      return res.status(404).send('Apoyo no encontrado');
-    }
+    const apoyoId = req.params.apoyoId;
     
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Constancia de Apoyo</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; }
-          .header { text-align: center; margin-bottom: 30px; }
-          .content { margin: 20px 0; line-height: 1.6; }
-          .firma { margin-top: 80px; text-align: center; }
-          .firma-line { width: 300px; border-top: 1px solid #000; margin: 0 auto; }
-          .footer { margin-top: 20px; text-align: center; font-size: 12px; }
-          @media print { button { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
-        </div>
+    db.get(`
+        SELECT a.*, d.nombre as dirigente_nombre, d.cedula, d.telefono, 
+               d.corregimiento, d.comunidad, d.coordinador, d.participacion,
+               c.nombre as colaborador_nombre, c.cargo as colaborador_cargo
+        FROM apoyos a 
+        LEFT JOIN dirigentes d ON a.dirigente_id = d.id 
+        LEFT JOIN colaboradores c ON a.colaborador_id = c.id
+        WHERE a.id = ?
+    `, [apoyoId], (err, resultado) => {
+        if (err) {
+            console.error('Error en consulta de constancia:', err);
+            return res.status(500).send('Error del servidor');
+        }
         
-        <div class="content">
-          <p><strong>Dirigente:</strong> ${resultado.dirigente_nombre}</p>
-          <p><strong>Cédula:</strong> ${resultado.cedula}</p>
-          <p><strong>Tipo de apoyo:</strong> ${resultado.tipo}</p>
-          <p><strong>Descripción:</strong> ${resultado.descripcion || 'No especificada'}</p>
-          <p><strong>Monto:</strong> ${resultado.monto ? `$${resultado.monto}` : 'No aplica'}</p>
-          <p><strong>Fecha:</strong> ${new Date(resultado.fecha).toLocaleDateString()}</p>
-          <p><strong>Entregado por:</strong> ${resultado.colaborador_nombre || 'No especificado'}</p>
-        </div>
+        if (!resultado) {
+            return res.status(404).send('Apoyo no encontrado');
+        }
         
-        <div class="firma">
-          <div class="firma-line"></div>
-          <p>Firma del Dirigente</p>
-        </div>
+        // Formatear monto si es apoyo económico
+        const montoFormateado = resultado.tipo === 'economico' && resultado.monto ? 
+            `$${parseFloat(resultado.monto).toLocaleString('es-PA', { minimumFractionDigits: 2 })}` : 'No aplica';
         
-        <div class="footer">
-          <p>Fecha de emisión: ${new Date().toLocaleDateString()}</p>
-        </div>
+        // Generar HTML de la constancia
+        const html = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Constancia de Apoyo - ${resultado.dirigente_nombre}</title>
+                <meta charset="UTF-8">
+                <style>
+                    @page {
+                        size: letter;
+                        margin: 0.5in;
+                    }
+                    
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    
+                    body {
+                        font-family: 'Arial', sans-serif;
+                        line-height: 1.4;
+                        color: #000;
+                        background: white;
+                        font-size: 14px;
+                        padding: 20px;
+                    }
+                    
+                    .container {
+                        max-width: 7.5in;
+                        margin: 0 auto;
+                        border: 2px solid #333;
+                        padding: 30px;
+                        position: relative;
+                    }
+                    
+                    .header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                        border-bottom: 2px solid #333;
+                        padding-bottom: 20px;
+                    }
+                    
+                    .header h1 {
+                        font-size: 24px;
+                        color: #2c3e50;
+                        margin-bottom: 10px;
+                        text-transform: uppercase;
+                    }
+                    
+                    .header p {
+                        font-size: 14px;
+                        color: #666;
+                    }
+                    
+                    .document-info {
+                        position: absolute;
+                        top: 20px;
+                        right: 20px;
+                        text-align: right;
+                    }
+                    
+                    .document-number {
+                        font-size: 16px;
+                        font-weight: bold;
+                        color: #2c3e50;
+                    }
+                    
+                    .document-type {
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    
+                    .content-section {
+                        margin-bottom: 25px;
+                    }
+                    
+                    .section-title {
+                        background: #2c3e50;
+                        color: white;
+                        padding: 8px 12px;
+                        font-size: 14px;
+                        font-weight: bold;
+                        margin-bottom: 15px;
+                        border-radius: 4px;
+                    }
+                    
+                    .info-grid {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 15px;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .info-item {
+                        margin-bottom: 10px;
+                    }
+                    
+                    .info-label {
+                        font-weight: bold;
+                        color: #333;
+                        font-size: 12px;
+                        margin-bottom: 3px;
+                    }
+                    
+                    .info-value {
+                        color: #000;
+                        font-size: 13px;
+                        padding: 5px 0;
+                        border-bottom: 1px solid #eee;
+                    }
+                    
+                    .details-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 15px 0;
+                    }
+                    
+                    .details-table th {
+                        background: #f8f9fa;
+                        border: 1px solid #ddd;
+                        padding: 10px;
+                        text-align: left;
+                        font-size: 12px;
+                        font-weight: bold;
+                    }
+                    
+                    .details-table td {
+                        border: 1px solid #ddd;
+                        padding: 10px;
+                        font-size: 12px;
+                    }
+                    
+                    .total-row {
+                        background: #e3f2fd;
+                        font-weight: bold;
+                    }
+                    
+                    .signatures {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 40px;
+                        margin-top: 60px;
+                        padding-top: 20px;
+                        border-top: 2px solid #333;
+                    }
+                    
+                    .signature-box {
+                        text-align: center;
+                    }
+                    
+                    .signature-line {
+                        width: 250px;
+                        border-top: 1px solid #000;
+                        margin: 30px auto 5px;
+                    }
+                    
+                    .signature-label {
+                        font-size: 11px;
+                        font-weight: bold;
+                        margin-top: 5px;
+                    }
+                    
+                    .signature-name {
+                        font-size: 12px;
+                        margin-top: 3px;
+                    }
+                    
+                    .footer {
+                        margin-top: 30px;
+                        padding-top: 10px;
+                        border-top: 1px solid #ccc;
+                        text-align: center;
+                        font-size: 10px;
+                        color: #666;
+                    }
+                    
+                    .highlight {
+                        background: #fff3cd;
+                        padding: 12px;
+                        border-left: 4px solid #ffc107;
+                        margin: 15px 0;
+                        font-size: 12px;
+                    }
+                    
+                    .amount {
+                        font-size: 16px;
+                        font-weight: bold;
+                        color: #27ae60;
+                    }
+                    
+                    @media print {
+                        .no-print {
+                            display: none !important;
+                        }
+                        
+                        body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        
+                        .container {
+                            border: none;
+                            padding: 0;
+                            margin: 0;
+                        }
+                    }
+                    
+                    @media screen {
+                        body {
+                            background: #f5f5f5;
+                        }
+                        
+                        .container {
+                            background: white;
+                            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <!-- ENCABEZADO -->
+                    <div class="header">
+                        <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
+                        <p>Documento Oficial - Sistema de Gestión Comunitaria</p>
+                        <p>${new Date().toLocaleDateString('es-PA', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        })}</p>
+                    </div>
+                    
+                    <div class="document-info">
+                        <div class="document-number">N° AP-${apoyoId.toString().padStart(4, '0')}</div>
+                        <div class="document-type">Constancia Válida</div>
+                    </div>
+                    
+                    <!-- INFORMACIÓN DEL BENEFICIARIO -->
+                    <div class="content-section">
+                        <div class="section-title">INFORMACIÓN DEL BENEFICIARIO</div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">NOMBRE COMPLETO:</div>
+                                <div class="info-value">${resultado.dirigente_nombre || 'No especificado'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">CÉDULA DE IDENTIDAD:</div>
+                                <div class="info-value">${resultado.cedula || 'No especificado'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">TELÉFONO:</div>
+                                <div class="info-value">${resultado.telefono || 'No registrado'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">CORREGIMIENTO:</div>
+                                <div class="info-value">${resultado.corregimiento || 'No especificado'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">COMUNIDAD:</div>
+                                <div class="info-value">${resultado.comunidad || 'No especificado'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">COORDINADOR:</div>
+                                <div class="info-value">${resultado.coordinador || 'No especificado'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- DETALLES DEL APOYO -->
+                    <div class="content-section">
+                        <div class="section-title">DETALLES DEL APOYO ENTREGADO</div>
+                        
+                        <table class="details-table">
+                            <thead>
+                                <tr>
+                                    <th width="20%">CONCEPTO</th>
+                                    <th width="45%">DESCRIPCIÓN</th>
+                                    <th width="15%">FECHA</th>
+                                    <th width="20%">VALOR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-transform: uppercase; font-weight: bold;">${resultado.tipo || 'No especificado'}</td>
+                                    <td>${resultado.descripcion || 'Apoyo comunitario registrado'}</td>
+                                    <td>${new Date(resultado.fecha).toLocaleDateString('es-PA')}</td>
+                                    <td class="amount">${montoFormateado}</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="3" style="text-align: right; font-weight: bold;">TOTAL ENTREGADO:</td>
+                                    <td class="amount">${montoFormateado}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- OBSERVACIONES -->
+                    <div class="highlight">
+                        <strong>OBSERVACIONES:</strong><br>
+                        Por medio de la presente se hace constar la entrega del apoyo descrito al dirigente comunitario arriba mencionado. 
+                        Este documento es válido como constancia oficial de recepción.
+                    </div>
+                    
+                    <!-- FIRMAS -->
+                    <div class="signatures">
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">FIRMA DEL DIRIGENTE BENEFICIADO</div>
+                            <div class="signature-name">${resultado.dirigente_nombre || '_________________________'}</div>
+                            <div class="signature-label">Cédula: ${resultado.cedula || '___________________'}</div>
+                        </div>
+                        
+                        <div class="signature-box">
+                            <div class="signature-line"></div>
+                            <div class="signature-label">FIRMA DE QUIEN ENTREGA</div>
+                            <div class="signature-name">${resultado.colaborador_nombre || '_________________________'}</div>
+                            <div class="signature-label">${resultado.colaborador_cargo || 'Colaborador Autorizado'}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- PIE DE PÁGINA -->
+                    <div class="footer">
+                        <p>
+                            <strong>Constancia generada automáticamente por el Sistema de Gestión de Dirigentes Comunitarios</strong><br>
+                            Fecha de generación: ${new Date().toLocaleDateString('es-PA')} ${new Date().toLocaleTimeString('es-PA')} | 
+                            Este documento es una constancia oficial válida
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- BOTONES SOLO PARA PANTALLA -->
+                <div class="no-print" style="text-align: center; margin-top: 30px; padding: 20px;">
+                    <button onclick="window.print()" style="
+                        padding: 12px 24px; 
+                        background: #27ae60; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 5px; 
+                        cursor: pointer; 
+                        margin: 5px;
+                        font-size: 14px;
+                        font-weight: bold;
+                    ">
+                        🖨️ IMPRIMIR CONSTANCIA
+                    </button>
+                    <button onclick="window.close()" style="
+                        padding: 12px 24px; 
+                        background: #e74c3c; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 5px; 
+                        cursor: pointer; 
+                        margin: 5px;
+                        font-size: 14px;
+                    ">
+                        ❌ CERRAR VENTANA
+                    </button>
+                    <div style="margin-top: 15px; font-size: 12px; color: #666;">
+                        <strong>Consejo:</strong> Para mejor resultado de impresión, use papel tamaño carta (8.5" x 11")
+                    </div>
+                </div>
+                
+                <script>
+                    // Auto-imprimir después de 1 segundo
+                    setTimeout(() => { 
+                        window.print(); 
+                    }, 1000);
+                </script>
+            </body>
+            </html>
+        `;
         
-        <div style="text-align: center; margin-top: 20px;">
-          <button onclick="window.print()">Imprimir Constancia</button>
-          <button onclick="window.close()">Cerrar</button>
-        </div>
-      </body>
-      </html>
-    `;
-    
-    res.send(html);
-  });
+        res.send(html);
+    });
 });
 
 // Ruta principal
@@ -422,3 +758,4 @@ app.listen(PORT, HOST, () => {
   console.log(`🚀 Servidor ejecutándose en http://${HOST}:${PORT}`);
   console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
 });
+
