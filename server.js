@@ -79,7 +79,7 @@ app.get('/api/usuario-actual', requireAuth, (req, res) => {
   });
 });
 
-// RUTAS PRINCIPALES - MANTENER SIMPLES
+// RUTAS PRINCIPALES
 
 // Obtener últimos 10 dirigentes
 app.get('/api/dirigentes', requireAuth, (req, res) => {
@@ -199,6 +199,87 @@ app.get('/api/buscar-dirigente', (req, res) => {
     } else {
       res.json({ encontrado: false });
     }
+  });
+});
+
+// 🆕 RUTAS PARA NUEVAS FUNCIONALIDADES
+
+// Estadísticas para el dashboard
+app.get('/api/estadisticas', requireAuth, (req, res) => {
+  const estadisticas = {
+    participacion: [],
+    apoyos: [],
+    totalDirigentes: 0,
+    totalApoyos: 0
+  };
+
+  // Contar dirigentes por participación
+  db.all(`
+    SELECT participacion, COUNT(*) as total 
+    FROM dirigentes 
+    GROUP BY participacion
+  `, (err, rows) => {
+    if (!err) estadisticas.participacion = rows;
+
+    // Contar apoyos por tipo
+    db.all(`
+      SELECT tipo, COUNT(*) as total, SUM(monto) as total_monto 
+      FROM apoyos 
+      GROUP BY tipo
+    `, (err, rows) => {
+      if (!err) estadisticas.apoyos = rows;
+
+      // Total de dirigentes
+      db.get('SELECT COUNT(*) as total FROM dirigentes', (err, row) => {
+        if (!err && row) estadisticas.totalDirigentes = row.total;
+
+        // Total de apoyos
+        db.get('SELECT COUNT(*) as total FROM apoyos', (err, row) => {
+          if (!err && row) estadisticas.totalApoyos = row.total;
+          
+          res.json(estadisticas);
+        });
+      });
+    });
+  });
+});
+
+// Búsqueda avanzada de dirigentes
+app.get('/api/dirigentes/buscar', requireAuth, (req, res) => {
+  const { q, corregimiento, participacion } = req.query;
+  let sql = 'SELECT * FROM dirigentes WHERE 1=1';
+  let params = [];
+
+  if (q) {
+    sql += ' AND (nombre LIKE ? OR cedula LIKE ? OR comunidad LIKE ? OR coordinador LIKE ?)';
+    params.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
+  }
+  if (corregimiento) {
+    sql += ' AND corregimiento = ?';
+    params.push(corregimiento);
+  }
+  if (participacion) {
+    sql += ' AND participacion = ?';
+    params.push(participacion);
+  }
+
+  sql += ' ORDER BY creado_en DESC LIMIT 50';
+
+  db.all(sql, params, (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error en la búsqueda' });
+    }
+    res.json(rows);
+  });
+});
+
+// Obtener corregimientos
+app.get('/api/corregimientos', requireAuth, (req, res) => {
+  db.all('SELECT DISTINCT nombre FROM corregimientos ORDER BY nombre', (err, rows) => {
+    if (err) {
+      return res.json([]);
+    }
+    res.json(rows);
   });
 });
 
