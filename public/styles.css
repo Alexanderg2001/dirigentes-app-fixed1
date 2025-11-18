@@ -209,6 +209,14 @@ button.constancia {
     background-color: var(--success-color);
 }
 
+button.apoyo {
+    background-color: #9b59b6;
+}
+
+button.apoyo:hover {
+    background-color: #8e44ad;
+}
+
 .table-container {
     overflow-x: auto;
 }
@@ -304,370 +312,98 @@ tr:hover {
     100% { opacity: 0; transform: translateY(-20px); }
 }
 
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .auth-form {
-        flex-direction: column;
-    }
-    
-    main {
-        padding: 1rem;
-    }
-    
-    .actions {
-        flex-direction: column;
-    }
-
+/* 🆕 ESTILOS PARA BUSCADOR INTELIGENTE */
+.buscador-dirigentes {
+    margin-bottom: 1rem;
 }
 
-button.apoyo {
-    background-color: #9b59b6; /* Color morado para diferenciar */
+.buscador-dirigentes label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
 }
 
-button.apoyo:hover {
-    background-color: #8e44ad;
+#buscar-dirigente-apoyo {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
 }
 
-/* ========== MEJORAS Y NUEVOS ESTILOS ========== */
-
-/* Dashboard Cards */
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+#buscar-dirigente-apoyo:focus {
+    border-color: var(--secondary-color);
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
 
-.card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  text-align: center;
-  border-left: 4px solid var(--secondary-color);
-}
-
-.card h3 {
-  margin-bottom: 0.5rem;
-  color: var(--primary-color);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.card .number {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--secondary-color);
-  margin: 0.5rem 0;
-}
-
-.card .description {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-/* Filtros avanzados */
-.filtros-avanzados {
-  background: var(--light-color);
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  border: 1px solid #ddd;
-}
-
-.filtros-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  align-items: end;
-}
-
-.filtro-grupo {
-  display: flex;
-  flex-direction: column;
-}
-
-.filtro-grupo label {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: var(--dark-color);
-}
-
-/* Mejoras en tablas */
-.table-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.export-buttons {
-  margin: 1rem 0;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.btn-export {
-  background-color: #27ae60;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.btn-export:hover {
-  background-color: #219653;
-}
-
-.btn-export.csv {
-  background-color: #27ae60;
-}
-
-.btn-export.pdf {
-  background-color: #e74c3c;
-}
-
-/* Notificaciones */
-.notificaciones-panel {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  width: 350px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  z-index: 1000;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.notificacion-item {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
-
-.notificacion-item:last-child {
-  border-bottom: none;
-}
-
-.notificacion-item:hover {
-  background-color: #f8f9fa;
-}
-
-.notificacion-titulo {
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-  color: var(--dark-color);
-}
-
-.notificacion-mensaje {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 0.5rem;
-}
-
-.notificacion-fecha {
-  font-size: 0.8rem;
-  color: #999;
-}
-
-.notificacion-badge {
-  background-color: var(--danger-color);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  position: absolute;
-  top: -5px;
-  right: -5px;
-}
-
-/* Estadísticas gráficas */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.stat-card h3 {
-  margin-bottom: 1rem;
-  color: var(--primary-color);
-  border-bottom: 2px solid var(--light-color);
-  padding-bottom: 0.5rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .filtros-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .notificaciones-panel {
-    width: 300px;
-    right: 10px;
-  }
-  
-  .table-actions {
-    flex-direction: column;
-  }
-  
-  .export-buttons {
-    flex-direction: column;
-  }
-}
-
-/* Mejoras visuales para elementos existentes */
-.section-header {
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.section-title {
-  margin: 0;
-  color: var(--primary-color);
-}
-
-.section-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-/* Loading states */
-.loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.spinner {
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid var(--secondary-color);
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* ========== 🆕 NUEVOS ESTILOS - AGREGAR AL FINAL ========== */
-
-/* Dashboard Cards */
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  text-align: center;
-  border-left: 4px solid var(--secondary-color);
-}
-
-.card h3 {
-  margin-bottom: 0.5rem;
-  color: var(--primary-color);
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.card .number {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--secondary-color);
-  margin: 0.5rem 0;
-}
-
-.card .description {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-/* Botones de exportación */
-.export-buttons {
-  margin: 1rem 0;
-}
-
-.btn-export {
-  background-color: #27ae60;
-  color: white;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-export:hover {
-  background-color: #219653;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Estilos para botones de constancia en tabla de apoyos */
-.actions button.constancia {
-    background-color: #3498db;
-    color: white;
-    padding: 0.3rem 0.6rem;
+.contador-resultados {
     font-size: 0.8rem;
-    margin: 0;
+    color: #666;
+    margin-top: 0.25rem;
+    text-align: right;
 }
 
-.actions button.constancia:hover {
-    background-color: #2980b9;
+/* Estilos para el select de dirigentes con scroll */
+#apoyo-dirigente {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.9rem;
 }
 
-/* ========== ESTILOS PARA INFORMACIÓN DE RESULTADOS ========== */
+#apoyo-dirigente option {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+#apoyo-dirigente option:hover {
+    background-color: #f0f8ff;
+}
+
+/* 🆕 ESTILOS PARA DASHBOARD */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.card h3 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card .number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin: 0.5rem 0;
+}
+
+.card .description {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+/* 🆕 ESTILOS PARA FILTROS Y RESULTADOS */
 .info-resultados {
     background: #e3f2fd;
     border: 1px solid #2196f3;
@@ -708,6 +444,28 @@ button.apoyo:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .auth-form {
+        flex-direction: column;
+    }
+    
+    main {
+        padding: 1rem;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+
+    .dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+    
     .info-resultados {
         flex-direction: column;
         text-align: center;
@@ -717,129 +475,3 @@ button.apoyo:hover {
         text-align: center;
     }
 }
-
-/* 🆕 ESTILOS PARA BUSCADOR INTELIGENTE */
-.buscador-dirigentes {
-    margin-bottom: 1rem;
-}
-
-.buscador-dirigentes label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--dark-color);
-}
-
-#buscar-dirigente-apoyo {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-}
-
-#buscar-dirigente-apoyo:focus {
-    border-color: var(--secondary-color);
-    outline: none;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-}
-
-/* Estilos para el select de dirigentes con scroll */
-#apoyo-dirigente {
-    width: 100%;
-    padding: 0.5rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    font-size: 0.9rem;
-}
-
-#apoyo-dirigente option {
-    padding: 0.5rem;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-}
-
-#apoyo-dirigente option:hover {
-    background-color: #f0f8ff;
-}
-
-#apoyo-dirigente option:checked {
-    background-color: var(--secondary-color);
-    color: white;
-}
-
-/* Campo de monto condicional */
-#monto-field {
-    transition: all 0.3s ease;
-}
-
-#monto-field.hidden {
-    display: none;
-}
-
-/* Contador de resultados */
-.contador-resultados {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 0.25rem;
-    text-align: right;
-}
-
-/* 🆕 ESTILOS PARA BUSCADOR INTELIGENTE */
-.buscador-dirigentes {
-    margin-bottom: 1rem;
-}
-
-.buscador-dirigentes label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--dark-color);
-}
-
-#buscar-dirigente-apoyo {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-}
-
-#buscar-dirigente-apoyo:focus {
-    border-color: var(--secondary-color);
-    outline: none;
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-}
-
-.contador-resultados {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 0.25rem;
-    text-align: right;
-}
-
-/* Estilos para el select de dirigentes con scroll */
-#apoyo-dirigente {
-    width: 100%;
-    padding: 0.5rem;
-    border: 2px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    font-size: 0.9rem;
-}
-
-#apoyo-dirigente option {
-    padding: 0.5rem;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-}
-
-#apoyo-dirigente option:hover {
-    background-color: #f0f8ff;
-}
-
-
-
