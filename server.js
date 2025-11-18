@@ -815,3 +815,71 @@ app.listen(PORT, HOST, () => {
 });
 
 
+// 🆕 RUTAS PARA GESTIÓN DE COLABORADORES
+
+// Crear colaborador
+app.post('/api/colaboradores', requireAuth, (req, res) => {
+    const { nombre, cedula, cargo } = req.body;
+    
+    db.run(
+        'INSERT INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)',
+        [nombre, cedula, cargo],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al crear colaborador' });
+            }
+            res.json({ id: this.lastID, message: 'Colaborador creado exitosamente' });
+        }
+    );
+});
+
+// Actualizar colaborador
+app.put('/api/colaboradores/:id', requireAuth, (req, res) => {
+    const { nombre, cedula, cargo } = req.body;
+    const id = req.params.id;
+    
+    db.run(
+        'UPDATE colaboradores SET nombre = ?, cedula = ?, cargo = ? WHERE id = ?',
+        [nombre, cedula, cargo, id],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al actualizar colaborador' });
+            }
+            res.json({ message: 'Colaborador actualizado exitosamente' });
+        }
+    );
+});
+
+// Desactivar colaborador
+app.put('/api/colaboradores/:id/desactivar', requireAuth, (req, res) => {
+    const id = req.params.id;
+    
+    db.run(
+        'UPDATE colaboradores SET activo = FALSE WHERE id = ?',
+        [id],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al desactivar colaborador' });
+            }
+            res.json({ message: 'Colaborador desactivado exitosamente' });
+        }
+    );
+});
+
+// Activar colaborador
+app.put('/api/colaboradores/:id/activar', requireAuth, (req, res) => {
+    const id = req.params.id;
+    
+    db.run(
+        'UPDATE colaboradores SET activo = TRUE WHERE id = ?',
+        [id],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al activar colaborador' });
+            }
+            res.json({ message: 'Colaborador activado exitosamente' });
+        }
+    );
+});
+
+
