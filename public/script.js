@@ -2,21 +2,13 @@
 let appState = {
     isAuthenticated: false,
     dirigentes: [],
+    colaboradores: [],
     apoyos: []
 };
 
-// Elementos DOM
-const loginForm = document.getElementById('login-form');
-const userInfo = document.getElementById('user-info');
-const adminPanel = document.getElementById('admin-panel');
-const searchResult = document.getElementById('search-result');
-
 // Inicialización
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar si ya está autenticado
     checkAuthStatus();
-    
-    // Configurar event listeners para formularios
     document.getElementById('dirigente-form').addEventListener('submit', guardarDirigente);
     document.getElementById('apoyo-form').addEventListener('submit', registrarApoyo);
 });
@@ -34,9 +26,7 @@ async function login() {
     try {
         const response = await fetch('/login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
         
@@ -44,36 +34,15 @@ async function login() {
         
         if (data.success) {
             appState.isAuthenticated = true;
-            appState.userRol = data.rol; // 🆕 Guardar rol
-            appState.username = data.username; // 🆕 Guardar username
-            
+            appState.userRol = data.rol;
             actualizarUI();
-            await cargarUsuarioActual(); // 🆕 Cargar datos completos
             cargarDatos();
             mostrarNotificacion(`Sesión iniciada como ${data.rol}`, 'success');
         } else {
             mostrarNotificacion(data.error || 'Credenciales incorrectas', 'error');
         }
     } catch (error) {
-        console.error('Error al iniciar sesión:', error);
         mostrarNotificacion('Error al conectar con el servidor', 'error');
-    }
-}
-
-// 🆕 FUNCIÓN PARA CARGAR DATOS DEL USUARIO ACTUAL
-async function cargarUsuarioActual() {
-    try {
-        const response = await fetch('/api/usuario-actual');
-        const data = await response.json();
-        
-        if (response.ok) {
-            appState.userRol = data.rol;
-            appState.username = data.username;
-            appState.isAdmin = data.isAdmin;
-            actualizarPermisosUI(); // 🆕 Actualizar interfaz según permisos
-        }
-    } catch (error) {
-        console.error('Error cargando datos usuario:', error);
     }
 }
 
@@ -89,43 +58,143 @@ async function logout() {
 }
 
 function checkAuthStatus() {
-    // En una aplicación real, verificaríamos con el servidor
-    // Por ahora, asumimos que no está autenticado al cargar la página
     appState.isAuthenticated = false;
     actualizarUI();
 }
 
 function actualizarUI() {
     if (appState.isAuthenticated) {
-        loginForm.classList.add('hidden');
-        userInfo.classList.remove('hidden');
-        adminPanel.classList.remove('hidden');
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('user-info').classList.remove('hidden');
+        document.getElementById('admin-panel').classList.remove('hidden');
     } else {
-        loginForm.classList.remove('hidden');
-        userInfo.classList.add('hidden');
-        adminPanel.classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('user-info').classList.add('hidden');
+        document.getElementById('admin-panel').classList.add('hidden');
     }
 }
 
-// Funciones para dirigentes
+// Cargar datos
+async function cargarDatos() {
+    if (!appState.isAuthenticated) return;
+    
+    await cargarDirigentes();
+    await cargarColaboradores();
+    await cargarApoyos();
+}
+
+// Cargar dirigentes
+async function cargarDirigentes() {
+    try {
+        const response = await fetch('/api/dirigentes');
+        const data = await response.json();
+        
+        if (response.ok) {
+            appState.dirigentes = data;
+            renderizarDirigentes();
+            actualizarSelectDirigentes();
+        }
+    } catch (error) {
+        console.error('Error al cargar dirigentes:', error);
+    }
+}
+
+function renderizarDirigentes() {
+    const tbody = document.getElementById('dirigentes-body');
+    tbody.innerHTML = '';
+    
+    appState.dirigentes.forEach(dirigente => {
+        const tr = document.createElement('tr');
+        const claseParticipacion = `participacion-${dirigente.participacion}`;
+        
+        tr.innerHTML = `
+            <td>${dirigente.nombre}</td>
+            <td>${dirigente.cedula}</td>
+            <td>${dirigente.telefono || 'No registrado'}</td>
+            <td>${dirigente.corregimiento}</td>
+            <td>${dirigente.comunidad}</td>
+            <td>${dirigente.coordinador}</td>
+            <td class="${claseParticipacion}">${dirigente.participacion}</td>
+            <td class="actions">
+                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
+                <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
+                <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+// Cargar colaboradores
+async function cargarColaboradores() {
+    try {
+        const response = await fetch('/api/colaboradores');
+        const data = await response.json();
+        
+        if (response.ok) {
+            appState.colaboradores = data;
+            actualizarSelectColaboradores();
+        }
+    } catch (error) {
+        console.error('Error al cargar colaboradores:', error);
+    }
+}
+
+function actualizarSelectColaboradores() {
+    const select = document.getElementById('apoyo-colaborador');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Seleccionar colaborador que entrega</option>';
+    
+    appState.colaboradores.forEach(colaborador => {
+        const option = document.createElement('option');
+        option.value = colaborador.id;
+        option.textContent = `${colaborador.nombre} - ${colaborador.cargo}`;
+        select.appendChild(option);
+    });
+}
+
+// Actualizar select de dirigentes para apoyos
+async function actualizarSelectDirigentes() {
+    try {
+        const response = await fetch('/api/dirigentes/todos');
+        const todosLosDirigentes = await response.json();
+        
+        const select = document.getElementById('apoyo-dirigente');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">Seleccionar dirigente</option>';
+        
+        todosLosDirigentes.forEach(dirigente => {
+            const option = document.createElement('option');
+            option.value = dirigente.id;
+            option.textContent = `${dirigente.nombre} - ${dirigente.cedula}`;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error al cargar dirigentes para selector:', error);
+    }
+}
+
+// Funciones de formularios
 function mostrarFormDirigente(dirigente = null) {
     const form = document.getElementById('form-dirigente');
     const title = document.getElementById('form-title');
-    const formElement = document.getElementById('dirigente-form');
     
     if (dirigente) {
         title.textContent = 'Editar Dirigente';
         document.getElementById('dirigente-id').value = dirigente.id;
         document.getElementById('dirigente-nombre').value = dirigente.nombre;
         document.getElementById('dirigente-cedula').value = dirigente.cedula;
+        document.getElementById('dirigente-telefono').value = dirigente.telefono || '';
         document.getElementById('dirigente-corregimiento').value = dirigente.corregimiento;
         document.getElementById('dirigente-comunidad').value = dirigente.comunidad;
         document.getElementById('dirigente-coordinador').value = dirigente.coordinador;
         document.getElementById('dirigente-participacion').value = dirigente.participacion;
     } else {
         title.textContent = 'Nuevo Dirigente';
-        formElement.reset();
-        document.getElementById('dirigente-id').value = '';
+        document.getElementById('dirigente-form').reset();
     }
     
     form.classList.remove('hidden');
@@ -139,40 +208,28 @@ async function guardarDirigente(event) {
     event.preventDefault();
     
     const id = document.getElementById('dirigente-id').value;
-const nombre = document.getElementById('dirigente-nombre').value;
-const cedula = document.getElementById('dirigente-cedula').value;
-const telefono = document.getElementById('dirigente-telefono').value;
-const corregimiento = document.getElementById('dirigente-corregimiento').value;
-const comunidad = document.getElementById('dirigente-comunidad').value;
-const coordinador = document.getElementById('dirigente-coordinador').value;
-const participacion = document.getElementById('dirigente-participacion').value;
+    const nombre = document.getElementById('dirigente-nombre').value;
+    const cedula = document.getElementById('dirigente-cedula').value;
+    const telefono = document.getElementById('dirigente-telefono').value;
+    const corregimiento = document.getElementById('dirigente-corregimiento').value;
+    const comunidad = document.getElementById('dirigente-comunidad').value;
+    const coordinador = document.getElementById('dirigente-coordinador').value;
+    const participacion = document.getElementById('dirigente-participacion').value;
     
-    const dirigenteData = {
-        nombre,
-        cedula,
-        telefono,
-        corregimiento,
-        comunidad,
-        coordinador,
-        participacion
-    };
+    const dirigenteData = { nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion };
     
     try {
         let response;
         if (id) {
             response = await fetch(`/api/dirigentes/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dirigenteData)
             });
         } else {
             response = await fetch('/api/dirigentes', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dirigenteData)
             });
         }
@@ -187,170 +244,10 @@ const participacion = document.getElementById('dirigente-participacion').value;
             mostrarNotificacion(data.error, 'error');
         }
     } catch (error) {
-        console.error('Error al guardar dirigente:', error);
         mostrarNotificacion('Error al conectar con el servidor', 'error');
     }
 }
 
-async function cargarDirigentes() {
-    try {
-        // 🆕 VOLVER a cargar solo los últimos 10 dirigentes
-        const response = await fetch('/api/dirigentes');
-        const data = await response.json();
-        
-        if (response.ok) {
-            appState.dirigentes = data;
-            renderizarDirigentes();
-            actualizarSelectDirigentes(); // 🆕 Esto carga TODOS para el buscador
-            mostrarInfoResultados();
-        } else {
-            mostrarNotificacion(data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error al cargar dirigentes:', error);
-        mostrarNotificacion('Error al conectar con el servidor', 'error');
-    }
-}
-
-function renderizarDirigentes() {
-    const tbody = document.getElementById('dirigentes-body');
-    tbody.innerHTML = '';
-    
-    // 🆕 MOSTRAR solo los últimos 10 en la tabla
-    const dirigentesParaMostrar = appState.dirigentes.slice(0, 10);
-    
-    dirigentesParaMostrar.forEach(dirigente => {
-        const tr = document.createElement('tr');
-        
-        const claseParticipacion = `participacion-${dirigente.participacion}`;
-        
-        tr.innerHTML = `
-            <td>${dirigente.nombre}</td>
-            <td>${dirigente.cedula}</td>
-            <td>${dirigente.telefono || 'No registrado'}</td>
-            <td>${dirigente.corregimiento}</td>
-            <td>${dirigente.comunidad}</td>
-            <td>${dirigente.coordinador}</td>
-            <td class="${claseParticipacion}">${dirigente.participacion}</td>
-            <td class="actions">
-                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
-                <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
-                <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
-                <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
-    });
-}
-
-// 🆕 FUNCIÓN PARA MOSTRAR INFORMACIÓN DE RESULTADOS
-function mostrarInfoResultados() {
-    const infoContainer = document.getElementById('info-resultados');
-    if (!infoContainer) {
-        const listaContainer = document.getElementById('lista-dirigentes');
-        const infoHTML = `
-            <div id="info-resultados" class="info-resultados">
-                <p>📋 Mostrando los <strong>10 últimos dirigentes</strong> de ${appState.dirigentes.length} totales</p>
-                <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
-                    🔍 Ver todos los ${appState.dirigentes.length} dirigentes
-                </button>
-            </div>
-        `;
-        const tabla = listaContainer.querySelector('table');
-        listaContainer.insertBefore(document.createElement('div'), tabla).outerHTML = infoHTML;
-    } else {
-        // 🆕 ACTUALIZAR el contador
-        infoContainer.innerHTML = `
-            <p>📋 Mostrando los <strong>10 últimos dirigentes</strong> de ${appState.dirigentes.length} totales</p>
-            <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
-                🔍 Ver todos los ${appState.dirigentes.length} dirigentes
-            </button>
-        `;
-    }
-}
-
-// 🆕 FUNCIÓN PARA MOSTRAR TODOS LOS DIRIGENTES (sin límite)
-async function mostrarTodosLosDirigentes() {
-    // 🆕 YA NO necesitamos hacer fetch porque ya tenemos todos los datos
-    // Simplemente renderizamos todos los dirigentes
-    
-    const tbody = document.getElementById('dirigentes-body');
-    tbody.innerHTML = '';
-    
-    // Renderizar TODOS los dirigentes
-    appState.dirigentes.forEach(dirigente => {
-        const tr = document.createElement('tr');
-        
-        const claseParticipacion = `participacion-${dirigente.participacion}`;
-        
-        tr.innerHTML = `
-            <td>${dirigente.nombre}</td>
-            <td>${dirigente.cedula}</td>
-            <td>${dirigente.telefono || 'No registrado'}</td>
-            <td>${dirigente.corregimiento}</td>
-            <td>${dirigente.comunidad}</td>
-            <td>${dirigente.coordinador}</td>
-            <td class="${claseParticipacion}">${dirigente.participacion}</td>
-            <td class="actions">
-                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
-                <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
-                <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
-                <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
-            </td>
-        `;
-        
-        tbody.appendChild(tr);
-    });
-    
-    // Actualizar información
-    document.getElementById('info-resultados').innerHTML = `
-        <p>📋 Mostrando <strong>todos los ${appState.dirigentes.length} dirigentes</strong></p>
-        <button onclick="cargarDirigentes()" class="btn-ver-recientes">
-            ⏰ Volver a ver solo los últimos 10
-        </button>
-    `;
-    
-    mostrarNotificacion(`Mostrando todos los ${appState.dirigentes.length} dirigentes`, 'success');
-}
-
-function editarDirigente(id) {
-    const dirigente = appState.dirigentes.find(d => d.id === id);
-    if (dirigente) {
-        mostrarFormDirigente(dirigente);
-        document.getElementById('dirigente-telefono').value = dirigente.telefono || '';
-    }
-}
-
-async function eliminarDirigente(id) {
-    if (!confirm('¿Está seguro de que desea eliminar este dirigente?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/api/dirigentes/${id}`, {
-            method: 'DELETE'
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            mostrarNotificacion(data.message, 'success');
-            cargarDirigentes();
-        } else {
-            mostrarNotificacion(data.error, 'error');
-        }
-    } catch (error) {
-        console.error('Error al eliminar dirigente:', error);
-        mostrarNotificacion('Error al conectar con el servidor', 'error');
-    }
-}
-
-function generarConstancia(id) {
-    window.open(`/constancia/${id}`, '_blank');
-}
-
-// Funciones para apoyos
 function mostrarFormApoyo() {
     document.getElementById('form-apoyo').classList.remove('hidden');
     configurarFechaAutomatica();
@@ -364,25 +261,23 @@ async function registrarApoyo(event) {
     event.preventDefault();
     
     const dirigenteId = document.getElementById('apoyo-dirigente').value;
+    const colaboradorId = document.getElementById('apoyo-colaborador').value;
     const tipo = document.getElementById('apoyo-tipo').value;
     const descripcion = document.getElementById('apoyo-descripcion').value;
     const monto = document.getElementById('apoyo-monto').value;
-    const fecha = document.getElementById('apoyo-fecha').value;
     
     const apoyoData = {
         dirigente_id: dirigenteId,
+        colaborador_id: colaboradorId,
         tipo,
         descripcion,
-        monto: tipo === 'economico' ? monto : null,
-        fecha
+        monto: tipo === 'economico' ? monto : null
     };
     
     try {
         const response = await fetch('/api/apoyos', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(apoyoData)
         });
         
@@ -391,26 +286,29 @@ async function registrarApoyo(event) {
         if (response.ok) {
             mostrarNotificacion('Apoyo registrado exitosamente', 'success');
             ocultarFormApoyo();
-            document.getElementById('apoyo-form').reset();
-            await cargarApoyos();
-            
-            // 🆕 GENERAR CONSTANCIA AUTOMÁTICAMENTE
-            if (data.id) {
-                setTimeout(() => {
-                    const nuevaVentana = window.open(`/constancia-apoyo/${data.id}`, '_blank');
-                    if (nuevaVentana) {
-                        nuevaVentana.focus();
-                    }
-                }, 1000);
-            }
-            
+            cargarApoyos();
         } else {
             mostrarNotificacion(data.error, 'error');
         }
     } catch (error) {
-        console.error('Error al registrar apoyo:', error);
         mostrarNotificacion('Error al conectar con el servidor', 'error');
     }
+}
+
+// Funciones auxiliares
+function configurarFechaAutomatica() {
+    const fechaInput = document.getElementById('apoyo-fecha');
+    if (fechaInput) {
+        const hoy = new Date();
+        const fechaLocal = new Date(hoy.getTime() - (hoy.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        fechaInput.value = fechaLocal;
+    }
+}
+
+function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
+    mostrarFormApoyo();
+    document.getElementById('apoyo-dirigente').value = dirigenteId;
+    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado`, 'success');
 }
 
 async function cargarApoyos() {
@@ -421,12 +319,9 @@ async function cargarApoyos() {
         if (response.ok) {
             appState.apoyos = data;
             renderizarApoyos();
-        } else {
-            mostrarNotificacion(data.error, 'error');
         }
     } catch (error) {
         console.error('Error al cargar apoyos:', error);
-        mostrarNotificacion('Error al conectar con el servidor', 'error');
     }
 }
 
@@ -441,73 +336,20 @@ function renderizarApoyos() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${nombreDirigente}</td>
-            <td style="text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
+            <td>${apoyo.tipo}</td>
             <td>${apoyo.descripcion || '-'}</td>
-            <td>${apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}</td>
+            <td>${apoyo.monto ? `$${apoyo.monto}` : '-'}</td>
             <td>${new Date(apoyo.fecha).toLocaleDateString()}</td>
-            <td class="actions">
-                <button class="constancia" onclick="generarConstanciaApoyo(${apoyo.id})">
-                    📄 Constancia
-                </button>
-            </td>
         `;
         
         tbody.appendChild(tr);
     });
 }
 
-// 🆕 FUNCIÓN PARA GENERAR CONSTANCIA DE APOYO
-function generarConstanciaApoyo(apoyoId) {
-    window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
-}
-
-// 🆕 FUNCIÓN MEJORADA - REEMPLAZAR LA EXISTENTE
-async function actualizarSelectDirigentes() {
-    const select = document.getElementById('apoyo-dirigente');
-    if (!select) return;
-    
-    try {
-        // 🆕 CARGAR TODOS los dirigentes SOLO para el selector de apoyos
-        const response = await fetch('/api/dirigentes/todos');
-        const todosLosDirigentes = await response.json();
-        
-        if (!response.ok) {
-            throw new Error('No se pudieron cargar todos los dirigentes');
-        }
-        
-        console.log(`✅ ${todosLosDirigentes.length} dirigentes cargados para el buscador`);
-        
-        // Limpiar select
-        select.innerHTML = '';
-        
-        // Agregar opción por defecto
-        const optionDefault = document.createElement('option');
-        optionDefault.value = '';
-        optionDefault.textContent = `👥 ${todosLosDirigentes.length} dirigentes disponibles - Use el buscador arriba`;
-        optionDefault.disabled = true;
-        select.appendChild(optionDefault);
-        
-        // Agregar TODOS los dirigentes al selector del buscador
-        todosLosDirigentes.forEach(dirigente => {
-            const option = document.createElement('option');
-            option.value = dirigente.id;
-            option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
-            option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
-            select.appendChild(option);
-        });
-        
-        // Guardar referencia para el buscador
-        appState.todosLosDirigentes = todosLosDirigentes;
-        
-    } catch (error) {
-        console.error('Error cargando todos los dirigentes para el selector:', error);
-        // 🆕 Si falla, usar los dirigentes que ya tenemos
-        cargarSelectorConDirigentesDisponibles();
-    }
-}
-// Función de búsqueda pública
+// Búsqueda pública
 async function buscarDirigente() {
     const cedula = document.getElementById('search-cedula').value.trim();
+    const searchResult = document.getElementById('search-result');
     
     if (!cedula) {
         mostrarNotificacion('Por favor ingrese un número de cédula', 'error');
@@ -521,739 +363,77 @@ async function buscarDirigente() {
         searchResult.classList.remove('hidden');
         
         if (data.encontrado) {
-    const dirigente = data.dirigente;
-    const claseParticipacion = `participacion-${dirigente.participacion}`;
-    
-    searchResult.innerHTML = `
-        <div class="result-found">
-            <h3>¡Dirigente encontrado!</h3>
-            <p><strong>Nombre:</strong> ${dirigente.nombre}</p>
-            <p><strong>Cédula:</strong> ${dirigente.cedula}</p>
-            <p><strong>Teléfono:</strong> ${dirigente.telefono || 'No registrado'}</p>
-            <p><strong>Corregimiento:</strong> ${dirigente.corregimiento}</p>
-            <p><strong>Comunidad:</strong> ${dirigente.comunidad}</p>
-            <p><strong>Coordinador:</strong> ${dirigente.coordinador}</p>
-            <p><strong>Participación:</strong> <span class="${claseParticipacion}">${dirigente.participacion}</span></p>
-        </div>
-    `;
-} else {
+            const dirigente = data.dirigente;
+            const claseParticipacion = `participacion-${dirigente.participacion}`;
+            
+            searchResult.innerHTML = `
+                <div class="result-found">
+                    <h3>¡Dirigente encontrado!</h3>
+                    <p><strong>Nombre:</strong> ${dirigente.nombre}</p>
+                    <p><strong>Cédula:</strong> ${dirigente.cedula}</p>
+                    <p><strong>Teléfono:</strong> ${dirigente.telefono || 'No registrado'}</p>
+                    <p><strong>Corregimiento:</strong> ${dirigente.corregimiento}</p>
+                    <p><strong>Comunidad:</strong> ${dirigente.comunidad}</p>
+                    <p><strong>Coordinador:</strong> ${dirigente.coordinador}</p>
+                    <p><strong>Participación:</strong> <span class="${claseParticipacion}">${dirigente.participacion}</span></p>
+                </div>
+            `;
+        } else {
             searchResult.innerHTML = `
                 <div class="result-not-found">
                     <h3>Dirigente no encontrado</h3>
-                    <p>No se encontró ningún dirigente registrado con la cédula: ${cedula}</p>
+                    <p>No se encontró ningún dirigente con la cédula: ${cedula}</p>
                 </div>
             `;
         }
     } catch (error) {
-        console.error('Error en la búsqueda:', error);
         mostrarNotificacion('Error al conectar con el servidor', 'error');
-    }
-}
-
-// Cargar todos los datos necesarios
-async function cargarDatos() {
-    if (!appState.isAuthenticated) return;
-    
-    await cargarColaboradores(); // 🆕 Cargar colaboradores
-    await cargarDirigentes();
-    await cargarApoyos();
-    
-    if (appState.isAdmin) {
-        await cargarDashboard();
-        agregarBotonesExportacion();
     }
 }
 
 // Utilidades
 function mostrarNotificacion(mensaje, tipo) {
-    // Eliminar notificaciones existentes
-    const notificacionesExistentes = document.querySelectorAll('.notification');
-    notificacionesExistentes.forEach(notif => notif.remove());
-    
-    // Crear nueva notificación
     const notificacion = document.createElement('div');
     notificacion.className = `notification ${tipo}`;
     notificacion.textContent = mensaje;
     
     document.body.appendChild(notificacion);
     
-    // Eliminar después de 3 segundos
     setTimeout(() => {
         if (notificacion.parentNode) {
             notificacion.parentNode.removeChild(notificacion);
         }
     }, 3000);
-
 }
 
-function configurarFechaAutomatica() {
-    const fechaInput = document.getElementById('apoyo-fecha');
-    if (fechaInput) {
-        // Obtener fecha local del navegador (Panamá)
-        const hoy = new Date();
-        const fechaLocal = new Date(hoy.getTime() - (hoy.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        fechaInput.value = fechaLocal;
+// Funciones de edición/eliminación
+function editarDirigente(id) {
+    const dirigente = appState.dirigentes.find(d => d.id === id);
+    if (dirigente) {
+        mostrarFormDirigente(dirigente);
     }
 }
 
-function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
-    // Mostrar el formulario de apoyo
-    mostrarFormApoyo();
-    
-    // Seleccionar automáticamente el dirigente
-    const selectDirigente = document.getElementById('apoyo-dirigente');
-    selectDirigente.value = dirigenteId;
-    
-    // Mostrar notificación de confirmación
-    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
-    
-    // Hacer scroll suave al formulario
-    document.getElementById('form-apoyo').scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'center'
-    });
-}
-
-// ========== NUEVAS FUNCIONALIDADES ==========
-
-// Cargar dashboard con estadísticas
-async function cargarDashboard() {
-    if (!appState.isAuthenticated) return;
+async function eliminarDirigente(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este dirigente?')) {
+        return;
+    }
     
     try {
-        const response = await fetch('/api/estadisticas');
-        const estadisticas = await response.json();
+        const response = await fetch(`/api/dirigentes/${id}`, { method: 'DELETE' });
+        const data = await response.json();
         
         if (response.ok) {
-            renderizarDashboard(estadisticas);
+            mostrarNotificacion(data.message, 'success');
+            cargarDirigentes();
+        } else {
+            mostrarNotificacion(data.error, 'error');
         }
     } catch (error) {
-        console.error('Error cargando dashboard:', error);
-    }
-}
-
-function renderizarDashboard(estadisticas) {
-    const dashboardHTML = `
-        <div class="dashboard-cards">
-            <div class="card">
-                <h3>Total Dirigentes</h3>
-                <div class="number">${estadisticas.totalDirigentes}</div>
-                <div class="description">Registrados en el sistema</div>
-            </div>
-            <div class="card">
-                <h3>Total Apoyos</h3>
-                <div class="number">${estadisticas.totalApoyos}</div>
-                <div class="description">Apoyos registrados</div>
-            </div>
-            <div class="card">
-                <h3>Buena Participación</h3>
-                <div class="number">${estadisticas.participacion.find(p => p.participacion === 'buena')?.total || 0}</div>
-                <div class="description">Dirigentes activos</div>
-            </div>
-            <div class="card">
-                <h3>Apoyos Económicos</h3>
-                <div class="number">$${estadisticas.apoyos.find(a => a.tipo === 'economico')?.total_monto || 0}</div>
-                <div class="description">Total distribuido</div>
-            </div>
-        </div>
-    `;
-    
-    // Insertar dashboard al inicio del admin-panel
-    const adminPanel = document.getElementById('admin-panel');
-    const existingDashboard = adminPanel.querySelector('.dashboard-cards');
-    
-    if (existingDashboard) {
-        existingDashboard.innerHTML = dashboardHTML;
-    } else {
-        adminPanel.insertAdjacentHTML('afterbegin', dashboardHTML);
-    }
-}
-
-// Búsqueda avanzada
-function configurarBusquedaAvanzada() {
-    const buscarInput = document.getElementById('buscar-dirigente');
-    const filtroCorregimiento = document.getElementById('filtro-corregimiento');
-    const filtroParticipacion = document.getElementById('filtro-participacion');
-    
-    if (buscarInput) {
-        buscarInput.addEventListener('input', debounce(filtrarDirigentes, 300));
-    }
-    if (filtroCorregimiento) {
-        filtroCorregimiento.addEventListener('change', filtrarDirigentes);
-    }
-    if (filtroParticipacion) {
-        filtroParticipacion.addEventListener('change', filtrarDirigentes);
-    }
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-async function filtrarDirigentes() {
-    if (!appState.isAuthenticated) return;
-    
-    const query = document.getElementById('buscar-dirigente')?.value || '';
-    const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
-    const participacion = document.getElementById('filtro-participacion')?.value || '';
-    
-    const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (corregimiento) params.append('corregimiento', corregimiento);
-    if (participacion) params.append('participacion', participacion);
-    
-    try {
-        const response = await fetch(`/api/dirigentes/buscar?${params}`);
-        const dirigentesFiltrados = await response.json();
-        
-        if (response.ok) {
-            appState.dirigentes = dirigentesFiltrados;
-            renderizarDirigentes();
-            
-            // 🆕 Mostrar información de resultados filtrados
-            const infoContainer = document.getElementById('info-resultados');
-            if (infoContainer) {
-                if (dirigentesFiltrados.length === 0) {
-                    infoContainer.innerHTML = `<p>🔍 No se encontraron dirigentes con los filtros aplicados</p>`;
-                } else {
-                    infoContainer.innerHTML = `
-                        <p>🔍 Mostrando <strong>${dirigentesFiltrados.length} dirigentes</strong> que coinciden con la búsqueda</p>
-                        <button onclick="cargarDirigentes()" class="btn-ver-recientes">
-                            ⏰ Volver a ver los últimos 10
-                        </button>
-                    `;
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Error filtrando dirigentes:', error);
         mostrarNotificacion('Error al conectar con el servidor', 'error');
     }
 }
 
-// Exportación de datos
-function agregarBotonesExportacion() {
-    const seccionDirigentes = document.getElementById('gestion-dirigentes');
-    if (seccionDirigentes && !seccionDirigentes.querySelector('.export-buttons')) {
-        const exportHTML = `
-            <div class="export-buttons">
-                <button class="btn-export csv" onclick="exportarDirigentesCSV()">
-                    📊 Exportar a CSV
-                </button>
-            </div>
-        `;
-        seccionDirigentes.querySelector('h2').insertAdjacentHTML('afterend', exportHTML);
-    }
+function generarConstancia(id) {
+    window.open(`/constancia/${id}`, '_blank');
 }
-
-async function exportarDirigentesCSV() {
-    try {
-        const response = await fetch('/api/exportar/dirigentes');
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'dirigentes.csv';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            mostrarNotificacion('Archivo CSV descargado exitosamente', 'success');
-        }
-    } catch (error) {
-        console.error('Error exportando CSV:', error);
-        mostrarNotificacion('Error al exportar datos', 'error');
-    }
-}
-
-// Sistema de notificaciones
-async function cargarNotificaciones() {
-    if (!appState.isAuthenticated) return;
-    
-    try {
-        const response = await fetch('/api/notificaciones');
-        const notificaciones = await response.json();
-        
-        if (response.ok) {
-            renderizarNotificaciones(notificaciones);
-        }
-    } catch (error) {
-        console.error('Error cargando notificaciones:', error);
-    }
-}
-
-function renderizarNotificaciones(notificaciones) {
-    // Aquí puedes implementar la UI de notificaciones
-    console.log('Notificaciones:', notificaciones);
-    
-    // Ejemplo: Mostrar badge con cantidad de notificaciones
-    const notificacionBadge = document.getElementById('notificacion-badge');
-    if (notificaciones.length > 0) {
-        if (!notificacionBadge) {
-            const badge = document.createElement('span');
-            badge.id = 'notificacion-badge';
-            badge.className = 'notificacion-badge';
-            badge.textContent = notificaciones.length;
-            document.querySelector('header').appendChild(badge);
-        } else {
-            notificacionBadge.textContent = notificaciones.length;
-        }
-    }
-}
-
-// Actualizar la función cargarDatos para incluir las nuevas funcionalidades
-async function cargarDatos() {
-    if (!appState.isAuthenticated) return;
-    
-    await Promise.all([
-        cargarDirigentes(),
-        cargarApoyos(),
-        cargarDashboard(),
-        cargarNotificaciones()
-    ]);
-    
-    configurarBusquedaAvanzada();
-    agregarBotonesExportacion();
-}
-
-// Inicializar mejoras cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    // Tu código existente...
-    
-    // Agregar estas líneas al final del event listener
-    setTimeout(() => {
-        if (appState.isAuthenticated) {
-            configurarBusquedaAvanzada();
-            agregarBotonesExportacion();
-        }
-    }, 1000);
-});
-
-// ========== 🆕 NUEVAS FUNCIONALIDADES - AGREGAR AL FINAL ==========
-
-// 1. Dashboard con estadísticas
-async function cargarDashboard() {
-    if (!appState.isAuthenticated) return;
-    
-    try {
-        const response = await fetch('/api/estadisticas');
-        if (!response.ok) {
-            throw new Error('Error en la respuesta');
-        }
-        const estadisticas = await response.json();
-        renderizarDashboard(estadisticas);
-    } catch (error) {
-        console.log('⚠️  Dashboard no disponible, mostrando valores por defecto');
-        renderizarDashboard({
-            totalDirigentes: 0,
-            totalApoyos: 0,
-            participacion: [],
-            apoyos: []
-        });
-    }
-}
-
-function renderizarDashboard(estadisticas) {
-    const dashboardHTML = `
-        <div class="dashboard-cards">
-            <div class="card">
-                <h3>Total Dirigentes</h3>
-                <div class="number">${estadisticas.totalDirigentes}</div>
-                <div class="description">Registrados en el sistema</div>
-            </div>
-            <div class="card">
-                <h3>Total Apoyos</h3>
-                <div class="number">${estadisticas.totalApoyos}</div>
-                <div class="description">Apoyos registrados</div>
-            </div>
-            <div class="card">
-                <h3>Buena Participación</h3>
-                <div class="number">${estadisticas.participacion.find(p => p.participacion === 'buena')?.total || 0}</div>
-                <div class="description">Dirigentes activos</div>
-            </div>
-            <div class="card">
-                <h3>Apoyos Económicos</h3>
-                <div class="number">$${estadisticas.apoyos.find(a => a.tipo === 'economico')?.total_monto || 0}</div>
-                <div class="description">Total distribuido</div>
-            </div>
-        </div>
-    `;
-    
-    const adminPanel = document.getElementById('admin-panel');
-    const existingDashboard = adminPanel.querySelector('.dashboard-cards');
-    
-    if (existingDashboard) {
-        existingDashboard.innerHTML = dashboardHTML;
-    } else {
-        adminPanel.insertAdjacentHTML('afterbegin', dashboardHTML);
-    }
-}
-
-// 2. Exportación de datos
-function agregarBotonesExportacion() {
-    const seccionDirigentes = document.getElementById('gestion-dirigentes');
-    if (seccionDirigentes && !seccionDirigentes.querySelector('.export-buttons')) {
-        const exportHTML = `
-            <div class="export-buttons">
-                <button class="btn-export" onclick="exportarDirigentesCSV()">
-                    📊 Exportar a CSV
-                </button>
-            </div>
-        `;
-        seccionDirigentes.querySelector('h2').insertAdjacentHTML('afterend', exportHTML);
-    }
-}
-
-async function exportarDirigentesCSV() {
-    try {
-        const response = await fetch('/api/exportar/dirigentes');
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'dirigentes.csv';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            
-            mostrarNotificacion('Archivo CSV descargado exitosamente', 'success');
-        }
-    } catch (error) {
-        console.error('Error exportando CSV:', error);
-        mostrarNotificacion('Error al exportar datos', 'error');
-    }
-}
-
-// 3. Actualizar la función cargarDatos existente
-// 📍 UBICACIÓN: Busca la función cargarDatos existente y REEMPLÁZALA con:
-async function cargarDatos() {
-    if (!appState.isAuthenticated) return;
-    
-    await cargarDirigentes();
-    await cargarApoyos();
-    await cargarDashboard(); // 🆕 AGREGAR ESTA LÍNEA
-    agregarBotonesExportacion(); // 🆕 AGREGAR ESTA LÍNEA
-}
-
-// 🆕 FUNCIÓN MEJORADA PARA CARGAR COLABORADORES
-async function cargarDatos() {
-    try {
-        console.log('🔄 Cargando todos los datos...');
-        
-        const response = await fetch('/api/colaboradores');
-        
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('✅ Datos cargados:', data);
-        
-        appState.colaboradores = data;
-        actualizarSelectColaboradores();
-        
-    } catch (error) {
-        console.error('❌ Error al cargar colaboradores:', error);
-        mostrarNotificacion('Error al cargar la lista de colaboradores', 'error');
-        
-        // 🆕 SOLUCIÓN TEMPORAL: Crear colaboradores de ejemplo
-        crearColaboradoresTemporalmente();
-    }
-}
-
-// 🆕 FUNCIÓN MEJORADA PARA ACTUALIZAR SELECT DE COLABORADORES
-function actualizarSelectColaboradores() {
-    const select = document.getElementById('apoyo-colaborador');
-    
-    if (!select) {
-        console.error('❌ Selector de colaboradores no encontrado en el DOM');
-        return;
-    }
-    
-    // Limpiar opciones existentes
-    select.innerHTML = '<option value="">Seleccionar colaborador que entrega</option>';
-    
-    // Verificar si hay colaboradores
-    if (!appState.colaboradores || appState.colaboradores.length === 0) {
-        console.warn('⚠️ No hay colaboradores disponibles en appState');
-        
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'No hay colaboradores disponibles';
-        option.disabled = true;
-        select.appendChild(option);
-        return;
-    }
-    
-    console.log(`✅ Agregando ${appState.colaboradores.length} colaboradores al selector`);
-    
-    // Agregar colaboradores al selector
-    appState.colaboradores.forEach(colaborador => {
-        const option = document.createElement('option');
-        option.value = colaborador.id;
-        option.textContent = `${colaborador.nombre} - ${colaborador.cargo}`;
-        option.title = `Cédula: ${colaborador.cedula}`;
-        select.appendChild(option);
-    });
-}
-
-// 🆕 FUNCIÓN PARA VERIFICAR PERMISOS DE USUARIO
-function actualizarPermisosUI() {
-    const esAdmin = appState.userRol === 'admin';
-    const esColaborador = appState.userRol === 'colaborador';
-    
-    // Ocultar/mostrar elementos según permisos
-    const elementosSoloAdmin = [
-        'gestion-dirigentes', // Sección completa de gestión
-        'btn-agregar-dirigente', // Botón agregar dirigente
-        'btn-editar-dirigente', // Botones editar
-        'btn-eliminar-dirigente' // Botones eliminar
-    ];
-    
-    elementosSoloAdmin.forEach(id => {
-        const elemento = document.getElementById(id);
-        if (elemento) {
-            elemento.style.display = esAdmin ? 'block' : 'none';
-        }
-    });
-    
-    // Mostrar información del usuario actual
-    const userInfo = document.getElementById('user-info');
-    if (userInfo) {
-        const welcomeSpan = userInfo.querySelector('#welcome-message');
-        if (welcomeSpan) {
-            welcomeSpan.textContent = `Bienvenido, ${appState.userRol === 'admin' ? 'Administrador' : 'Colaborador'}`;
-        }
-    }
-}
-
-// 🆕 FUNCIONES PARA BUSCADOR INTELIGENTE DE DIRIGENTES
-
-function filtrarDirigentesApoyo() {
-    const busqueda = document.getElementById('buscar-dirigente-apoyo').value.toLowerCase();
-    const select = document.getElementById('apoyo-dirigente');
-    const contador = document.getElementById('contador-resultados') || crearContador();
-    
-    // 🆕 Usar TODOS los dirigentes para el filtro
-    const dirigentesParaFiltrar = appState.todosLosDirigentes || appState.dirigentes;
-    
-    // Limpiar select
-    select.innerHTML = '';
-    
-    // Filtrar dirigentes
-    const dirigentesFiltrados = dirigentesParaFiltrar.filter(dirigente => 
-        dirigente.nombre.toLowerCase().includes(busqueda) ||
-        dirigente.cedula.includes(busqueda) ||
-        (dirigente.comunidad && dirigente.comunidad.toLowerCase().includes(busqueda)) ||
-        (dirigente.corregimiento && dirigente.corregimiento.toLowerCase().includes(busqueda))
-    );
-    
-    // Agregar opción por defecto
-    const optionDefault = document.createElement('option');
-    optionDefault.value = '';
-    optionDefault.textContent = dirigentesFiltrados.length === 0 ? 
-        '❌ No se encontraron dirigentes' : 
-        `👥 ${dirigentesFiltrados.length} dirigente(s) encontrado(s)`;
-    optionDefault.disabled = true;
-    select.appendChild(optionDefault);
-    
-    // Agregar dirigentes filtrados
-    dirigentesFiltrados.forEach(dirigente => {
-        const option = document.createElement('option');
-        option.value = dirigente.id;
-        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
-        option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
-        select.appendChild(option);
-    });
-    
-    // Actualizar contador
-    contador.textContent = `${dirigentesFiltrados.length} dirigente(s) encontrado(s) de ${dirigentesParaFiltrar.length} totales`;
-    
-    // Si hay solo un resultado, seleccionarlo automáticamente
-    if (dirigentesFiltrados.length === 1 && busqueda.length > 2) {
-        select.value = dirigentesFiltrados[0].id;
-    }
-}
-
-function crearContador() {
-    const contador = document.createElement('div');
-    contador.id = 'contador-resultados';
-    contador.className = 'contador-resultados';
-    document.querySelector('.buscador-dirigentes').appendChild(contador);
-    return contador;
-}
-
-// 🆕 FUNCIÓN PARA MOSTRAR DIRIGENTES EN EL SELECTOR
-function actualizarSelectDirigentes() {
-    const select = document.getElementById('apoyo-dirigente');
-    if (!select) return;
-    
-    // Guardar referencia original
-    appState.dirigentesOriginal = [];
-    
-    // Limpiar select
-    select.innerHTML = '';
-    
-    // Agregar opción por defecto
-    const optionDefault = document.createElement('option');
-    optionDefault.value = '';
-    optionDefault.textContent = `👥 ${appState.dirigentes.length} dirigentes disponibles - Use el buscador arriba`;
-    optionDefault.disabled = true;
-    select.appendChild(optionDefault);
-    
-    // Agregar todos los dirigentes (pero el buscador los filtrará)
-    appState.dirigentes.forEach(dirigente => {
-        const option = document.createElement('option');
-        option.value = dirigente.id;
-        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
-        option.title = `Corregimiento: ${dirigente.corregimiento} | Coordinador: ${dirigente.coordinador}`;
-        select.appendChild(option);
-        appState.dirigentesOriginal.push(option.cloneNode(true));
-    });
-    
-    // Crear contador si no existe
-    if (!document.getElementById('contador-resultados')) {
-        crearContador();
-    }
-}
-
-// 🆕 FUNCIÓN PARA MOSTRAR/OCULTAR CAMPO MONTO
-function toggleMontoField() {
-    const tipoApoyo = document.getElementById('apoyo-tipo').value;
-    const montoField = document.getElementById('monto-field');
-    const montoInput = document.getElementById('apoyo-monto');
-    
-    if (tipoApoyo === 'economico') {
-        montoField.classList.remove('hidden');
-        montoInput.required = true;
-    } else {
-        montoField.classList.add('hidden');
-        montoInput.required = false;
-        montoInput.value = '';
-    }
-}
-
-// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO DE APOYO
-function mostrarFormApoyo() {
-    document.getElementById('form-apoyo').classList.remove('hidden');
-    configurarFechaAutomatica();
-    
-    // 🆕 ENFOCAR EN EL BUSCADOR AUTOMÁTICAMENTE
-    setTimeout(() => {
-        const buscador = document.getElementById('buscar-dirigente-apoyo');
-        if (buscador) {
-            buscador.focus();
-        }
-    }, 100);
-}
-
-// 🆕 FUNCIÓN MEJORADA PARA REGISTRAR APOYO DESDE TABLA
-function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
-    mostrarFormApoyo();
-    
-    // Seleccionar automáticamente el dirigente en el nuevo sistema
-    const select = document.getElementById('apoyo-dirigente');
-    if (select) {
-        select.value = dirigenteId;
-    }
-    
-    // También llenar el buscador para contexto
-    const buscador = document.getElementById('buscar-dirigente-apoyo');
-    if (buscador) {
-        buscador.value = dirigenteNombre;
-        filtrarDirigentesApoyo(); // Aplicar filtro
-    }
-    
-    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
-    
-    // Hacer scroll suave al formulario
-    document.getElementById('form-apoyo').scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'center'
-    });
-}
-
-// 🆕 FUNCIÓN DE EMERGENCIA - CREAR COLABORADORES TEMPORALES
-function crearColaboradoresTemporalmente() {
-    console.log('🆘 Creando colaboradores temporales...');
-    
-    appState.colaboradores = [
-        { id: 1, nombre: 'COLABORADOR EJEMPLO 1', cedula: '8-111-111', cargo: 'Coordinador' },
-        { id: 2, nombre: 'COLABORADOR EJEMPLO 2', cedula: '8-222-222', cargo: 'Asistente' },
-        { id: 3, nombre: 'COLABORADOR EJEMPLO 3', cedula: '8-333-333', cargo: 'Promotor' }
-    ];
-    
-    actualizarSelectColaboradores();
-    mostrarNotificacion('Usando colaboradores de ejemplo temporalmente', 'warning');
-}
-
-// 🆕 FUNCIÓN DE DEPURACIÓN - ELIMINAR DESPUÉS DE SOLUCIONAR
-function diagnosticarColaboradores() {
-    console.log('🔍 DIAGNÓSTICO DE COLABORADORES:');
-    console.log('1. appState.colaboradores:', appState.colaboradores);
-    console.log('2. Selector en DOM:', document.getElementById('apoyo-colaborador'));
-    console.log('3. Opciones en selector:', document.getElementById('apoyo-colaborador')?.options?.length);
-    console.log('4. Estado de autenticación:', appState.isAuthenticated);
-    
-    // Verificar si la API responde
-    fetch('/api/colaboradores')
-        .then(response => {
-            console.log('5. Estado de API /api/colaboradores:', response.status);
-            return response.json();
-        })
-        .then(data => console.log('6. Datos de API:', data))
-        .catch(error => console.log('7. Error en API:', error));
-}
-
-// Ejecutar diagnóstico después de cargar la página
-setTimeout(diagnosticarColaboradores, 3000);
-
-// 🆕 FUNCIÓN DE RESPALDO SI NO SE PUEDEN CARGAR TODOS LOS DIRIGENTES
-function cargarSelectorConDirigentesDisponibles() {
-    const select = document.getElementById('apoyo-dirigente');
-    if (!select) return;
-    
-    select.innerHTML = '';
-    
-    const optionDefault = document.createElement('option');
-    optionDefault.value = '';
-    optionDefault.textContent = `👥 ${appState.dirigentes.length} dirigentes disponibles (últimos 10)`;
-    optionDefault.disabled = true;
-    select.appendChild(optionDefault);
-    
-    // Usar los dirigentes que ya tenemos cargados
-    appState.dirigentes.forEach(dirigente => {
-        const option = document.createElement('option');
-        option.value = dirigente.id;
-        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
-        select.appendChild(option);
-    });
-    
-    appState.todosLosDirigentes = appState.dirigentes;
-    console.log(`✅ Usando ${appState.dirigentes.length} dirigentes disponibles para el buscador`);
-}
-
-
-
-
-
-
-
-
-
-
-
