@@ -344,7 +344,7 @@ app.get('/constancia/:dirigenteId', requireAuth, (req, res) => {
   });
 });
 
-// 🆕 RUTA CORREGIDA PARA GENERAR CONSTANCIA DE APOYO
+// 🆕 RUTA CORREGIDA PARA GENERAR CONSTANCIA DE APOYO CON LOGO REAL
 app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
     const apoyoId = req.params.apoyoId;
     
@@ -407,39 +407,72 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
                     }
                     
                     .header {
-                        text-align: center;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
                         margin-bottom: 30px;
                         border-bottom: 2px solid #333;
                         padding-bottom: 20px;
                     }
                     
-                    .header h1 {
-                        font-size: 24px;
-                        color: #2c3e50;
-                        margin-bottom: 10px;
-                        text-transform: uppercase;
+                    .logo-section {
+                        flex: 1;
+                        text-align: left;
                     }
                     
-                    .header p {
-                        font-size: 14px;
-                        color: #666;
+                    .logo {
+                        max-width: 120px;
+                        max-height: 80px;
                     }
                     
-                    .document-info {
-                        position: absolute;
-                        top: 20px;
-                        right: 20px;
-                        text-align: right;
+                    .logo-fallback {
+                        border: 2px solid #2c3e50;
+                        padding: 10px;
+                        text-align: center;
+                        display: inline-block;
                     }
                     
-                    .document-number {
+                    .logo-fallback div:first-child {
                         font-size: 16px;
                         font-weight: bold;
                         color: #2c3e50;
                     }
                     
-                    .document-type {
+                    .logo-fallback div:last-child {
                         font-size: 12px;
+                        color: #666;
+                    }
+                    
+                    .title-section {
+                        flex: 2;
+                        text-align: center;
+                    }
+                    
+                    .title-section h1 {
+                        font-size: 22px;
+                        color: #2c3e50;
+                        margin-bottom: 5px;
+                        text-transform: uppercase;
+                    }
+                    
+                    .title-section p {
+                        font-size: 12px;
+                        color: #666;
+                    }
+                    
+                    .document-info {
+                        flex: 1;
+                        text-align: right;
+                    }
+                    
+                    .document-number {
+                        font-size: 14px;
+                        font-weight: bold;
+                        color: #2c3e50;
+                    }
+                    
+                    .document-type {
+                        font-size: 11px;
                         color: #666;
                     }
                     
@@ -592,21 +625,33 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
             </head>
             <body>
                 <div class="container">
-                    <!-- ENCABEZADO -->
+                    <!-- ENCABEZADO CON LOGO REAL -->
                     <div class="header">
-                        <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
-                        <p>Documento Oficial - Sistema de Gestión Comunitaria</p>
-                        <p>${new Date().toLocaleDateString('es-PA', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                        })}</p>
-                    </div>
-                    
-                    <div class="document-info">
-                        <div class="document-number">N° AP-${apoyoId.toString().padStart(4, '0')}</div>
-                        <div class="document-type">Constancia Válida</div>
+                        <div class="logo-section">
+                            <!-- 🆕 LOGO REAL -->
+                            <img src="/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='inline-block';">
+                            <!-- LOGO DE RESPALDO -->
+                            <div id="logo-fallback" class="logo-fallback" style="display: none;">
+                                <div>GOBIERNO</div>
+                                <div>COMUNITARIO</div>
+                            </div>
+                        </div>
+                        
+                        <div class="title-section">
+                            <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
+                            <p>Documento Oficial - Sistema de Gestión Comunitaria</p>
+                            <p>${new Date().toLocaleDateString('es-PA', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                            })}</p>
+                        </div>
+                        
+                        <div class="document-info">
+                            <div class="document-number">N° AP-${apoyoId.toString().padStart(4, '0')}</div>
+                            <div class="document-type">Constancia Válida</div>
+                        </div>
                     </div>
                     
                     <!-- INFORMACIÓN DEL BENEFICIARIO -->
@@ -735,6 +780,16 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
                 </div>
                 
                 <script>
+                    // Mostrar logo de respaldo si la imagen no carga
+                    setTimeout(() => {
+                        const logoImg = document.querySelector('.logo');
+                        const logoFallback = document.getElementById('logo-fallback');
+                        if (logoImg && logoImg.naturalHeight === 0) {
+                            logoImg.style.display = 'none';
+                            logoFallback.style.display = 'inline-block';
+                        }
+                    }, 500);
+                    
                     // Auto-imprimir después de 1 segundo
                     setTimeout(() => { 
                         window.print(); 
@@ -758,4 +813,5 @@ app.listen(PORT, HOST, () => {
   console.log(`🚀 Servidor ejecutándose en http://${HOST}:${PORT}`);
   console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
 });
+
 
