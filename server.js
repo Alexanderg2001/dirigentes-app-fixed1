@@ -882,4 +882,80 @@ app.put('/api/colaboradores/:id/activar', requireAuth, (req, res) => {
     );
 });
 
+// 🆕 RUTAS PARA GESTIÓN COMPLETA DE COLABORADORES
+
+// Obtener TODOS los colaboradores (incluyendo inactivos)
+app.get('/api/colaboradores/todos', requireAuth, (req, res) => {
+    db.all('SELECT * FROM colaboradores ORDER BY nombre', (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al obtener colaboradores' });
+        }
+        res.json(rows);
+    });
+});
+
+// Crear colaborador
+app.post('/api/colaboradores', requireAuth, (req, res) => {
+    const { nombre, cedula, cargo } = req.body;
+    
+    db.run(
+        'INSERT INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)',
+        [nombre, cedula, cargo],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al crear colaborador' });
+            }
+            res.json({ id: this.lastID, message: 'Colaborador creado exitosamente' });
+        }
+    );
+});
+
+// Actualizar colaborador
+app.put('/api/colaboradores/:id', requireAuth, (req, res) => {
+    const { nombre, cedula, cargo } = req.body;
+    const id = req.params.id;
+    
+    db.run(
+        'UPDATE colaboradores SET nombre = ?, cedula = ?, cargo = ? WHERE id = ?',
+        [nombre, cedula, cargo, id],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al actualizar colaborador' });
+            }
+            res.json({ message: 'Colaborador actualizado exitosamente' });
+        }
+    );
+});
+
+// 🆕 ELIMINAR COLABORADOR PERMANENTEMENTE
+app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
+    const id = req.params.id;
+    
+    // Primero verificar si el colaborador tiene apoyos registrados
+    db.get('SELECT COUNT(*) as count FROM apoyos WHERE colaborador_id = ?', [id], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al verificar apoyos' });
+        }
+        
+        if (row.count > 0) {
+            return res.status(400).json({ 
+                error: 'No se puede eliminar el colaborador porque tiene apoyos registrados. Primero elimine o reassigne los apoyos.' 
+            });
+        }
+        
+        // Si no tiene apoyos, proceder con la eliminación
+        db.run('DELETE FROM colaboradores WHERE id = ?', [id], function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al eliminar colaborador' });
+            }
+            
+            if (this.changes === 0) {
+                return res.status(404).json({ error: 'Colaborador no encontrado' });
+            }
+            
+            res.json({ message: 'Colaborador eliminado permanentemente' });
+        });
+    });
+});
+
 
