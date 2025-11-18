@@ -947,3 +947,192 @@ async function cargarDatos() {
     await cargarColaboradoresParaTabla(); // 🆕 Agregar esta línea
 }
 
+// 🆕 FUNCIÓN PARA CARGAR Y MOSTRAR COLABORADORES EN TABLA
+async function cargarColaboradoresParaTabla() {
+    try {
+        const response = await fetch('/api/colaboradores/todos');
+        const data = await response.json();
+        
+        if (response.ok) {
+            renderizarColaboradores(data);
+        }
+    } catch (error) {
+        console.error('Error al cargar colaboradores para tabla:', error);
+    }
+}
+
+// 🆕 FUNCIÓN PARA RENDERIZAR COLABORADORES EN TABLA
+function renderizarColaboradores(colaboradores) {
+    const tbody = document.getElementById('colaboradores-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    colaboradores.forEach(colaborador => {
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+            <td>${colaborador.nombre}</td>
+            <td>${colaborador.cedula}</td>
+            <td>${colaborador.cargo}</td>
+            <td>
+                <span class="participacion-${colaborador.activo ? 'buena' : 'mala'}">
+                    ${colaborador.activo ? 'ACTIVO' : 'INACTIVO'}
+                </span>
+            </td>
+            <td class="actions">
+                <button class="edit" onclick="editarColaborador(${colaborador.id})">Editar</button>
+                <button class="delete" onclick="eliminarColaborador(${colaborador.id}, '${colaborador.nombre}')">Eliminar</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+// 🆕 FUNCIÓN PARA ELIMINAR COLABORADOR
+async function eliminarColaborador(id, nombre) {
+    if (!confirm(`¿Está seguro de que desea ELIMINAR permanentemente al colaborador "${nombre}"?\n\n⚠️ Esta acción no se puede deshacer.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/colaboradores/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarNotificacion(`Colaborador "${nombre}" eliminado permanentemente`, 'success');
+            await cargarColaboradoresParaTabla();
+            await cargarColaboradores(); // Recargar para el selector de apoyos
+        } else {
+            mostrarNotificacion(data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error al eliminar colaborador:', error);
+        mostrarNotificacion('Error al conectar con el servidor', 'error');
+    }
+}
+
+// 🆕 FUNCIONES ADICIONALES PARA GESTIÓN COMPLETA
+
+// Función para editar colaborador
+async function editarColaborador(id) {
+    try {
+        const response = await fetch('/api/colaboradores/todos');
+        const colaboradores = await response.json();
+        const colaborador = colaboradores.find(c => c.id === id);
+        
+        if (colaborador) {
+            mostrarFormColaborador(colaborador);
+        }
+    } catch (error) {
+        console.error('Error al cargar colaborador para editar:', error);
+    }
+}
+
+// Función para mostrar formulario de colaborador
+function mostrarFormColaborador(colaborador = null) {
+    // Crear el formulario si no existe
+    let form = document.getElementById('form-colaborador');
+    
+    if (!form) {
+        const html = `
+            <div id="form-colaborador" class="hidden form-container">
+                <h3 id="form-title-colaborador">Nuevo Colaborador</h3>
+                <form id="colaborador-form">
+                    <input type="hidden" id="colaborador-id">
+                    <input type="text" id="colaborador-nombre" placeholder="Nombre completo" required>
+                    <input type="text" id="colaborador-cedula" placeholder="Cédula" required>
+                    <input type="text" id="colaborador-cargo" placeholder="Cargo" required>
+                    <div class="form-buttons">
+                        <button type="submit">Guardar</button>
+                        <button type="button" onclick="ocultarFormColaborador()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.getElementById('gestion-colaboradores').insertAdjacentHTML('beforeend', html);
+        
+        // Agregar event listener al formulario
+        document.getElementById('colaborador-form').addEventListener('submit', guardarColaborador);
+    }
+    
+    const title = document.getElementById('form-title-colaborador');
+    
+    if (colaborador) {
+        title.textContent = 'Editar Colaborador';
+        document.getElementById('colaborador-id').value = colaborador.id;
+        document.getElementById('colaborador-nombre').value = colaborador.nombre;
+        document.getElementById('colaborador-cedula').value = colaborador.cedula;
+        document.getElementById('colaborador-cargo').value = colaborador.cargo;
+    } else {
+        title.textContent = 'Nuevo Colaborador';
+        document.getElementById('colaborador-form').reset();
+        document.getElementById('colaborador-id').value = '';
+    }
+    
+    document.getElementById('form-colaborador').classList.remove('hidden');
+}
+
+function ocultarFormColaborador() {
+    document.getElementById('form-colaborador').classList.add('hidden');
+}
+
+// Función para guardar colaborador (nuevo o editar)
+async function guardarColaborador(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('colaborador-id').value;
+    const nombre = document.getElementById('colaborador-nombre').value;
+    const cedula = document.getElementById('colaborador-cedula').value;
+    const cargo = document.getElementById('colaborador-cargo').value;
+    
+    const colaboradorData = { nombre, cedula, cargo };
+    
+    try {
+        let response;
+        if (id) {
+            response = await fetch(`/api/colaboradores/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(colaboradorData)
+            });
+        } else {
+            response = await fetch('/api/colaboradores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(colaboradorData)
+            });
+        }
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarNotificacion(data.message, 'success');
+            ocultarFormColaborador();
+            await cargarColaboradoresParaTabla();
+            await cargarColaboradores(); // Recargar para el selector de apoyos
+        } else {
+            mostrarNotificacion(data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error al guardar colaborador:', error);
+        mostrarNotificacion('Error al conectar con el servidor', 'error');
+    }
+}
+
+// 🆕 MODIFICAR cargarDatos para incluir la tabla de colaboradores
+async function cargarDatos() {
+    if (!appState.isAuthenticated) return;
+    
+    await cargarDirigentes();
+    await cargarColaboradores();
+    await cargarApoyos();
+    await cargarDashboard();
+    await cargarColaboradoresParaTabla(); // 🆕 Agregar esta línea
+}
+
