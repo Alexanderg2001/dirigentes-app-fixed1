@@ -39,22 +39,60 @@
 
             <!-- Panel de administración (solo para usuarios autenticados) -->
             <div id="admin-panel" class="hidden">
+                
+                <!-- 🆕 DASHBOARD CON ESTADÍSTICAS -->
+                <section id="dashboard" class="section">
+                    <h2>Dashboard - Resumen General</h2>
+                    <div class="dashboard-cards">
+                        <div class="card">
+                            <h3>Total Dirigentes</h3>
+                            <div class="number" id="total-dirigentes">0</div>
+                            <div class="description">Registrados en el sistema</div>
+                        </div>
+                        <div class="card">
+                            <h3>Total Apoyos</h3>
+                            <div class="number" id="total-apoyos">0</div>
+                            <div class="description">Apoyos registrados</div>
+                        </div>
+                        <div class="card">
+                            <h3>Buena Participación</h3>
+                            <div class="number" id="buena-participacion">0</div>
+                            <div class="description">Dirigentes activos</div>
+                        </div>
+                        <div class="card">
+                            <h3>Apoyos Económicos</h3>
+                            <div class="number" id="total-monto">$0</div>
+                            <div class="description">Total distribuido</div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Gestión de dirigentes -->
                 <section id="gestion-dirigentes" class="section">
                     <h2>Gestión de Dirigentes</h2>
                     <button onclick="mostrarFormDirigente()">Agregar Dirigente</button>
-                <div class="search-filters">
-    <input type="text" id="buscar-dirigente" placeholder="🔍 Buscar por nombre, cédula, comunidad..." onkeyup="filtrarDirigentes()">
-    <select id="filtro-corregimiento" onchange="filtrarDirigentes()">
-        <option value="">Todos los corregimientos</option>
-    </select>
-    <select id="filtro-participacion" onchange="filtrarDirigentes()">
-        <option value="">Toda participación</option>
-        <option value="buena">Buena</option>
-        <option value="regular">Regular</option>
-        <option value="mala">Mala</option>
-    </select>
-</div>
+                    
+                    <!-- 🆕 FILTROS AVANZADOS -->
+                    <div class="search-filters">
+                        <input type="text" id="buscar-dirigente" placeholder="🔍 Buscar por nombre, cédula, comunidad...">
+                        <select id="filtro-corregimiento">
+                            <option value="">Todos los corregimientos</option>
+                        </select>
+                        <select id="filtro-participacion">
+                            <option value="">Toda participación</option>
+                            <option value="buena">Buena</option>
+                            <option value="regular">Regular</option>
+                            <option value="mala">Mala</option>
+                        </select>
+                    </div>
+
+                    <!-- 🆕 INFORMACIÓN DE RESULTADOS -->
+                    <div id="info-resultados" class="info-resultados" style="display: none;">
+                        <p>📋 Mostrando <span id="contador-filtrados">0</span> dirigentes</p>
+                        <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
+                            🔍 Ver todos los dirigentes
+                        </button>
+                    </div>
                     
                     <div id="form-dirigente" class="hidden form-container">
                         <h3 id="form-title">Nuevo Dirigente</h3>
@@ -104,46 +142,43 @@
                     <h2>Registro de Apoyos</h2>
                     <button onclick="mostrarFormApoyo()">Registrar Apoyo</button>
                     
-<div id="form-apoyo" class="hidden form-container">
-    <h3>Nuevo Apoyo</h3>
-    <form id="apoyo-form">
-       <!-- 🆕 BUSCADOR INTELIGENTE DE DIRIGENTES -->
-<div class="buscador-dirigentes">
-    <label for="buscar-dirigente-apoyo">Buscar Dirigente:</label>
-    <input type="text" id="buscar-dirigente-apoyo" placeholder="🔍 Escribe nombre, cédula o comunidad...">
-    <div id="contador-resultados" class="contador-resultados"></div>
-</div>
-
-<select id="apoyo-dirigente" size="5" required style="height: 120px; margin-top: 10px;">
-    <option value="">Seleccione un dirigente de la lista</option>
-</select>
-        
-        <select id="apoyo-colaborador" required>
-    <option value="">Seleccionar colaborador que entrega</option>
-    <!-- Los colaboradores se cargarán aquí automáticamente -->
-</select>
-        
-        <select id="apoyo-tipo" required onchange="toggleMontoField()">
-            <option value="">Tipo de apoyo</option>
-            <option value="economico">Económico</option>
-            <option value="viveres">Víveres</option>
-            <option value="otro">Otro</option>
-        </select>
-        
-        <input type="text" id="apoyo-descripcion" placeholder="Descripción del apoyo">
-        
-        <div id="monto-field" class="hidden">
-            <input type="number" id="apoyo-monto" placeholder="Monto (si es económico)" step="0.01" min="0">
-        </div>
-        
-        <input type="date" id="apoyo-fecha" required readonly style="background-color: #f0f0f0;">
-        
-        <div class="form-buttons">
-            <button type="submit">Registrar</button>
-            <button type="button" onclick="ocultarFormApoyo()">Cancelar</button>
-        </div>
-    </form>
-</div>
+                    <div id="form-apoyo" class="hidden form-container">
+                        <h3>Nuevo Apoyo</h3>
+                        <form id="apoyo-form">
+                            
+                            <!-- 🆕 BUSCADOR INTELIGENTE DE DIRIGENTES -->
+                            <div class="buscador-dirigentes">
+                                <label for="buscar-dirigente-apoyo">Buscar Dirigente:</label>
+                                <input type="text" id="buscar-dirigente-apoyo" placeholder="🔍 Escribe nombre, cédula o comunidad...">
+                                <div id="contador-resultados" class="contador-resultados"></div>
+                            </div>
+                            
+                            <select id="apoyo-dirigente" size="5" required style="height: 120px; margin-top: 10px;">
+                                <option value="">Seleccione un dirigente de la lista</option>
+                            </select>
+                            
+                            <select id="apoyo-colaborador" required>
+                                <option value="">Seleccionar colaborador que entrega</option>
+                            </select>
+                            
+                            <select id="apoyo-tipo" required>
+                                <option value="">Tipo de apoyo</option>
+                                <option value="economico">Económico</option>
+                                <option value="viveres">Víveres</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                            
+                            <input type="text" id="apoyo-descripcion" placeholder="Descripción del apoyo">
+                            <input type="number" id="apoyo-monto" placeholder="Monto (si es económico)" step="0.01" min="0">
+                            <input type="date" id="apoyo-fecha" required readonly style="background-color: #f0f0f0;">
+                            
+                            <div class="form-buttons">
+                                <button type="submit">Registrar</button>
+                                <button type="button" onclick="ocultarFormApoyo()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                    
                     <div id="lista-apoyos" class="table-container">
                         <table id="tabla-apoyos">
                             <thead>
@@ -167,13 +202,4 @@
 
     <script src="script.js"></script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
