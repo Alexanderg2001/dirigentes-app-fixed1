@@ -6,69 +6,26 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Después de: app.use(session({ ... }));
-
-// Middleware de rate limiting básico
-const rateLimit = {};
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/') || req.path.startsWith('/login')) {
-    const ip = req.ip;
-    const now = Date.now();
-    
-    if (!rateLimit[ip]) {
-      rateLimit[ip] = { count: 1, firstRequest: now };
-    } else {
-      const timeDiff = now - rateLimit[ip].firstRequest;
-      if (timeDiff < 60000) {
-        rateLimit[ip].count++;
-        if (rateLimit[ip].count > 100) {
-          return res.status(429).json({ error: 'Demasiadas solicitudes' });
-        }
-      } else {
-        rateLimit[ip] = { count: 1, firstRequest: now };
-      }
-    }
-  }
-  next();
-});
-
-// Función de auditoría (agregar después de los middlewares)
-const auditar = (tabla, registroId, accion, datosAnteriores, datosNuevos, usuarioId) => {
-  db.run(
-    'INSERT INTO auditoria (tabla_afectada, registro_id, accion, datos_anteriores, datos_nuevos, usuario_id) VALUES (?, ?, ?, ?, ?, ?)',
-    [tabla, registroId, accion, JSON.stringify(datosAnteriores), JSON.stringify(datosNuevos), usuarioId]
-  );
-};
-
-// Función de validación
-const validarDirigente = (dirigente) => {
-  const errores = [];
-  
-  if (!dirigente.nombre || dirigente.nombre.length < 2) {
-    errores.push('El nombre debe tener al menos 2 caracteres');
-  }
-  
-  if (!dirigente.cedula || !/^\d+$/.test(dirigente.cedula)) {
-    errores.push('La cédula debe contener solo números');
-  }
-  
-  if (dirigente.telefono && !/^[\d\s\-()+]+$/.test(dirigente.telefono)) {
-    errores.push('Formato de teléfono inválido');
-  }
-  
-  return errores;
-};
+// Configuración para Render
+const HOST = '0.0.0.0';
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(session({
-  secret: 'clave-secreta-cambiar-en-produccion',
+  secret: process.env.SESSION_SECRET || 'clave-secreta-temporal',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false }
+  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 horas
 }));
+
+// Configuración de timeout para Render
+app.use((req, res, next) => {
+  req.setTimeout(300000); // 5 minutos
+  res.setTimeout(300000);
+  next();
+});
 
 // Inicializar base de datos
 const db = require('./database.js');
@@ -85,8 +42,8 @@ app.post('/login', async (req, res) => {
     if (row && await bcrypt.compare(password, row.password)) {
       req.session.userId = row.id;
       req.session.username = row.username;
-      req.session.rol = row.rol; // 🆕 Guardar el rol en sesión
-      req.session.isAdmin = row.rol === 'admin'; // 🆕 Definir si es admin
+      req.session.rol = row.rol;
+      req.session.isAdmin = row.rol === 'admin';
       res.json({ 
         success: true, 
         rol: row.rol,
@@ -112,17 +69,7 @@ const requireAuth = (req, res, next) => {
   }
 };
 
-// 🆕 RUTAS PARA COLABORADORES - MOVIDAS DESPUÉS DE requireAuth
-app.get('/api/colaboradores', requireAuth, (req, res) => {
-  db.all('SELECT * FROM colaboradores WHERE activo = TRUE ORDER BY nombre', (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al obtener colaboradores' });
-    }
-    res.json(rows);
-  });
-});
-
-// 🆕 RUTA PARA OBTENER DATOS DE USUARIO ACTUAL
+// Ruta para datos de usuario actual
 app.get('/api/usuario-actual', requireAuth, (req, res) => {
   res.json({
     id: req.session.userId,
@@ -132,23 +79,35 @@ app.get('/api/usuario-actual', requireAuth, (req, res) => {
   });
 });
 
-// Rutas de la API
-// 🆕 ESTA RUTA DEBE EXISTIR - Devuelve TODOS los dirigentes
-app.get('/api/dirigentes/todos', requireAuth, (req, res) => {
-    db.all('SELECT * FROM dirigentes ORDER BY nombre', (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: 'Error al obtener todos los dirigentes' });
-        }
-        res.json(rows);
-    });
+// RUTAS PRINCIPALES - MANTENER SIMPLES
+
+// Obtener últimos 10 dirigentes
+app.get('/api/dirigentes', requireAuth, (req, res) => {
+  db.all('SELECT * FROM dirigentes ORDER BY creado_en DESC, id DESC LIMIT 10', (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener dirigentes' });
+    }
+    res.json(rows);
+  });
 });
 
+// Obtener TODOS los dirigentes (para el buscador de apoyos)
+app.get('/api/dirigentes/todos', requireAuth, (req, res) => {
+  db.all('SELECT * FROM dirigentes ORDER BY nombre', (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener todos los dirigentes' });
+    }
+    res.json(rows);
+  });
+});
+
+// Crear dirigente
 app.post('/api/dirigentes', requireAuth, (req, res) => {
-  const { nombre, cedula, telefono, corregimiento, comunidad, coordinador } = req.body;
+  const { nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion } = req.body;
   
   db.run(
-    'INSERT INTO dirigentes (nombre, cedula, telefono, corregimiento, comunidad, coordinador) VALUES (?, ?, ?, ?, ?, ?)',
-    [nombre, cedula, telefono, corregimiento, comunidad, coordinador],
+    'INSERT INTO dirigentes (nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion || 'regular'],
     function(err) {
       if (err) {
         return res.status(500).json({ error: 'Error al crear dirigente' });
@@ -158,6 +117,7 @@ app.post('/api/dirigentes', requireAuth, (req, res) => {
   );
 });
 
+// Actualizar dirigente
 app.put('/api/dirigentes/:id', requireAuth, (req, res) => {
   const { nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion } = req.body;
   const id = req.params.id;
@@ -174,6 +134,7 @@ app.put('/api/dirigentes/:id', requireAuth, (req, res) => {
   );
 });
 
+// Eliminar dirigente
 app.delete('/api/dirigentes/:id', requireAuth, (req, res) => {
   const id = req.params.id;
   
@@ -185,32 +146,46 @@ app.delete('/api/dirigentes/:id', requireAuth, (req, res) => {
   });
 });
 
-// 🆕 RUTA TEMPORAL PARA AGREGAR COLABORADORES
-app.post('/api/colaboradores', requireAuth, (req, res) => {
-  const { nombre, cedula, cargo } = req.body;
-  
-  db.run(
-    'INSERT INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)',
-    [nombre, cedula, cargo],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'Error al crear colaborador' });
-      }
-      res.json({ id: this.lastID, message: 'Colaborador creado exitosamente' });
-    }
-  );
-});
-
-// 🆕 RUTA PARA OBTENER TODOS LOS DIRIGENTES (sin límite)
-app.get('/api/dirigentes/todos', requireAuth, (req, res) => {
-  db.all('SELECT * FROM dirigentes ORDER BY nombre', (err, rows) => {
+// Obtener colaboradores
+app.get('/api/colaboradores', requireAuth, (req, res) => {
+  db.all('SELECT * FROM colaboradores WHERE activo = TRUE ORDER BY nombre', (err, rows) => {
     if (err) {
-      return res.status(500).json({ error: 'Error al obtener todos los dirigentes' });
+      return res.status(500).json({ error: 'Error al obtener colaboradores' });
     }
     res.json(rows);
   });
 });
 
+// Obtener apoyos
+app.get('/api/apoyos', requireAuth, (req, res) => {
+  db.all('SELECT * FROM apoyos ORDER BY fecha DESC', (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener apoyos' });
+    }
+    res.json(rows);
+  });
+});
+
+// Crear apoyo
+app.post('/api/apoyos', requireAuth, (req, res) => {
+  const { dirigente_id, tipo, descripcion, monto, colaborador_id } = req.body;
+  
+  const ahora = new Date();
+  const fecha = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+  
+  db.run(
+    'INSERT INTO apoyos (dirigente_id, tipo, descripcion, monto, fecha, colaborador_id) VALUES (?, ?, ?, ?, ?, ?)',
+    [dirigente_id, tipo, descripcion, monto || null, fecha, colaborador_id || null],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Error al registrar apoyo' });
+      }
+      res.json({ id: this.lastID, message: 'Apoyo registrado exitosamente' });
+    }
+  );
+});
+
+// Búsqueda pública de dirigente
 app.get('/api/buscar-dirigente', (req, res) => {
   const cedula = req.query.cedula;
   
@@ -227,36 +202,7 @@ app.get('/api/buscar-dirigente', (req, res) => {
   });
 });
 
-// Rutas para apoyos
-app.get('/api/apoyos', requireAuth, (req, res) => {
-  db.all('SELECT * FROM apoyos', (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al obtener apoyos' });
-    }
-    res.json(rows);
-  });
-});
-
-app.post('/api/apoyos', requireAuth, (req, res) => {
-  const { dirigente_id, tipo, descripcion, monto, colaborador_id } = req.body; // 🆕 agregar colaborador_id
-  
-  // Obtener fecha en zona horaria local (Panamá)
-  const ahora = new Date();
-  const fecha = new Date(ahora.getTime() - (ahora.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-  
-  db.run(
-    'INSERT INTO apoyos (dirigente_id, tipo, descripcion, monto, fecha, colaborador_id) VALUES (?, ?, ?, ?, ?, ?)',
-    [dirigente_id, tipo, descripcion, monto || null, fecha, colaborador_id || null],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'Error al registrar apoyo' });
-      }
-      res.json({ id: this.lastID, message: 'Apoyo registrado exitosamente' });
-    }
-  );
-});
-
-// Ruta para generar constancia
+// Ruta para generar constancia de dirigente
 app.get('/constancia/:dirigenteId', requireAuth, (req, res) => {
   const dirigenteId = req.params.dirigenteId;
   
@@ -265,7 +211,6 @@ app.get('/constancia/:dirigenteId', requireAuth, (req, res) => {
       return res.status(404).send('Dirigente no encontrado');
     }
     
-    // Aquí podrías usar un motor de plantillas como EJS para una constancia más elaborada
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -318,179 +263,14 @@ app.get('/constancia/:dirigenteId', requireAuth, (req, res) => {
   });
 });
 
-// ========== 🆕 NUEVAS RUTAS API ==========
-
-// 1. Dashboard con estadísticas
-app.get('/api/estadisticas', requireAuth, (req, res) => {
-  const estadisticas = {
-    participacion: [],
-    apoyos: [],
-    totalDirigentes: 0,
-    totalApoyos: 0
-  };
-
-  // Contar dirigentes por participación
-  db.all(`
-    SELECT participacion, COUNT(*) as total 
-    FROM dirigentes 
-    GROUP BY participacion
-  `, (err, rows) => {
-    if (err) {
-      console.log('⚠️  Error en estadísticas de participación, usando valores por defecto');
-    } else {
-      estadisticas.participacion = rows;
-    }
-
-    // Contar apoyos por tipo
-    db.all(`
-      SELECT tipo, COUNT(*) as total, SUM(monto) as total_monto 
-      FROM apoyos 
-      GROUP BY tipo
-    `, (err, rows) => {
-      if (err) {
-        console.log('⚠️  Error en estadísticas de apoyos, usando valores por defecto');
-      } else {
-        estadisticas.apoyos = rows;
-      }
-
-      // Total de dirigentes
-      db.get('SELECT COUNT(*) as total FROM dirigentes', (err, row) => {
-        if (!err && row) {
-          estadisticas.totalDirigentes = row.total;
-        }
-
-        // Total de apoyos
-        db.get('SELECT COUNT(*) as total FROM apoyos', (err, row) => {
-          if (!err && row) {
-            estadisticas.totalApoyos = row.total;
-          }
-          
-          res.json(estadisticas);
-        });
-      });
-    });
-  });
-});
-
-// 2. Búsqueda avanzada de dirigentes
-app.get('/api/dirigentes/buscar', requireAuth, (req, res) => {
-  const { q, corregimiento, participacion, comunidad } = req.query;
-  let sql = 'SELECT * FROM dirigentes WHERE 1=1';
-  let params = [];
-
-  if (q) {
-    sql += ' AND (nombre LIKE ? OR cedula LIKE ? OR coordinador LIKE ?)';
-    params.push(`%${q}%`, `%${q}%`, `%${q}%`);
-  }
-  if (corregimiento) {
-    sql += ' AND corregimiento = ?';
-    params.push(corregimiento);
-  }
-  if (participacion) {
-    sql += ' AND participacion = ?';
-    params.push(participacion);
-  }
-  if (comunidad) {
-    sql += ' AND comunidad LIKE ?';
-    params.push(`%${comunidad}%`);
-  }
-
-  // Agregar orden y límite para mostrar solo 10 resultados
-  sql += ' ORDER BY creado_en DESC, id DESC LIMIT 10';
-
-  db.all(sql, params, (err, rows) => {
-    if (err) {
-      console.error('Error en búsqueda avanzada:', err);
-      return res.status(500).json({ error: 'Error en la búsqueda' });
-    }
-    res.json(rows);
-  });
-});
-
-// 3. Exportar dirigentes a CSV
-app.get('/api/exportar/dirigentes', requireAuth, (req, res) => {
-  db.all('SELECT * FROM dirigentes ORDER BY corregimiento, comunidad', (err, rows) => {
-    if (err) {
-      console.error('Error exportando dirigentes:', err);
-      return res.status(500).json({ error: 'Error exportando datos' });
-    }
-
-    let csv = 'Nombre,Cédula,Teléfono,Corregimiento,Comunidad,Coordinador,Participación\n';
-    
-    rows.forEach(dirigente => {
-      csv += `"${dirigente.nombre}","${dirigente.cedula}","${dirigente.telefono || ''}","${dirigente.corregimiento}","${dirigente.comunidad}","${dirigente.coordinador}","${dirigente.participacion}"\n`;
-    });
-
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename=dirigentes.csv');
-    res.send(csv);
-  });
-});
-
-// 4. Gestión de notificaciones
-app.get('/api/notificaciones', requireAuth, (req, res) => {
-  db.all('SELECT * FROM notificaciones WHERE leida = FALSE ORDER BY creado_en DESC LIMIT 10', (err, rows) => {
-    if (err) {
-      console.log('⚠️  Tabla notificaciones no disponible, devolviendo array vacío');
-      return res.json([]);
-    }
-    res.json(rows);
-  });
-});
-
-app.post('/api/notificaciones/:id/leer', requireAuth, (req, res) => {
-  db.run('UPDATE notificaciones SET leida = TRUE WHERE id = ?', [req.params.id], function(err) {
-    if (err) {
-      console.log('⚠️  Tabla notificaciones no disponible');
-      return res.json({ message: 'Notificación marcada como leída' });
-    }
-    res.json({ message: 'Notificación marcada como leída' });
-  });
-});
-
-// 5. Gestión de corregimientos y comunidades
-app.get('/api/corregimientos', requireAuth, (req, res) => {
-  db.all('SELECT * FROM corregimientos ORDER BY nombre', (err, rows) => {
-    if (err) {
-      console.log('⚠️  Tabla corregimientos no disponible, devolviendo array vacío');
-      return res.json([]);
-    }
-    res.json(rows);
-  });
-});
-
-app.get('/api/comunidades', requireAuth, (req, res) => {
-  const { corregimiento_id } = req.query;
-  
-  if (!corregimiento_id) {
-    return res.json([]);
-  }
-  
-  let sql = `
-    SELECT c.*, cor.nombre as corregimiento_nombre 
-    FROM comunidades c 
-    LEFT JOIN corregimientos cor ON c.corregimiento_id = cor.id 
-    WHERE c.corregimiento_id = ?
-  `;
-
-  db.all(sql, [corregimiento_id], (err, rows) => {
-    if (err) {
-      console.log('⚠️  Tabla comunidades no disponible, devolviendo array vacío');
-      return res.json([]);
-    }
-    res.json(rows);
-  });
-});
-
-// Ruta para generar constancia por APOYO INDIVIDUAL
+// Ruta para generar constancia de apoyo
 app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
   const apoyoId = req.params.apoyoId;
   
-  // Consulta SQL corregida
   db.get(`
     SELECT a.*, d.nombre as dirigente_nombre, d.cedula, d.telefono, 
            d.corregimiento, d.comunidad, d.coordinador, d.participacion,
-           c.nombre as colaborador_nombre, c.cedula as colaborador_cedula, c.cargo as colaborador_cargo
+           c.nombre as colaborador_nombre, c.cargo as colaborador_cargo
     FROM apoyos a 
     LEFT JOIN dirigentes d ON a.dirigente_id = d.id 
     LEFT JOIN colaboradores c ON a.colaborador_id = c.id
@@ -500,440 +280,49 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
       return res.status(404).send('Apoyo no encontrado');
     }
     
-    const { dirigente_nombre, cedula, telefono, corregimiento, comunidad, coordinador, participacion, colaborador_nombre, colaborador_cedula, colaborador_cargo, ...apoyo } = resultado;
-    
-    // Formatear monto si es apoyo económico
-    const montoFormateado = apoyo.tipo === 'economico' && apoyo.monto ? 
-      `$${parseFloat(apoyo.monto).toLocaleString('es-PA', { minimumFractionDigits: 2 })}` : 'N/A';
-    
-    // Generar HTML de la constancia tipo factura
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Constancia de Apoyo - ${dirigente_nombre}</title>
-        <meta charset="UTF-8">
+        <title>Constancia de Apoyo</title>
         <style>
-          /* ESTILOS PARA IMPRESIÓN EN HOJA 8.5" x 11" */
-          @page {
-            size: letter; /* 8.5" x 11" */
-            margin: 0.5in;
-          }
-          
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          
-          body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            line-height: 1.4;
-            color: #000;
-            background: white;
-            font-size: 12px;
-          }
-          
-          .container {
-            max-width: 7.5in;
-            margin: 0 auto;
-            padding: 0.2in;
-          }
-          
-          /* ENCABEZADO TIPO FACTURA */
-          .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.3in;
-            border-bottom: 2px solid #333;
-            padding-bottom: 0.2in;
-          }
-          
-          .logo-section {
-            flex: 1;
-          }
-          
-          .logo {
-            max-width: 1.5in;
-            max-height: 0.8in;
-          }
-          
-          .company-info {
-            flex: 2;
-            text-align: center;
-          }
-          
-          .company-info h1 {
-            font-size: 16px;
-            color: #2c3e50;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-          }
-          
-          .company-info p {
-            font-size: 10px;
-            color: #666;
-            margin: 2px 0;
-          }
-          
-          .document-info {
-            flex: 1;
-            text-align: right;
-          }
-          
-          .document-number {
-            font-size: 14px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 5px;
-          }
-          
-          .document-type {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-          }
-          
-          /* CUERPO DEL DOCUMENTO */
-          .document-body {
-            margin: 0.2in 0;
-          }
-          
-          .section {
-            margin-bottom: 0.2in;
-          }
-          
-          .section-title {
-            background: #2c3e50;
-            color: white;
-            padding: 8px 12px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            border-radius: 3px;
-          }
-          
-          .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-          }
-          
-          .info-item {
-            margin-bottom: 8px;
-          }
-          
-          .info-label {
-            font-weight: bold;
-            color: #333;
-            font-size: 10px;
-            margin-bottom: 2px;
-          }
-          
-          .info-value {
-            color: #000;
-            font-size: 11px;
-            padding: 4px 0;
-            border-bottom: 1px solid #eee;
-          }
-          
-          /* TABLA DE DETALLES */
-          .details-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-          }
-          
-          .details-table th {
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            font-size: 10px;
-            font-weight: bold;
-            color: #333;
-          }
-          
-          .details-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            font-size: 10px;
-          }
-          
-          .details-table .total-row {
-            background: #e3f2fd;
-            font-weight: bold;
-          }
-          
-          /* FIRMAS */
-          .signatures {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.3in;
-            margin-top: 0.4in;
-            padding-top: 0.2in;
-            border-top: 2px solid #333;
-          }
-          
-          .signature-box {
-            text-align: center;
-          }
-          
-          .signature-line {
-            width: 3in;
-            border-top: 1px solid #000;
-            margin: 20px auto 5px;
-          }
-          
-          .signature-label {
-            font-size: 10px;
-            font-weight: bold;
-            margin-top: 5px;
-          }
-          
-          .signature-name {
-            font-size: 11px;
-            margin-top: 3px;
-          }
-          
-          /* PIE DE PÁGINA */
-          .footer {
-            margin-top: 0.3in;
-            padding-top: 0.1in;
-            border-top: 1px solid #ccc;
-            text-align: center;
-            font-size: 9px;
-            color: #666;
-          }
-          
-          /* ESTILOS ESPECIALES */
-          .highlight {
-            background: #fff3cd;
-            padding: 10px;
-            border-left: 4px solid #ffc107;
-            margin: 10px 0;
-          }
-          
-          .amount {
-            font-size: 14px;
-            font-weight: bold;
-            color: #27ae60;
-          }
-          
-          .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 60px;
-            color: rgba(0,0,0,0.1);
-            z-index: -1;
-            pointer-events: none;
-          }
-          
-          /* OCULTAR BOTONES EN IMPRESIÓN */
-          @media print {
-            .no-print {
-              display: none !important;
-            }
-            
-            body {
-              margin: 0;
-              padding: 0;
-            }
-            
-            .container {
-              padding: 0;
-            }
-          }
-          
-          /* ESTILOS PARA PANTALLA */
-          @media screen {
-            body {
-              background: #f5f5f5;
-              padding: 20px;
-            }
-            
-            .container {
-              background: white;
-              box-shadow: 0 0 20px rgba(0,0,0,0.1);
-              border-radius: 8px;
-            }
-          }
+          body { font-family: Arial, sans-serif; margin: 40px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .content { margin: 20px 0; line-height: 1.6; }
+          .firma { margin-top: 80px; text-align: center; }
+          .firma-line { width: 300px; border-top: 1px solid #000; margin: 0 auto; }
+          .footer { margin-top: 20px; text-align: center; font-size: 12px; }
+          @media print { button { display: none; } }
         </style>
       </head>
       <body>
-        <div class="watermark">CONSTANCIA OFICIAL</div>
-        
-        <div class="container">
-          <!-- ENCABEZADO -->
-          <div class="header">
-            <div class="logo-section">
-              <img src="/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
-              <div style="margin-top: 10px; font-size: 10px; color: #666;">
-                <strong>Sistema de Gestión</strong><br>
-                Dirigentes Comunitarios
-              </div>
-            </div>
-            
-            <div class="company-info">
-              <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
-              <p>Documento Oficial - Sistema de Gestión Comunitaria</p>
-              <p>${new Date().toLocaleDateString('es-PA', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</p>
-            </div>
-            
-            <div class="document-info">
-              <div class="document-number">N° AP-${apoyo.id.toString().padStart(4, '0')}</div>
-              <div class="document-type">Constancia Válida</div>
-            </div>
-          </div>
-          
-          <!-- INFORMACIÓN DEL BENEFICIARIO -->
-          <div class="document-body">
-            <div class="section">
-              <div class="section-title">INFORMACIÓN DEL BENEFICIARIO</div>
-              <div class="info-grid">
-                <div class="info-item">
-                  <div class="info-label">NOMBRE COMPLETO:</div>
-                  <div class="info-value">${dirigente_nombre}</div>
-                </div>
-                <div class="info-item">
-                  <div class="info-label">CÉDULA DE IDENTIDAD:</div>
-                  <div class="info-value">${cedula}</div>
-                </div>
-                <div class="info-item">
-                  <div class="info-label">TELÉFONO:</div>
-                  <div class="info-value">${telefono || 'No registrado'}</div>
-                </div>
-                <div class="info-item">
-                  <div class="info-label">CORREGIMIENTO:</div>
-                  <div class="info-value">${corregimiento}</div>
-                </div>
-                <div class="info-item">
-                  <div class="info-label">COMUNIDAD:</div>
-                  <div class="info-value">${comunidad}</div>
-                </div>
-                <div class="info-item">
-                  <div class="info-label">COORDINADOR:</div>
-                  <div class="info-value">${coordinador}</div>
-                </div>
-                <div class="info-item">
-                  <div class="info-label">NIVEL DE PARTICIPACIÓN:</div>
-                  <div class="info-value" style="text-transform: uppercase; font-weight: bold;">
-                    ${participacion}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- DETALLES DEL APOYO -->
-            <div class="section">
-              <div class="section-title">DETALLES DEL APOYO ENTREGADO</div>
-              
-              <table class="details-table">
-                <thead>
-                  <tr>
-                    <th width="20%">CONCEPTO</th>
-                    <th width="45%">DESCRIPCIÓN</th>
-                    <th width="15%">FECHA</th>
-                    <th width="20%">VALOR</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style="text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
-                    <td>${apoyo.descripcion || 'Apoyo comunitario registrado'}</td>
-                    <td>${new Date(apoyo.fecha).toLocaleDateString('es-PA')}</td>
-                    <td class="amount">${montoFormateado}</td>
-                  </tr>
-                  <tr class="total-row">
-                    <td colspan="3" style="text-align: right; font-weight: bold;">TOTAL ENTREGADO:</td>
-                    <td class="amount">${montoFormateado}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            
-            <!-- OBSERVACIONES -->
-            <div class="highlight">
-              <strong>OBSERVACIONES:</strong><br>
-              Por medio de la presente se hace constar la entrega del apoyo descrito al dirigente comunitario arriba mencionado. 
-              Este documento es válido como constancia oficial de recepción.
-            </div>
-          </div>
-          
-          <!-- FIRMAS -->
-          <div class="signatures">
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div class="signature-label">FIRMA DEL DIRIGENTE BENEFICIADO</div>
-              <div class="signature-name">${dirigente_nombre}</div>
-              <div class="signature-label">Cédula: ${cedula}</div>
-            </div>
-            
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div class="signature-label">FIRMA DE QUIEN ENTREGA</div>
-              <div class="signature-name">${colaborador_nombre || '_________________________'}</div>
-              <div class="signature-label">${colaborador_cargo || 'Colaborador Autorizado'}</div>
-              <div class="signature-label">Cédula: ${colaborador_cedula || '___________________'}</div>
-            </div>
-          </div>
-          
-          <!-- PIE DE PÁGINA -->
-          <div class="footer">
-            <p>
-              <strong>Constancia generada automáticamente por el Sistema de Gestión de Dirigentes Comunitarios</strong><br>
-              Fecha de generación: ${new Date().toLocaleDateString('es-PA')} ${new Date().toLocaleTimeString('es-PA')} | 
-              Este documento es una constancia oficial válida
-            </p>
-          </div>
+        <div class="header">
+          <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
         </div>
         
-        <!-- BOTONES SOLO PARA PANTALLA -->
-        <div class="no-print" style="text-align: center; margin-top: 30px; padding: 20px;">
-          <button onclick="window.print()" style="
-            padding: 12px 24px; 
-            background: #27ae60; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            margin: 5px;
-            font-size: 14px;
-            font-weight: bold;
-          ">
-            🖨️ IMPRIMIR CONSTANCIA
-          </button>
-          <button onclick="window.close()" style="
-            padding: 12px 24px; 
-            background: #e74c3c; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            margin: 5px;
-            font-size: 14px;
-          ">
-            ❌ CERRAR VENTANA
-          </button>
-          <div style="margin-top: 15px; font-size: 12px; color: #666;">
-            <strong>Consejo:</strong> Para mejor resultado de impresión, use papel tamaño carta (8.5" x 11")
-          </div>
+        <div class="content">
+          <p><strong>Dirigente:</strong> ${resultado.dirigente_nombre}</p>
+          <p><strong>Cédula:</strong> ${resultado.cedula}</p>
+          <p><strong>Tipo de apoyo:</strong> ${resultado.tipo}</p>
+          <p><strong>Descripción:</strong> ${resultado.descripcion || 'No especificada'}</p>
+          <p><strong>Monto:</strong> ${resultado.monto ? `$${resultado.monto}` : 'No aplica'}</p>
+          <p><strong>Fecha:</strong> ${new Date(resultado.fecha).toLocaleDateString()}</p>
+          <p><strong>Entregado por:</strong> ${resultado.colaborador_nombre || 'No especificado'}</p>
         </div>
         
-        <script>
-          // Auto-imprimir opcional (descomenta si quieres que se imprima automáticamente)
-          // setTimeout(() => { window.print(); }, 1000);
-        </script>
+        <div class="firma">
+          <div class="firma-line"></div>
+          <p>Firma del Dirigente</p>
+        </div>
+        
+        <div class="footer">
+          <p>Fecha de emisión: ${new Date().toLocaleDateString()}</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;">
+          <button onclick="window.print()">Imprimir Constancia</button>
+          <button onclick="window.close()">Cerrar</button>
+        </div>
       </body>
       </html>
     `;
@@ -947,60 +336,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+// Iniciar servidor
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Servidor ejecutándose en http://${HOST}:${PORT}`);
+  console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
 });
-
-// 🆕 RUTA TEMPORAL PARA CREAR COLABORADORES SI NO EXISTEN
-app.post('/api/crear-colaboradores-ejemplo', requireAuth, (req, res) => {
-    const colaboradores = [
-        { nombre: 'ANA GARCÍA', cedula: '8-123-001', cargo: 'Coordinadora General' },
-        { nombre: 'CARLOS LÓPEZ', cedula: '8-123-002', cargo: 'Asistente Social' },
-        { nombre: 'MARÍA RODRÍGUEZ', cedula: '8-123-003', cargo: 'Promotora Comunitaria' },
-        { nombre: 'JOSÉ MARTÍNEZ', cedula: '8-123-004', cargo: 'Facilitador' }
-    ];
-    
-    let creados = 0;
-    colaboradores.forEach(colab => {
-        db.run(
-            'INSERT OR IGNORE INTO colaboradores (nombre, cedula, cargo) VALUES (?, ?, ?)',
-            [colab.nombre, colab.cedula, colab.cargo],
-            function(err) {
-                if (err) {
-                    console.error('Error creando colaborador:', err);
-                } else {
-                    creados++;
-                }
-                
-                if (creados === colaboradores.length) {
-                    res.json({ message: `${creados} colaboradores creados` });
-                }
-            }
-        );
-    });
-});
-
-// 🆕 DIAGNÓSTICO COMPLETO
-function diagnosticarSistema() {
-    console.log('🔍 DIAGNÓSTICO DEL SISTEMA:');
-    console.log('1. Dirigentes en appState:', appState.dirigentes?.length);
-    console.log('2. Todos los dirigentes:', appState.todosLosDirigentes?.length);
-    console.log('3. Colaboradores:', appState.colaboradores?.length);
-    console.log('4. Estado autenticación:', appState.isAuthenticated);
-    
-    // Probar rutas API
-    Promise.all([
-        fetch('/api/dirigentes').then(r => r.json()).then(d => ({dirigentes: d.length})),
-        fetch('/api/dirigentes/todos').then(r => r.json()).then(d => ({todos: d.length})).catch(e => ({error: e.message})),
-        fetch('/api/colaboradores').then(r => r.json()).then(d => ({colaboradores: d.length}))
-    ]).then(results => {
-        console.log('5. Resultados API:', results);
-    }).catch(error => {
-        console.log('6. Error en APIs:', error);
-    });
-}
-
-// Ejecutar diagnóstico
-setTimeout(diagnosticarSistema, 2000);
-
-
