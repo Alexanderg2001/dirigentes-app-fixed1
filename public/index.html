@@ -107,16 +107,16 @@
 <div id="form-apoyo" class="hidden form-container">
     <h3>Nuevo Apoyo</h3>
     <form id="apoyo-form">
-        <!-- 🆕 BUSCADOR INTELIGENTE DE DIRIGENTES -->
-        <div class="buscador-dirigentes">
-            <label for="buscar-dirigente-apoyo">Buscar Dirigente:</label>
-            <input type="text" id="buscar-dirigente-apoyo" placeholder="🔍 Escribe nombre, cédula o comunidad..." 
-                   onkeyup="filtrarDirigentesApoyo()">
-        </div>
-        
-        <select id="apoyo-dirigente" size="5" required style="height: 120px; margin-top: 10px;">
-            <option value="">Seleccione un dirigente de la lista</option>
-        </select>
+       <!-- 🆕 BUSCADOR INTELIGENTE DE DIRIGENTES -->
+<div class="buscador-dirigentes">
+    <label for="buscar-dirigente-apoyo">Buscar Dirigente:</label>
+    <input type="text" id="buscar-dirigente-apoyo" placeholder="🔍 Escribe nombre, cédula o comunidad...">
+    <div id="contador-resultados" class="contador-resultados"></div>
+</div>
+
+<select id="apoyo-dirigente" size="5" required style="height: 120px; margin-top: 10px;">
+    <option value="">Seleccione un dirigente de la lista</option>
+</select>
         
         <select id="apoyo-colaborador" required>
     <option value="">Seleccionar colaborador que entrega</option>
@@ -169,6 +169,7 @@
 </body>
 
 </html>
+
 
 
 
