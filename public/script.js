@@ -346,7 +346,7 @@ function ocultarFormApoyo() {
     document.getElementById('form-apoyo').classList.add('hidden');
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA REGISTRAR APOYO
+// 🆕 FUNCIÓN CORREGIDA - MENSAJES EN VERDE
 async function registrarApoyo(event) {
     event.preventDefault();
     
@@ -356,14 +356,14 @@ async function registrarApoyo(event) {
     const descripcion = document.getElementById('apoyo-descripcion').value;
     const monto = document.getElementById('apoyo-monto').value;
     
-    // 🆕 VALIDACIONES MEJORADAS
+    // Validaciones
     if (!dirigenteId) {
         mostrarNotificacion('❌ Debe seleccionar un dirigente', 'error');
         return;
     }
     
     if (!colaboradorId) {
-        mostrarNotificacion('❌ Debe seleccionar un colaborador que entrega el apoyo', 'error');
+        mostrarNotificacion('❌ Debe seleccionar un colaborador', 'error');
         return;
     }
     
@@ -372,21 +372,19 @@ async function registrarApoyo(event) {
         return;
     }
     
-    // Validar monto para apoyos económicos
-    if (tipo === 'economico' && (!monto || parseFloat(monto) <= 0)) {
-        mostrarNotificacion('❌ Para apoyo económico debe ingresar un monto válido', 'error');
+    if (!monto || isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
+        mostrarNotificacion('❌ Debe ingresar un monto válido mayor a 0', 'error');
         return;
     }
     
+    const montoNumerico = parseFloat(monto);
     const apoyoData = {
         dirigente_id: dirigenteId,
         colaborador_id: colaboradorId,
         tipo,
         descripcion: descripcion || `Apoyo ${tipo} registrado`,
-        monto: tipo === 'economico' ? parseFloat(monto) : null
+        monto: montoNumerico
     };
-    
-    console.log('📤 Enviando apoyo:', apoyoData);
     
     try {
         const response = await fetch('/api/apoyos', {
@@ -398,23 +396,24 @@ async function registrarApoyo(event) {
         const data = await response.json();
         
         if (response.ok) {
-            mostrarNotificacion('✅ Apoyo registrado exitosamente', 'success');
+            // 🆕 MENSAJE DE ÉXITO EN VERDE
+            const mensajeExito = data.message || `✅ Apoyo ${tipo} registrado exitosamente por $${montoNumerico.toFixed(2)}`;
+            mostrarNotificacion(mensajeExito, 'success');
+            
             ocultarFormApoyo();
-            
-            // 🆕 LIMPIAR FORMULARIO
             document.getElementById('apoyo-form').reset();
-            configurarTipoApoyo(); // Resetear visibilidad monto
             
-            // 🆕 ACTUALIZAR DATOS
             await cargarApoyos();
             await cargarDashboard();
             
         } else {
-            mostrarNotificacion(`❌ Error: ${data.error}`, 'error');
+            // 🆕 MENSAJE DE ERROR EN ROJO
+            const mensajeError = data.error || 'Error al registrar el apoyo';
+            mostrarNotificacion(`❌ ${mensajeError}`, 'error');
         }
     } catch (error) {
-        console.error('💥 Error al registrar apoyo:', error);
-        mostrarNotificacion('❌ Error al conectar con el servidor', 'error');
+        console.error('💥 Error de conexión:', error);
+        mostrarNotificacion('❌ Error de conexión con el servidor', 'error');
     }
 }
 
@@ -1005,6 +1004,7 @@ function inicializarBuscadorApoyos() {
         console.log('🔍 Buscador apoyos:', query, '- Resultados:', dirigentesFiltrados.length);
     });
 }
+
 
 
 
