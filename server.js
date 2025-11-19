@@ -156,14 +156,24 @@ app.get('/api/colaboradores', requireAuth, (req, res) => {
   });
 });
 
-// Obtener apoyos
+// 🆕 RUTA MEJORADA - OBTENER APOYOS CON NOMBRES DE DIRIGENTES
 app.get('/api/apoyos', requireAuth, (req, res) => {
-  db.all('SELECT * FROM apoyos ORDER BY fecha DESC', (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al obtener apoyos' });
-    }
-    res.json(rows);
-  });
+    db.all(`
+        SELECT a.*, 
+               d.nombre as dirigente_nombre,
+               d.cedula as dirigente_cedula,
+               c.nombre as colaborador_nombre
+        FROM apoyos a 
+        LEFT JOIN dirigentes d ON a.dirigente_id = d.id 
+        LEFT JOIN colaboradores c ON a.colaborador_id = c.id
+        ORDER BY a.fecha DESC
+    `, (err, rows) => {
+        if (err) {
+            console.error('Error al obtener apoyos:', err);
+            return res.status(500).json({ error: 'Error al obtener apoyos' });
+        }
+        res.json(rows);
+    });
 });
 
 // Crear apoyo
@@ -979,6 +989,7 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
         });
     });
 });
+
 
 
 
