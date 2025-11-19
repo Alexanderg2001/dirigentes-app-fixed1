@@ -104,21 +104,25 @@ function actualizarUI() {
     }
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA CARGAR DATOS
+// 🆕 FUNCIÓN COMPLETAMENTE ACTUALIZADA
 async function cargarDatos() {
     if (!appState.isAuthenticated) return;
     
     console.log('📥 Cargando todos los datos...');
     
+    // 1. Primero cargar los dirigentes
     await cargarDirigentes();
+    
+    // 2. Luego cargar el resto de datos
     await cargarColaboradores();
     await cargarApoyos();
     await cargarDashboard();
     
     // 🆕 INICIALIZAR COMPONENTES DESPUÉS DE CARGAR DATOS
     setTimeout(() => {
-        renderizarDirigentes();
-        inicializarFiltros();
+        renderizarDirigentes();      // Mostrar dirigentes en tabla
+        inicializarFiltros();        // Configurar eventos de búsqueda
+        cargarCorregimientos();      // 🆕 ¡NUEVO! Cargar corregimientos automáticamente
         console.log('✅ Todos los componentes inicializados');
     }, 100);
     
@@ -858,6 +862,7 @@ async function actualizarSelectDirigentes() {
         console.error('Error cargando dirigentes para selector:', error);
     }
 }
+
 
 
 
