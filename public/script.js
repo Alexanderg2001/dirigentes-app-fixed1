@@ -809,7 +809,10 @@ async function editarDirigenteDesdeFiltro(id) {
 
 // 🆕 FUNCIÓN MEJORADA PARA FILTRADO LOCAL
 function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
-    let dirigentesFiltrados = [...appState.dirigentes]; // Copia de todos los dirigentes
+    
+    console.log('🔍 FILTRANDO con', appState.dirigentes.length, 'dirigentes totales');
+    
+    let dirigentesFiltrados = [...appState.dirigentes];
     
     console.log('📊 Total dirigentes para filtrar:', dirigentesFiltrados.length);
     
@@ -890,6 +893,7 @@ function obtenerUltimosDirigentes() {
         .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en))
         .slice(0, 10);
 }
+
 
 
 
