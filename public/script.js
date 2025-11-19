@@ -363,7 +363,7 @@ function generarConstanciaApoyo(apoyoId) {
     window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
 }
 
-// Búsqueda pública básica
+// 🆕 FUNCIÓN MEJORADA - BUSCAR DIRIGENTE CON APOYOS
 async function buscarDirigente() {
     const cedula = document.getElementById('search-cedula').value.trim();
     const searchResult = document.getElementById('search-result');
@@ -381,30 +381,94 @@ async function buscarDirigente() {
         
         if (data.encontrado) {
             const dirigente = data.dirigente;
+            const apoyos = data.apoyos || [];
             const claseParticipacion = `participacion-${dirigente.participacion}`;
+            
+            // 🆕 CALCULAR TOTAL DE APOYOS ECONÓMICOS
+            const totalEconomico = apoyos
+                .filter(a => a.tipo === 'economico' && a.monto)
+                .reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
             
             searchResult.innerHTML = `
                 <div class="result-found">
-                    <h3>¡Dirigente encontrado!</h3>
-                    <p><strong>Nombre:</strong> ${dirigente.nombre}</p>
-                    <p><strong>Cédula:</strong> ${dirigente.cedula}</p>
-                    <p><strong>Teléfono:</strong> ${dirigente.telefono || 'No registrado'}</p>
-                    <p><strong>Corregimiento:</strong> ${dirigente.corregimiento}</p>
-                    <p><strong>Comunidad:</strong> ${dirigente.comunidad}</p>
-                    <p><strong>Coordinador:</strong> ${dirigente.coordinador}</p>
-                    <p><strong>Participación:</strong> <span class="${claseParticipacion}">${dirigente.participacion}</span></p>
+                    <h3>✅ ¡Dirigente encontrado!</h3>
+                    
+                    <!-- INFORMACIÓN DEL DIRIGENTE -->
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="margin-bottom: 10px; color: #2c3e50;">📋 Información del Dirigente</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <p><strong>Nombre:</strong> ${dirigente.nombre}</p>
+                            <p><strong>Cédula:</strong> ${dirigente.cedula}</p>
+                            <p><strong>Teléfono:</strong> ${dirigente.telefono || 'No registrado'}</p>
+                            <p><strong>Corregimiento:</strong> ${dirigente.corregimiento}</p>
+                            <p><strong>Comunidad:</strong> ${dirigente.comunidad}</p>
+                            <p><strong>Coordinador:</strong> ${dirigente.coordinador}</p>
+                            <p><strong>Participación:</strong> <span class="${claseParticipacion}">${dirigente.participacion}</span></p>
+                            <p><strong>Total apoyos económicos:</strong> <span style="color: #27ae60; font-weight: bold;">$${totalEconomico.toFixed(2)}</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- 🆕 HISTORIAL DE APOYOS -->
+                    <div style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 15px; color: #2c3e50;">📦 Historial de Apoyos Entregados (${apoyos.length})</h4>
+                        
+                        ${apoyos.length > 0 ? `
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                                    <thead>
+                                        <tr style="background: #e3f2fd;">
+                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Fecha</th>
+                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tipo</th>
+                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Descripción</th>
+                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Monto</th>
+                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Entregado por</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${apoyos.map(apoyo => `
+                                            <tr>
+                                                <td style="padding: 8px; border: 1px solid #ddd;">${new Date(apoyo.fecha).toLocaleDateString('es-PA')}</td>
+                                                <td style="padding: 8px; border: 1px solid #ddd; text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
+                                                <td style="padding: 8px; border: 1px solid #ddd;">${apoyo.descripcion || '-'}</td>
+                                                <td style="padding: 8px; border: 1px solid #ddd; ${apoyo.tipo === 'economico' ? 'color: #27ae60; font-weight: bold;' : ''}">
+                                                    ${apoyo.tipo === 'economico' && apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}
+                                                </td>
+                                                <td style="padding: 8px; border: 1px solid #ddd;">${apoyo.colaborador_nombre || 'No especificado'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                                📊 Total de apoyos registrados: <strong>${apoyos.length}</strong>
+                            </p>
+                        ` : `
+                            <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+                                <p style="color: #666; margin: 0;">📭 No se han registrado apoyos para este dirigente</p>
+                            </div>
+                        `}
+                    </div>
                 </div>
             `;
         } else {
             searchResult.innerHTML = `
                 <div class="result-not-found">
-                    <h3>Dirigente no encontrado</h3>
-                    <p>No se encontró ningún dirigente con la cédula: ${cedula}</p>
+                    <h3>❌ Dirigente no encontrado</h3>
+                    <p>No se encontró ningún dirigente registrado con la cédula: <strong>${cedula}</strong></p>
+                    <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                        Verifique que el número de cédula esté correcto.
+                    </p>
                 </div>
             `;
         }
     } catch (error) {
-        mostrarNotificacion('Error al conectar con el servidor', 'error');
+        console.error('Error en la búsqueda:', error);
+        searchResult.innerHTML = `
+            <div class="result-not-found">
+                <h3>⚠️ Error en la búsqueda</h3>
+                <p>Ocurrió un error al buscar el dirigente. Por favor, intente nuevamente.</p>
+            </div>
+        `;
     }
 }
 
@@ -732,4 +796,5 @@ async function actualizarSelectDirigentes() {
         console.error('Error cargando dirigentes para selector:', error);
     }
 }
+
 
