@@ -120,9 +120,10 @@ async function cargarDatos() {
     
     // 🆕 INICIALIZAR COMPONENTES DESPUÉS DE CARGAR DATOS
     setTimeout(() => {
-        renderizarDirigentes();      // Mostrar dirigentes en tabla
-        inicializarFiltros();        // Configurar eventos de búsqueda
-        cargarCorregimientos();      // 🆕 ¡NUEVO! Cargar corregimientos automáticamente
+        renderizarDirigentes();      
+        inicializarFiltros();        
+        cargarCorregimientos();
+        inicializarBuscadorApoyos();
         console.log('✅ Todos los componentes inicializados');
     }, 100);
     
@@ -1004,6 +1005,7 @@ function inicializarBuscadorApoyos() {
         console.log('🔍 Buscador apoyos:', query, '- Resultados:', dirigentesFiltrados.length);
     });
 }
+
 
 
 
