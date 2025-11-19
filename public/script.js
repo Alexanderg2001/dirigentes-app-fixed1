@@ -345,6 +345,7 @@ function ocultarFormApoyo() {
     document.getElementById('form-apoyo').classList.add('hidden');
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA REGISTRAR APOYO
 async function registrarApoyo(event) {
     event.preventDefault();
     
@@ -354,13 +355,37 @@ async function registrarApoyo(event) {
     const descripcion = document.getElementById('apoyo-descripcion').value;
     const monto = document.getElementById('apoyo-monto').value;
     
+    // 🆕 VALIDACIONES MEJORADAS
+    if (!dirigenteId) {
+        mostrarNotificacion('❌ Debe seleccionar un dirigente', 'error');
+        return;
+    }
+    
+    if (!colaboradorId) {
+        mostrarNotificacion('❌ Debe seleccionar un colaborador que entrega el apoyo', 'error');
+        return;
+    }
+    
+    if (!tipo) {
+        mostrarNotificacion('❌ Debe seleccionar el tipo de apoyo', 'error');
+        return;
+    }
+    
+    // Validar monto para apoyos económicos
+    if (tipo === 'economico' && (!monto || parseFloat(monto) <= 0)) {
+        mostrarNotificacion('❌ Para apoyo económico debe ingresar un monto válido', 'error');
+        return;
+    }
+    
     const apoyoData = {
         dirigente_id: dirigenteId,
         colaborador_id: colaboradorId,
         tipo,
-        descripcion,
-        monto: tipo === 'economico' ? monto : null
+        descripcion: descripcion || `Apoyo ${tipo} registrado`,
+        monto: tipo === 'economico' ? parseFloat(monto) : null
     };
+    
+    console.log('📤 Enviando apoyo:', apoyoData);
     
     try {
         const response = await fetch('/api/apoyos', {
@@ -372,15 +397,23 @@ async function registrarApoyo(event) {
         const data = await response.json();
         
         if (response.ok) {
-            mostrarNotificacion('Apoyo registrado exitosamente', 'success');
+            mostrarNotificacion('✅ Apoyo registrado exitosamente', 'success');
             ocultarFormApoyo();
+            
+            // 🆕 LIMPIAR FORMULARIO
+            document.getElementById('apoyo-form').reset();
+            configurarTipoApoyo(); // Resetear visibilidad monto
+            
+            // 🆕 ACTUALIZAR DATOS
             await cargarApoyos();
-            await cargarDashboard(); // 🆕 Actualizar dashboard
+            await cargarDashboard();
+            
         } else {
-            mostrarNotificacion(data.error, 'error');
+            mostrarNotificacion(`❌ Error: ${data.error}`, 'error');
         }
     } catch (error) {
-        mostrarNotificacion('Error al conectar con el servidor', 'error');
+        console.error('💥 Error al registrar apoyo:', error);
+        mostrarNotificacion('❌ Error al conectar con el servidor', 'error');
     }
 }
 
@@ -971,6 +1004,7 @@ function inicializarBuscadorApoyos() {
         console.log('🔍 Buscador apoyos:', query, '- Resultados:', dirigentesFiltrados.length);
     });
 }
+
 
 
 
