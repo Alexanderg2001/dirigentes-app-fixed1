@@ -644,7 +644,7 @@ function mostrarDirigentesFiltrados(dirigentesFiltrados) {
             <td>${dirigente.coordinador}</td>
             <td class="${claseParticipacion}">${dirigente.participacion}</td>
             <td class="actions">
-                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
+                <button class="edit" onclick="editarDirigenteDesdeFiltro(${dirigente.id})">Editar</button>
                 <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
                 <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
                 <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
@@ -653,6 +653,30 @@ function mostrarDirigentesFiltrados(dirigentesFiltrados) {
         
         tbody.appendChild(tr);
     });
+}
+
+// 🆕 FUNCIÓN ESPECIAL PARA EDITAR DESDE FILTROS
+async function editarDirigenteDesdeFiltro(id) {
+    try {
+        // Cargar el dirigente específico desde el servidor
+        const response = await fetch(`/api/dirigentes/${id}`);
+        if (!response.ok) {
+            throw new Error('No se pudo cargar el dirigente');
+        }
+        
+        const dirigente = await response.json();
+        mostrarFormDirigente(dirigente);
+        
+    } catch (error) {
+        console.error('Error al cargar dirigente para editar:', error);
+        // Intentar encontrar en los datos locales
+        const dirigenteLocal = appState.dirigentes.find(d => d.id === id);
+        if (dirigenteLocal) {
+            mostrarFormDirigente(dirigenteLocal);
+        } else {
+            mostrarNotificacion('No se pudo cargar el dirigente para editar', 'error');
+        }
+    }
 }
 
 function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
@@ -708,3 +732,4 @@ async function actualizarSelectDirigentes() {
         console.error('Error cargando dirigentes para selector:', error);
     }
 }
+
