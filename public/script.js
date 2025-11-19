@@ -763,25 +763,37 @@ async function editarDirigenteDesdeFiltro(id) {
     }
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA FILTRADO LOCAL
 function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
-    let dirigentesFiltrados = appState.dirigentes;
+    let dirigentesFiltrados = [...appState.dirigentes]; // Copia de todos los dirigentes
     
+    console.log('📊 Total dirigentes para filtrar:', dirigentesFiltrados.length);
+    
+    // Filtro por búsqueda (nombre, cédula, comunidad, coordinador)
     if (query) {
-        const q = query.toLowerCase();
         dirigentesFiltrados = dirigentesFiltrados.filter(d => 
-            d.nombre.toLowerCase().includes(q) ||
-            d.cedula.includes(q) ||
-            d.comunidad.toLowerCase().includes(q) ||
-            d.coordinador.toLowerCase().includes(q)
+            (d.nombre && d.nombre.toLowerCase().includes(query)) ||
+            (d.cedula && d.cedula.includes(query)) ||
+            (d.comunidad && d.comunidad.toLowerCase().includes(query)) ||
+            (d.coordinador && d.coordinador.toLowerCase().includes(query))
         );
+        console.log('📝 Después de búsqueda:', dirigentesFiltrados.length);
     }
     
+    // Filtro por corregimiento
     if (corregimiento) {
-        dirigentesFiltrados = dirigentesFiltrados.filter(d => d.corregimiento === corregimiento);
+        dirigentesFiltrados = dirigentesFiltrados.filter(d => 
+            d.corregimiento && d.corregimiento === corregimiento
+        );
+        console.log('🏘️ Después de corregimiento:', dirigentesFiltrados.length);
     }
     
+    // Filtro por participación
     if (participacion) {
-        dirigentesFiltrados = dirigentesFiltrados.filter(d => d.participacion === participacion);
+        dirigentesFiltrados = dirigentesFiltrados.filter(d => 
+            d.participacion && d.participacion === participacion
+        );
+        console.log('⭐ Después de participación:', dirigentesFiltrados.length);
     }
     
     mostrarDirigentesFiltrados(dirigentesFiltrados);
@@ -816,6 +828,7 @@ async function actualizarSelectDirigentes() {
         console.error('Error cargando dirigentes para selector:', error);
     }
 }
+
 
 
 
