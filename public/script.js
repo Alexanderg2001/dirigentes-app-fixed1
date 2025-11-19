@@ -129,21 +129,22 @@ async function cargarDatos() {
     console.log('✅ Todos los datos cargados');
 }
 
-// Funciones básicas de dirigentes
+// 🆕 FUNCIÓN MEJORADA - CARGAR TODOS LOS DIRIGENTES
 async function cargarDirigentes() {
     try {
-        const response = await fetch('/api/dirigentes');
+        // 🆕 Cambiar para cargar TODOS los dirigentes, no solo los últimos 10
+        const response = await fetch('/api/dirigentes/todos'); // 🆕 Usar esta ruta
         const data = await response.json();
         
         if (response.ok) {
             appState.dirigentes = data;
-            console.log('✅ Dirigentes cargados:', data.length);
+            appState.todosLosDirigentes = data; // 🆕 Guardar copia de todos
+            console.log('✅ TODOS los dirigentes cargados:', data.length);
         }
     } catch (error) {
         console.error('Error al cargar dirigentes:', error);
     }
 }
-
 // Funciones básicas de colaboradores
 async function cargarColaboradores() {
     try {
@@ -861,6 +862,18 @@ async function actualizarSelectDirigentes() {
     } catch (error) {
         console.error('Error cargando dirigentes para selector:', error);
     }
+}
+
+// 🆕 FUNCIÓN PARA OBTENER SOLO LOS ÚLTIMOS 10 DIRIGENTES (para el dashboard)
+function obtenerUltimosDirigentes() {
+    if (!appState.dirigentes || appState.dirigentes.length === 0) {
+        return [];
+    }
+    
+    // Ordenar por fecha de creación (más recientes primero) y tomar 10
+    return [...appState.dirigentes]
+        .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en))
+        .slice(0, 10);
 }
 
 
