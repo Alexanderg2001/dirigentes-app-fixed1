@@ -475,3 +475,64 @@ tr:hover {
         text-align: center;
     }
 }
+
+/* 🆕 ESTILOS PARA LA TABLA DE APOYOS EN BÚSQUEDA */
+.result-found table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 0.9em;
+}
+
+.result-found th {
+    background: #e3f2fd;
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+    font-weight: 600;
+}
+
+.result-found td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+.result-found tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+.result-found tr:hover {
+    background: #e3f2fd;
+}
+
+/* 🆕 ESTILOS PARA LAS SECCIONES DE INFORMACIÓN */
+.info-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+}
+
+.info-section h4 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 5px;
+}
+
+/* 🆕 RESPONSIVE PARA TABLAS */
+@media (max-width: 768px) {
+    .result-found table {
+        font-size: 0.8em;
+    }
+    
+    .result-found th,
+    .result-found td {
+        padding: 6px 4px;
+    }
+    
+    .result-found {
+        overflow-x: auto;
+    }
+}
