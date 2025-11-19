@@ -306,9 +306,39 @@ async function guardarDirigente(event) {
     }
 }
 
-function mostrarFormApoyo() {
-    document.getElementById('form-apoyo').classList.remove('hidden');
+// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO DE APOYO
+function mostrarFormApoyo(dirigenteId = null, dirigenteNombre = null) {
+    const form = document.getElementById('form-apoyo');
+    if (!form) return;
+    
+    // Mostrar formulario
+    form.classList.remove('hidden');
+    
+    // 🆕 INICIALIZAR COMPONENTES
     configurarFechaAutomatica();
+    configurarTipoApoyo();
+    inicializarBuscadorApoyos();
+    
+    // 🆕 CARGAR DIRIGENTES EN EL SELECT
+    actualizarSelectDirigentes();
+    
+    // 🆕 SI SE PASA UN DIRIGENTE ESPECÍFICO, SELECCIONARLO
+    if (dirigenteId && dirigenteNombre) {
+        setTimeout(() => {
+            const select = document.getElementById('apoyo-dirigente');
+            if (select) {
+                select.value = dirigenteId;
+                // Actualizar buscador para mostrar el dirigente seleccionado
+                const buscador = document.getElementById('buscar-dirigente-apoyo');
+                if (buscador) {
+                    buscador.value = dirigenteNombre;
+                    buscador.dispatchEvent(new Event('input'));
+                }
+            }
+        }, 100);
+    }
+    
+    console.log('✅ Formulario de apoyo listo');
 }
 
 function ocultarFormApoyo() {
@@ -941,6 +971,7 @@ function inicializarBuscadorApoyos() {
         console.log('🔍 Buscador apoyos:', query, '- Resultados:', dirigentesFiltrados.length);
     });
 }
+
 
 
 
