@@ -544,8 +544,8 @@ function calcularEstadisticasLocales() {
     document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
 }
 
-// 🆕 FUNCIÓN PARA MOSTRAR DIRIGENTES EN LA TABLA
-function renderizarDirigentes() {
+// 🆕 FUNCIÓN MEJORADA PARA RENDERIZAR DIRIGENTES
+function renderizarDirigentes(mostrarTodos = false) {
     const tbody = document.getElementById('dirigentes-body');
     if (!tbody) {
         console.log('❌ Tabla de dirigentes no encontrada');
@@ -554,7 +554,12 @@ function renderizarDirigentes() {
     
     tbody.innerHTML = '';
     
-    if (!appState.dirigentes || appState.dirigentes.length === 0) {
+    // 🆕 Decidir qué dirigentes mostrar
+    const dirigentesAMostrar = mostrarTodos ? 
+        appState.dirigentes : 
+        obtenerUltimosDirigentes();
+    
+    if (!dirigentesAMostrar || dirigentesAMostrar.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="8" style="text-align: center; padding: 20px; color: #666;">
@@ -565,9 +570,11 @@ function renderizarDirigentes() {
         return;
     }
     
-    appState.dirigentes.forEach(dirigente => {
+    dirigentesAMostrar.forEach(dirigente => {
         const tr = document.createElement('tr');
         const claseParticipacion = `participacion-${dirigente.participacion}`;
+        const textoParticipacion = dirigente.participacion === 'buena' ? 'Buena' : 
+                                 dirigente.participacion === 'mala' ? 'Mala' : 'Regular';
         
         tr.innerHTML = `
             <td>${dirigente.nombre}</td>
@@ -576,7 +583,7 @@ function renderizarDirigentes() {
             <td>${dirigente.corregimiento}</td>
             <td>${dirigente.comunidad}</td>
             <td>${dirigente.coordinador}</td>
-            <td class="${claseParticipacion}">${dirigente.participacion}</td>
+            <td class="${claseParticipacion}">${textoParticipacion}</td>
             <td class="actions">
                 <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
                 <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
@@ -587,6 +594,8 @@ function renderizarDirigentes() {
         
         tbody.appendChild(tr);
     });
+    
+    console.log('✅ Mostrando', dirigentesAMostrar.length, 'dirigentes');
 }
 
 // 🆕 FUNCIONES PARA EDITAR Y ELIMINAR DIRIGENTES
@@ -875,6 +884,7 @@ function obtenerUltimosDirigentes() {
         .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en))
         .slice(0, 10);
 }
+
 
 
 
