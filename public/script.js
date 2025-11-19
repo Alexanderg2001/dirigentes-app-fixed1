@@ -104,14 +104,24 @@ function actualizarUI() {
     }
 }
 
-// Cargar datos básicos
+// 🆕 FUNCIÓN MEJORADA PARA CARGAR DATOS
 async function cargarDatos() {
     if (!appState.isAuthenticated) return;
     
-    console.log('📥 Cargando datos...');
+    console.log('📥 Cargando todos los datos...');
+    
     await cargarDirigentes();
     await cargarColaboradores();
     await cargarApoyos();
+    await cargarDashboard();
+    
+    // 🆕 INICIALIZAR COMPONENTES DESPUÉS DE CARGAR DATOS
+    setTimeout(() => {
+        renderizarDirigentes();
+        inicializarFiltros();
+        console.log('✅ Todos los componentes inicializados');
+    }, 100);
+    
     console.log('✅ Todos los datos cargados');
 }
 
@@ -281,7 +291,8 @@ async function guardarDirigente(event) {
         if (response.ok) {
             mostrarNotificacion(data.message, 'success');
             ocultarFormDirigente();
-            cargarDirigentes();
+            await cargarDirigentes();
+            await renderizarDirigentes();
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -329,6 +340,7 @@ async function registrarApoyo(event) {
             mostrarNotificacion('Apoyo registrado exitosamente', 'success');
             ocultarFormApoyo();
             await cargarApoyos();
+            await cargarDashboard(); // 🆕 Actualizar dashboard
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -409,4 +421,290 @@ function mostrarNotificacion(mensaje, tipo) {
             notificacion.parentNode.removeChild(notificacion);
         }
     }, 3000);
+}
+
+// =============================================
+// 🆕 FUNCIONES NUEVAS AGREGADAS
+// =============================================
+
+// 🆕 FUNCIONES DEL DASHBOARD
+async function cargarDashboard() {
+    if (!appState.isAuthenticated) return;
+    
+    try {
+        const response = await fetch('/api/estadisticas');
+        if (!response.ok) return;
+        
+        const estadisticas = await response.json();
+        actualizarDashboard(estadisticas);
+    } catch (error) {
+        console.log('Dashboard no disponible, usando cálculos locales');
+        calcularEstadisticasLocales();
+    }
+}
+
+function actualizarDashboard(estadisticas) {
+    // Total de dirigentes
+    const totalDirigentes = estadisticas.totalDirigentes || appState.dirigentes.length;
+    document.getElementById('total-dirigentes').textContent = totalDirigentes;
+    
+    // Total de apoyos
+    const totalApoyos = estadisticas.totalApoyos || appState.apoyos.length;
+    document.getElementById('total-apoyos').textContent = totalApoyos;
+    
+    // Buena participación
+    const buenaParticipacion = estadisticas.participacion?.find(p => p.participacion === 'buena')?.total || 
+                              appState.dirigentes.filter(d => d.participacion === 'buena').length;
+    document.getElementById('buena-participacion').textContent = buenaParticipacion;
+    
+    // Apoyos económicos
+    const totalMonto = estadisticas.apoyos?.find(a => a.tipo === 'economico')?.total_monto || 
+                      appState.apoyos.filter(a => a.tipo === 'economico').reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
+}
+
+function calcularEstadisticasLocales() {
+    const totalDirigentes = appState.dirigentes.length;
+    const totalApoyos = appState.apoyos.length;
+    const buenaParticipacion = appState.dirigentes.filter(d => d.participacion === 'buena').length;
+    const totalMonto = appState.apoyos.filter(a => a.tipo === 'economico').reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    
+    document.getElementById('total-dirigentes').textContent = totalDirigentes;
+    document.getElementById('total-apoyos').textContent = totalApoyos;
+    document.getElementById('buena-participacion').textContent = buenaParticipacion;
+    document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
+}
+
+// 🆕 FUNCIÓN PARA MOSTRAR DIRIGENTES EN LA TABLA
+function renderizarDirigentes() {
+    const tbody = document.getElementById('dirigentes-body');
+    if (!tbody) {
+        console.log('❌ Tabla de dirigentes no encontrada');
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    if (!appState.dirigentes || appState.dirigentes.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 20px; color: #666;">
+                    No hay dirigentes registrados
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    appState.dirigentes.forEach(dirigente => {
+        const tr = document.createElement('tr');
+        const claseParticipacion = `participacion-${dirigente.participacion}`;
+        
+        tr.innerHTML = `
+            <td>${dirigente.nombre}</td>
+            <td>${dirigente.cedula}</td>
+            <td>${dirigente.telefono || 'No registrado'}</td>
+            <td>${dirigente.corregimiento}</td>
+            <td>${dirigente.comunidad}</td>
+            <td>${dirigente.coordinador}</td>
+            <td class="${claseParticipacion}">${dirigente.participacion}</td>
+            <td class="actions">
+                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
+                <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
+                <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
+                <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+// 🆕 FUNCIONES PARA EDITAR Y ELIMINAR DIRIGENTES
+function editarDirigente(id) {
+    const dirigente = appState.dirigentes.find(d => d.id === id);
+    if (dirigente) {
+        mostrarFormDirigente(dirigente);
+    }
+}
+
+async function eliminarDirigente(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este dirigente?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/dirigentes/${id}`, { method: 'DELETE' });
+        const data = await response.json();
+        
+        if (response.ok) {
+            mostrarNotificacion(data.message, 'success');
+            await cargarDirigentes(); // Recargar la lista
+            await renderizarDirigentes(); // Actualizar tabla
+        } else {
+            mostrarNotificacion(data.error, 'error');
+        }
+    } catch (error) {
+        mostrarNotificacion('Error al conectar con el servidor', 'error');
+    }
+}
+
+function generarConstancia(id) {
+    window.open(`/constancia/${id}`, '_blank');
+}
+
+function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
+    mostrarFormApoyo();
+    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
+}
+
+// 🆕 FUNCIONES PARA FILTROS DE DIRIGENTES
+function inicializarFiltros() {
+    const buscarInput = document.getElementById('buscar-dirigente');
+    const filtroCorregimiento = document.getElementById('filtro-corregimiento');
+    const filtroParticipacion = document.getElementById('filtro-participacion');
+    
+    if (buscarInput) {
+        buscarInput.addEventListener('input', function() {
+            setTimeout(() => filtrarDirigentes(), 300);
+        });
+    }
+    
+    if (filtroCorregimiento) {
+        filtroCorregimiento.addEventListener('change', filtrarDirigentes);
+    }
+    
+    if (filtroParticipacion) {
+        filtroParticipacion.addEventListener('change', filtrarDirigentes);
+    }
+    
+    // Cargar opciones de corregimientos
+    cargarCorregimientos();
+}
+
+async function cargarCorregimientos() {
+    try {
+        const response = await fetch('/api/corregimientos');
+        const corregimientos = await response.json();
+        
+        const select = document.getElementById('filtro-corregimiento');
+        if (select && corregimientos.length > 0) {
+            corregimientos.forEach(corregimiento => {
+                const option = document.createElement('option');
+                option.value = corregimiento.nombre;
+                option.textContent = corregimiento.nombre;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.log('No se pudieron cargar corregimientos');
+    }
+}
+
+async function filtrarDirigentes() {
+    const query = document.getElementById('buscar-dirigente')?.value || '';
+    const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
+    const participacion = document.getElementById('filtro-participacion')?.value || '';
+    
+    const params = new URLSearchParams();
+    if (query) params.append('q', query);
+    if (corregimiento) params.append('corregimiento', corregimiento);
+    if (participacion) params.append('participacion', participacion);
+    
+    try {
+        const response = await fetch(`/api/dirigentes/buscar?${params}`);
+        const dirigentesFiltrados = await response.json();
+        
+        if (response.ok) {
+            mostrarDirigentesFiltrados(dirigentesFiltrados);
+        }
+    } catch (error) {
+        console.error('Error filtrando dirigentes:', error);
+        // Fallback: filtrar localmente
+        filtrarDirigentesLocalmente(query, corregimiento, participacion);
+    }
+}
+
+function mostrarDirigentesFiltrados(dirigentesFiltrados) {
+    const tbody = document.getElementById('dirigentes-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    dirigentesFiltrados.forEach(dirigente => {
+        const tr = document.createElement('tr');
+        const claseParticipacion = `participacion-${dirigente.participacion}`;
+        
+        tr.innerHTML = `
+            <td>${dirigente.nombre}</td>
+            <td>${dirigente.cedula}</td>
+            <td>${dirigente.telefono || 'No registrado'}</td>
+            <td>${dirigente.corregimiento}</td>
+            <td>${dirigente.comunidad}</td>
+            <td>${dirigente.coordinador}</td>
+            <td class="${claseParticipacion}">${dirigente.participacion}</td>
+            <td class="actions">
+                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
+                <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
+                <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
+                <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
+            </td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+
+function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
+    let dirigentesFiltrados = appState.dirigentes;
+    
+    if (query) {
+        const q = query.toLowerCase();
+        dirigentesFiltrados = dirigentesFiltrados.filter(d => 
+            d.nombre.toLowerCase().includes(q) ||
+            d.cedula.includes(q) ||
+            d.comunidad.toLowerCase().includes(q) ||
+            d.coordinador.toLowerCase().includes(q)
+        );
+    }
+    
+    if (corregimiento) {
+        dirigentesFiltrados = dirigentesFiltrados.filter(d => d.corregimiento === corregimiento);
+    }
+    
+    if (participacion) {
+        dirigentesFiltrados = dirigentesFiltrados.filter(d => d.participacion === participacion);
+    }
+    
+    mostrarDirigentesFiltrados(dirigentesFiltrados);
+}
+
+function mostrarTodosLosDirigentes() {
+    // Volver a cargar los últimos 10 dirigentes
+    cargarDirigentes();
+    renderizarDirigentes();
+}
+
+// 🆕 FUNCIÓN PARA ACTUALIZAR SELECT DE DIRIGENTES EN APOYOS
+async function actualizarSelectDirigentes() {
+    try {
+        // Cargar TODOS los dirigentes para el selector de apoyos
+        const response = await fetch('/api/dirigentes/todos');
+        const todosLosDirigentes = await response.json();
+        
+        const select = document.getElementById('apoyo-dirigente');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">Seleccione un dirigente</option>';
+        
+        todosLosDirigentes.forEach(dirigente => {
+            const option = document.createElement('option');
+            option.value = dirigente.id;
+            option.textContent = `${dirigente.nombre} - ${dirigente.cedula}`;
+            select.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Error cargando dirigentes para selector:', error);
+    }
 }
