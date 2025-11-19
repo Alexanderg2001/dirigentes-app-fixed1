@@ -560,7 +560,10 @@ async function registrarApoyo(event) {
         if (response.ok) {
             mostrarNotificacion('Apoyo registrado exitosamente', 'success');
             ocultarFormApoyo();
+            
+            // 🆕 ACTUALIZAR DATOS INMEDIATAMENTE después de registrar apoyo
             await cargarApoyos();
+            await cargarDashboard(); // 🆕 ESTA LÍNEA ES CLAVE
             
             // 🆕 GENERAR CONSTANCIA AUTOMÁTICAMENTE
             if (data.id) {
@@ -1135,4 +1138,5 @@ async function cargarDatos() {
     await cargarDashboard();
     await cargarColaboradoresParaTabla(); // 🆕 Agregar esta línea
 }
+
 
