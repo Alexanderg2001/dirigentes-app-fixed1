@@ -202,46 +202,46 @@ app.get('/api/buscar-dirigente', (req, res) => {
   });
 });
 
-// 🆕 RUTAS PARA NUEVAS FUNCIONALIDADES
 
-// Estadísticas para el dashboard
+// 🆕 VERIFICAR QUE ESTA RUTA EXISTA Y FUNCIONE
 app.get('/api/estadisticas', requireAuth, (req, res) => {
-  const estadisticas = {
-    participacion: [],
-    apoyos: [],
-    totalDirigentes: 0,
-    totalApoyos: 0
-  };
+    const estadisticas = {
+        participacion: [],
+        apoyos: [],
+        totalDirigentes: 0,
+        totalApoyos: 0
+    };
 
-  // Contar dirigentes por participación
-  db.all(`
-    SELECT participacion, COUNT(*) as total 
-    FROM dirigentes 
-    GROUP BY participacion
-  `, (err, rows) => {
-    if (!err) estadisticas.participacion = rows;
-
-    // Contar apoyos por tipo
+    // Contar dirigentes por participación
     db.all(`
-      SELECT tipo, COUNT(*) as total, SUM(monto) as total_monto 
-      FROM apoyos 
-      GROUP BY tipo
+        SELECT participacion, COUNT(*) as total 
+        FROM dirigentes 
+        GROUP BY participacion
     `, (err, rows) => {
-      if (!err) estadisticas.apoyos = rows;
+        if (!err) estadisticas.participacion = rows;
 
-      // Total de dirigentes
-      db.get('SELECT COUNT(*) as total FROM dirigentes', (err, row) => {
-        if (!err && row) estadisticas.totalDirigentes = row.total;
+        // 🆕 CONTAR APOYOS POR TIPO - VERSIÓN MEJORADA
+        db.all(`
+            SELECT tipo, COUNT(*) as total, SUM(COALESCE(monto, 0)) as total_monto 
+            FROM apoyos 
+            GROUP BY tipo
+        `, (err, rows) => {
+            if (!err) estadisticas.apoyos = rows;
 
-        // Total de apoyos
-        db.get('SELECT COUNT(*) as total FROM apoyos', (err, row) => {
-          if (!err && row) estadisticas.totalApoyos = row.total;
-          
-          res.json(estadisticas);
+            // Total de dirigentes
+            db.get('SELECT COUNT(*) as total FROM dirigentes', (err, row) => {
+                if (!err && row) estadisticas.totalDirigentes = row.total;
+
+                // Total de apoyos
+                db.get('SELECT COUNT(*) as total FROM apoyos', (err, row) => {
+                    if (!err && row) estadisticas.totalApoyos = row.total;
+                    
+                    console.log('📊 Enviando estadísticas:', estadisticas); // 🆕 Para debug
+                    res.json(estadisticas);
+                });
+            });
         });
-      });
     });
-  });
 });
 
 // Búsqueda avanzada de dirigentes
@@ -957,5 +957,6 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
         });
     });
 });
+
 
 
