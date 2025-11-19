@@ -646,22 +646,36 @@ function inicializarFiltros() {
     cargarCorregimientos();
 }
 
+// 🆕 FUNCIÓN CORREGIDA PARA CARGAR CORREGIMIENTOS
 async function cargarCorregimientos() {
     try {
-        const response = await fetch('/api/corregimientos');
-        const corregimientos = await response.json();
+        // Obtener corregimientos ÚNICOS de los dirigentes existentes
+        const corregimientos = [...new Set(appState.dirigentes.map(d => d.corregimiento))].filter(Boolean);
         
         const select = document.getElementById('filtro-corregimiento');
-        if (select && corregimientos.length > 0) {
-            corregimientos.forEach(corregimiento => {
-                const option = document.createElement('option');
-                option.value = corregimiento.nombre;
-                option.textContent = corregimiento.nombre;
-                select.appendChild(option);
-            });
+        if (!select) return;
+        
+        // Guardar el valor seleccionado actual
+        const valorActual = select.value;
+        
+        // Limpiar y agregar opciones
+        select.innerHTML = '<option value="">Todos los corregimientos</option>';
+        
+        corregimientos.sort().forEach(corregimiento => {
+            const option = document.createElement('option');
+            option.value = corregimiento;
+            option.textContent = corregimiento;
+            select.appendChild(option);
+        });
+        
+        // Restaurar selección si existe
+        if (valorActual && corregimientos.includes(valorActual)) {
+            select.value = valorActual;
         }
+        
+        console.log('✅ Corregimientos cargados:', corregimientos.length);
     } catch (error) {
-        console.log('No se pudieron cargar corregimientos');
+        console.log('❌ Error cargando corregimientos:', error);
     }
 }
 
@@ -796,5 +810,6 @@ async function actualizarSelectDirigentes() {
         console.error('Error cargando dirigentes para selector:', error);
     }
 }
+
 
 
