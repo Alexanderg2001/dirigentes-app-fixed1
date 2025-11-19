@@ -249,70 +249,91 @@ async function actualizarSelectDirigentes() {
     }
 }
 
-// 🆕 FUNCIONES PARA DASHBOARD
+// 🆕 FUNCIÓN MEJORADA PARA CARGAR DASHBOARD
 async function cargarDashboard() {
     if (!appState.isAuthenticated) return;
     
     try {
         const response = await fetch('/api/estadisticas');
-        if (!response.ok) return;
+        if (!response.ok) {
+            throw new Error('Error en la API');
+        }
         
         const estadisticas = await response.json();
+        console.log('📊 Estadísticas cargadas:', estadisticas); // 🆕 Para debug
         actualizarDashboard(estadisticas);
+        
     } catch (error) {
-        console.log('Dashboard no disponible, usando cálculos locales');
+        console.log('⚠️ Dashboard no disponible, usando cálculos locales');
         calcularEstadisticasLocales();
     }
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA ACTUALIZAR DASHBOARD
 function actualizarDashboard(estadisticas) {
-    document.getElementById('total-dirigentes').textContent = estadisticas.totalDirigentes || appState.dirigentes.length;
-    document.getElementById('total-apoyos').textContent = estadisticas.totalApoyos || appState.apoyos.length;
+    console.log('🔄 Actualizando dashboard con:', estadisticas); // 🆕 Para debug
     
+    // Total de dirigentes
+    const totalDirigentes = estadisticas.totalDirigentes || appState.dirigentes.length;
+    document.getElementById('total-dirigentes').textContent = totalDirigentes;
+    
+    // Total de apoyos
+    const totalApoyos = estadisticas.totalApoyos || appState.apoyos.length;
+    document.getElementById('total-apoyos').textContent = totalApoyos;
+    
+    // Buena participación
     const buenaParticipacion = estadisticas.participacion?.find(p => p.participacion === 'buena')?.total || 
                               appState.dirigentes.filter(d => d.participacion === 'buena').length;
     document.getElementById('buena-participacion').textContent = buenaParticipacion;
     
-    const totalMonto = estadisticas.apoyos?.find(a => a.tipo === 'economico')?.total_monto || 
-                      appState.apoyos.filter(a => a.tipo === 'economico').reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    // 🆕 CÁLCULO MEJORADO PARA APOYOS ECONÓMICOS
+    let totalMonto = 0;
+    
+    // Intentar usar estadísticas del servidor primero
+    if (estadisticas.apoyos && estadisticas.apoyos.length > 0) {
+        const apoyoEconomico = estadisticas.apoyos.find(a => a.tipo === 'economico');
+        if (apoyoEconomico && apoyoEconomico.total_monto) {
+            totalMonto = parseFloat(apoyoEconomico.total_monto);
+        }
+    }
+    
+    // Si no hay datos del servidor, calcular localmente
+    if (totalMonto === 0 && appState.apoyos && appState.apoyos.length > 0) {
+        totalMonto = appState.apoyos
+            .filter(a => a.tipo === 'economico' && a.monto)
+            .reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    }
+    
+    console.log('💰 Total monto calculado:', totalMonto); // 🆕 Para debug
+    
     document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA CÁLCULOS LOCALES
 function calcularEstadisticasLocales() {
+    console.log('🔍 Calculando estadísticas locales...');
+    
     const totalDirigentes = appState.dirigentes.length;
     const totalApoyos = appState.apoyos.length;
     const buenaParticipacion = appState.dirigentes.filter(d => d.participacion === 'buena').length;
-    const totalMonto = appState.apoyos.filter(a => a.tipo === 'economico').reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    
+    // 🆕 CÁLCULO ROBUSTO DE MONTO
+    let totalMonto = 0;
+    if (appState.apoyos && appState.apoyos.length > 0) {
+        totalMonto = appState.apoyos
+            .filter(a => a.tipo === 'economico' && a.monto !== null && a.monto !== undefined)
+            .reduce((sum, a) => {
+                const monto = parseFloat(a.monto);
+                return sum + (isNaN(monto) ? 0 : monto);
+            }, 0);
+    }
+    
+    console.log('📊 Estadísticas locales:', { totalDirigentes, totalApoyos, buenaParticipacion, totalMonto });
     
     document.getElementById('total-dirigentes').textContent = totalDirigentes;
     document.getElementById('total-apoyos').textContent = totalApoyos;
     document.getElementById('buena-participacion').textContent = buenaParticipacion;
     document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
-}
-
-// 🆕 FUNCIONES PARA FILTROS AVANZADOS
-function inicializarFiltros() {
-    const buscarInput = document.getElementById('buscar-dirigente');
-    const filtroCorregimiento = document.getElementById('filtro-corregimiento');
-    
-    if (buscarInput) {
-        buscarInput.addEventListener('input', debounce(filtrarDirigentes, 300));
-    }
-    
-    // Cargar opciones de corregimientos
-    cargarCorregimientos();
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
 }
 
 async function cargarCorregimientos() {
@@ -1138,5 +1159,6 @@ async function cargarDatos() {
     await cargarDashboard();
     await cargarColaboradoresParaTabla(); // 🆕 Agregar esta línea
 }
+
 
 
