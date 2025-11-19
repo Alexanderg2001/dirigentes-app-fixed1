@@ -1160,5 +1160,20 @@ async function cargarDatos() {
     await cargarColaboradoresParaTabla(); // 🆕 Agregar esta línea
 }
 
+// 🆕 FUNCIÓN TEMPORAL PARA DEBUG
+function debugEstadisticas() {
+    console.log('🔍 DEBUG ESTADÍSTICAS:');
+    console.log('1. Apoyos en appState:', appState.apoyos);
+    console.log('2. Apoyos económicos:', appState.apoyos.filter(a => a.tipo === 'economico'));
+    console.log('3. Montos:', appState.apoyos.filter(a => a.tipo === 'economico').map(a => a.monto));
+    
+    const total = appState.apoyos
+        .filter(a => a.tipo === 'economico' && a.monto)
+        .reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    console.log('4. Total calculado:', total);
+}
+
+// Llamar después de cargar datos
+setTimeout(debugEstadisticas, 3000);
 
 
