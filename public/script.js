@@ -894,6 +894,42 @@ function obtenerUltimosDirigentes() {
         .slice(0, 10);
 }
 
+// 🆕 FUNCIÓN PARA EL BUSCADOR INTELIGENTE DE DIRIGENTES EN APOYOS
+function inicializarBuscadorApoyos() {
+    const buscador = document.getElementById('buscar-dirigente-apoyo');
+    const selectDirigentes = document.getElementById('apoyo-dirigente');
+    const contador = document.getElementById('contador-resultados');
+    
+    if (!buscador || !selectDirigentes) return;
+    
+    buscador.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        
+        if (!appState.dirigentes || appState.dirigentes.length === 0) {
+            console.log('❌ No hay dirigentes cargados');
+            return;
+        }
+        
+        // Filtrar dirigentes
+        const dirigentesFiltrados = appState.dirigentes.filter(dirigente => 
+            dirigente.nombre.toLowerCase().includes(query) ||
+            dirigente.cedula.includes(query) ||
+            dirigente.comunidad.toLowerCase().includes(query)
+        );
+        
+        // Actualizar el select
+        actualizarSelectDirigentes(dirigentesFiltrados);
+        
+        // Actualizar contador
+        if (contador) {
+            contador.textContent = `${dirigentesFiltrados.length} dirigentes encontrados`;
+            contador.style.color = dirigentesFiltrados.length > 0 ? 'green' : 'red';
+        }
+        
+        console.log('🔍 Buscador apoyos:', query, '- Resultados:', dirigentesFiltrados.length);
+    });
+}
+
 
 
 
