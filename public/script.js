@@ -679,25 +679,31 @@ async function cargarCorregimientos() {
     }
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA FILTRAR DIRIGENTES
 async function filtrarDirigentes() {
-    const query = document.getElementById('buscar-dirigente')?.value || '';
+    const query = document.getElementById('buscar-dirigente')?.value.toLowerCase() || '';
     const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
     const participacion = document.getElementById('filtro-participacion')?.value || '';
     
-    const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (corregimiento) params.append('corregimiento', corregimiento);
-    if (participacion) params.append('participacion', participacion);
+    console.log('🔍 Filtros aplicados:', { query, corregimiento, participacion });
     
     try {
+        // Primero intentar con el servidor
+        const params = new URLSearchParams();
+        if (query) params.append('q', query);
+        if (corregimiento) params.append('corregimiento', corregimiento);
+        if (participacion) params.append('participacion', participacion);
+        
         const response = await fetch(`/api/dirigentes/buscar?${params}`);
-        const dirigentesFiltrados = await response.json();
         
         if (response.ok) {
+            const dirigentesFiltrados = await response.json();
             mostrarDirigentesFiltrados(dirigentesFiltrados);
+        } else {
+            throw new Error('Error del servidor');
         }
     } catch (error) {
-        console.error('Error filtrando dirigentes:', error);
+        console.log('🔄 Usando filtrado local:', error);
         // Fallback: filtrar localmente
         filtrarDirigentesLocalmente(query, corregimiento, participacion);
     }
@@ -810,6 +816,7 @@ async function actualizarSelectDirigentes() {
         console.error('Error cargando dirigentes para selector:', error);
     }
 }
+
 
 
 
