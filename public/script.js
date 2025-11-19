@@ -628,6 +628,7 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
     mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
 }
 
+// 🆕 FUNCIÓN MEJORADA - CARGAR APOYOS CON VERIFICACIÓN
 async function cargarApoyos() {
     try {
         const response = await fetch('/api/apoyos');
@@ -635,10 +636,27 @@ async function cargarApoyos() {
         
         if (response.ok) {
             appState.apoyos = data;
+            console.log('✅ Apoyos cargados:', data.length);
             renderizarApoyos();
+            
+            // 🆕 VERIFICAR SI HAY DIRIGENTES "DESCONOCIDOS"
+            verificarDirigentesDesconocidos();
         }
     } catch (error) {
         console.error('Error al cargar apoyos:', error);
+    }
+}
+
+// 🆕 FUNCIÓN PARA VERIFICAR DIRIGENTES DESCONOCIDOS
+function verificarDirigentesDesconocidos() {
+    if (appState.apoyos.length === 0 || appState.dirigentes.length === 0) return;
+    
+    const apoyosConDirigenteDesconocido = appState.apoyos.filter(apoyo => {
+        return !appState.dirigentes.find(d => d.id === apoyo.dirigente_id);
+    });
+    
+    if (apoyosConDirigenteDesconocido.length > 0) {
+        console.warn('⚠️ Apoyos con dirigente desconocido:', apoyosConDirigenteDesconocido);
     }
 }
 
@@ -1257,6 +1275,7 @@ function debugEstadisticas() {
 
 // Llamar después de cargar datos
 setTimeout(debugEstadisticas, 3000);
+
 
 
 
