@@ -843,10 +843,16 @@ function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
     mostrarDirigentesFiltrados(dirigentesFiltrados);
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR TODOS LOS DIRIGENTES
 function mostrarTodosLosDirigentes() {
-    // Volver a cargar los últimos 10 dirigentes
-    cargarDirigentes();
-    renderizarDirigentes();
+    renderizarDirigentes(true); // 🆕 true = mostrar todos
+    mostrarNotificacion(`Mostrando todos los ${appState.dirigentes.length} dirigentes`, 'success');
+    
+    // Ocultar el botón "Ver todos" ya que ya estamos viendo todos
+    const infoResultados = document.getElementById('info-resultados');
+    if (infoResultados) {
+        infoResultados.style.display = 'none';
+    }
 }
 
 // 🆕 FUNCIÓN PARA ACTUALIZAR SELECT DE DIRIGENTES EN APOYOS
@@ -884,6 +890,7 @@ function obtenerUltimosDirigentes() {
         .sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en))
         .slice(0, 10);
 }
+
 
 
 
