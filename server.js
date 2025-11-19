@@ -195,6 +195,23 @@ app.post('/api/apoyos', requireAuth, (req, res) => {
   );
 });
 
+// 🆕 RUTA PARA OBTENER UN DIRIGENTE ESPECÍFICO
+app.get('/api/dirigentes/:id', requireAuth, (req, res) => {
+    const id = req.params.id;
+    
+    db.get('SELECT * FROM dirigentes WHERE id = ?', [id], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al obtener el dirigente' });
+        }
+        
+        if (!row) {
+            return res.status(404).json({ error: 'Dirigente no encontrado' });
+        }
+        
+        res.json(row);
+    });
+});
+
 // Búsqueda pública de dirigente
 // 🆕 RUTA MEJORADA - BUSCAR DIRIGENTE CON HISTORIAL DE APOYOS
 app.get('/api/buscar-dirigente', (req, res) => {
@@ -989,6 +1006,7 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
         });
     });
 });
+
 
 
 
