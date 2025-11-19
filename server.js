@@ -186,22 +186,44 @@ app.post('/api/apoyos', requireAuth, (req, res) => {
 });
 
 // Búsqueda pública de dirigente
+// 🆕 RUTA MEJORADA - BUSCAR DIRIGENTE CON HISTORIAL DE APOYOS
 app.get('/api/buscar-dirigente', (req, res) => {
-  const cedula = req.query.cedula;
-  
-  db.get('SELECT * FROM dirigentes WHERE cedula = ?', [cedula], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error en la búsqueda' });
-    }
+    const cedula = req.query.cedula;
     
-    if (row) {
-      res.json({ encontrado: true, dirigente: row });
-    } else {
-      res.json({ encontrado: false });
-    }
-  });
+    db.get('SELECT * FROM dirigentes WHERE cedula = ?', [cedula], (err, dirigente) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error en la búsqueda' });
+        }
+        
+        if (!dirigente) {
+            return res.json({ encontrado: false });
+        }
+        
+        // 🆕 BUSCAR APOYOS DEL DIRIGENTE
+        db.all(`
+            SELECT a.*, c.nombre as colaborador_nombre, c.cargo as colaborador_cargo
+            FROM apoyos a 
+            LEFT JOIN colaboradores c ON a.colaborador_id = c.id
+            WHERE a.dirigente_id = ?
+            ORDER BY a.fecha DESC
+        `, [dirigente.id], (err, apoyos) => {
+            if (err) {
+                console.error('Error al cargar apoyos:', err);
+                return res.json({ 
+                    encontrado: true, 
+                    dirigente: dirigente,
+                    apoyos: [] 
+                });
+            }
+            
+            res.json({ 
+                encontrado: true, 
+                dirigente: dirigente,
+                apoyos: apoyos 
+            });
+        });
+    });
 });
-
 
 // 🆕 VERIFICAR QUE ESTA RUTA EXISTA Y FUNCIONE
 app.get('/api/estadisticas', requireAuth, (req, res) => {
@@ -957,6 +979,7 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
         });
     });
 });
+
 
 
 
