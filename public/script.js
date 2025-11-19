@@ -709,26 +709,54 @@ async function filtrarDirigentes() {
     }
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR DIRIGENTES FILTRADOS
 function mostrarDirigentesFiltrados(dirigentesFiltrados) {
     const tbody = document.getElementById('dirigentes-body');
+    const infoResultados = document.getElementById('info-resultados');
+    const contadorFiltrados = document.getElementById('contador-filtrados');
+    
     if (!tbody) return;
     
     tbody.innerHTML = '';
     
+    // Mostrar información de resultados
+    if (infoResultados && contadorFiltrados) {
+        contadorFiltrados.textContent = dirigentesFiltrados.length;
+        
+        if (dirigentesFiltrados.length !== appState.dirigentes.length) {
+            infoResultados.style.display = 'block';
+        } else {
+            infoResultados.style.display = 'none';
+        }
+    }
+    
+    if (dirigentesFiltrados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 20px; color: #666;">
+                    🔍 No se encontraron dirigentes con los filtros aplicados
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
     dirigentesFiltrados.forEach(dirigente => {
         const tr = document.createElement('tr');
-        const claseParticipacion = `participacion-${dirigente.participacion}`;
+        const claseParticipacion = `participacion-${dirigente.participacion || 'regular'}`;
+        const textoParticipacion = dirigente.participacion === 'buena' ? 'Buena' : 
+                                 dirigente.participacion === 'mala' ? 'Mala' : 'Regular';
         
         tr.innerHTML = `
-            <td>${dirigente.nombre}</td>
-            <td>${dirigente.cedula}</td>
+            <td>${dirigente.nombre || 'No especificado'}</td>
+            <td>${dirigente.cedula || 'No especificado'}</td>
             <td>${dirigente.telefono || 'No registrado'}</td>
-            <td>${dirigente.corregimiento}</td>
-            <td>${dirigente.comunidad}</td>
-            <td>${dirigente.coordinador}</td>
-            <td class="${claseParticipacion}">${dirigente.participacion}</td>
+            <td>${dirigente.corregimiento || 'No especificado'}</td>
+            <td>${dirigente.comunidad || 'No especificado'}</td>
+            <td>${dirigente.coordinador || 'No especificado'}</td>
+            <td class="${claseParticipacion}">${textoParticipacion}</td>
             <td class="actions">
-                <button class="edit" onclick="editarDirigenteDesdeFiltro(${dirigente.id})">Editar</button>
+                <button class="edit" onclick="editarDirigente(${dirigente.id})">Editar</button>
                 <button class="delete" onclick="eliminarDirigente(${dirigente.id})">Eliminar</button>
                 <button class="constancia" onclick="generarConstancia(${dirigente.id})">Constancia</button>
                 <button class="apoyo" onclick="registrarApoyoDirigente(${dirigente.id}, '${dirigente.nombre}')">Registrar Apoyo</button>
@@ -737,6 +765,8 @@ function mostrarDirigentesFiltrados(dirigentesFiltrados) {
         
         tbody.appendChild(tr);
     });
+    
+    console.log('✅ Mostrando', dirigentesFiltrados.length, 'dirigentes filtrados');
 }
 
 // 🆕 FUNCIÓN ESPECIAL PARA EDITAR DESDE FILTROS
@@ -828,6 +858,7 @@ async function actualizarSelectDirigentes() {
         console.error('Error cargando dirigentes para selector:', error);
     }
 }
+
 
 
 
