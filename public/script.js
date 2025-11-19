@@ -858,27 +858,39 @@ function mostrarTodosLosDirigentes() {
     }
 }
 
-// 🆕 FUNCIÓN PARA ACTUALIZAR SELECT DE DIRIGENTES EN APOYOS
-async function actualizarSelectDirigentes() {
-    try {
-        // Cargar TODOS los dirigentes para el selector de apoyos
-        const response = await fetch('/api/dirigentes/todos');
-        const todosLosDirigentes = await response.json();
-        
-        const select = document.getElementById('apoyo-dirigente');
-        if (!select) return;
-        
-        select.innerHTML = '<option value="">Seleccione un dirigente</option>';
-        
-        todosLosDirigentes.forEach(dirigente => {
-            const option = document.createElement('option');
-            option.value = dirigente.id;
-            option.textContent = `${dirigente.nombre} - ${dirigente.cedula}`;
-            select.appendChild(option);
-        });
-        
-    } catch (error) {
-        console.error('Error cargando dirigentes para selector:', error);
+// 🆕 FUNCIÓN MEJORADA PARA ACTUALIZAR SELECT DE DIRIGENTES
+function actualizarSelectDirigentes(dirigentesFiltrados = null) {
+    const select = document.getElementById('apoyo-dirigente');
+    if (!select) return;
+    
+    // Usar dirigentes filtrados o todos
+    const dirigentes = dirigentesFiltrados || appState.dirigentes;
+    
+    // Guardar selección actual
+    const seleccionActual = select.value;
+    
+    // Limpiar select
+    select.innerHTML = '<option value="">Seleccione un dirigente</option>';
+    
+    if (!dirigentes || dirigentes.length === 0) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.textContent = "No hay dirigentes disponibles";
+        select.appendChild(option);
+        return;
+    }
+    
+    // Agregar opciones
+    dirigentes.forEach(dirigente => {
+        const option = document.createElement('option');
+        option.value = dirigente.id;
+        option.textContent = `${dirigente.nombre} - Cédula: ${dirigente.cedula} - ${dirigente.comunidad}`;
+        select.appendChild(option);
+    });
+    
+    // Restaurar selección si existe
+    if (seleccionActual) {
+        select.value = seleccionActual;
     }
 }
 
@@ -929,6 +941,7 @@ function inicializarBuscadorApoyos() {
         console.log('🔍 Buscador apoyos:', query, '- Resultados:', dirigentesFiltrados.length);
     });
 }
+
 
 
 
