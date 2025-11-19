@@ -642,25 +642,42 @@ async function cargarApoyos() {
     }
 }
 
+// 🆕 FUNCIÓN MEJORADA - MOSTRAR NOMBRES REALES DE DIRIGENTES
 function renderizarApoyos() {
     const tbody = document.getElementById('apoyos-body');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     
     appState.apoyos.forEach(apoyo => {
+        // 🆕 BUSCAR EL DIRIGENTE CORRESPONDIENTE
         const dirigente = appState.dirigentes.find(d => d.id === apoyo.dirigente_id);
         const nombreDirigente = dirigente ? dirigente.nombre : 'Desconocido';
+        const cedulaDirigente = dirigente ? dirigente.cedula : 'N/A';
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${nombreDirigente}</td>
-            <td>${apoyo.tipo}</td>
+            <td>
+                <strong>${nombreDirigente}</strong>
+                ${cedulaDirigente !== 'N/A' ? `<br><small style="color: #666;">Cédula: ${cedulaDirigente}</small>` : ''}
+            </td>
+            <td style="text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
             <td>${apoyo.descripcion || '-'}</td>
-            <td>${apoyo.monto ? `$${apoyo.monto}` : '-'}</td>
+            <td>${apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}</td>
             <td>${new Date(apoyo.fecha).toLocaleDateString()}</td>
+            <td class="actions">
+                <button class="constancia" onclick="generarConstanciaApoyo(${apoyo.id})">
+                    📄 Constancia
+                </button>
+            </td>
         `;
         
         tbody.appendChild(tr);
     });
+    
+    // 🆕 MOSTRAR INFORMACIÓN DE DEBUG (opcional)
+    console.log('📊 Apoyos renderizados:', appState.apoyos.length);
+    console.log('👥 Dirigentes disponibles:', appState.dirigentes.length);
 }
 
 // Búsqueda pública
@@ -1240,6 +1257,7 @@ function debugEstadisticas() {
 
 // Llamar después de cargar datos
 setTimeout(debugEstadisticas, 3000);
+
 
 
 
