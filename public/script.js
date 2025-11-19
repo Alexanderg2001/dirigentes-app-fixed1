@@ -660,7 +660,7 @@ function verificarDirigentesDesconocidos() {
     }
 }
 
-// 🆕 FUNCIÓN MEJORADA - MOSTRAR NOMBRES REALES DE DIRIGENTES
+// 🆕 FUNCIÓN OPTIMIZADA - USAR DATOS DEL SERVIDOR
 function renderizarApoyos() {
     const tbody = document.getElementById('apoyos-body');
     if (!tbody) return;
@@ -668,16 +668,11 @@ function renderizarApoyos() {
     tbody.innerHTML = '';
     
     appState.apoyos.forEach(apoyo => {
-        // 🆕 BUSCAR EL DIRIGENTE CORRESPONDIENTE
-        const dirigente = appState.dirigentes.find(d => d.id === apoyo.dirigente_id);
-        const nombreDirigente = dirigente ? dirigente.nombre : 'Desconocido';
-        const cedulaDirigente = dirigente ? dirigente.cedula : 'N/A';
-        
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>
-                <strong>${nombreDirigente}</strong>
-                ${cedulaDirigente !== 'N/A' ? `<br><small style="color: #666;">Cédula: ${cedulaDirigente}</small>` : ''}
+                <strong>${apoyo.dirigente_nombre || 'Desconocido'}</strong>
+                ${apoyo.dirigente_cedula ? `<br><small style="color: #666;">Cédula: ${apoyo.dirigente_cedula}</small>` : ''}
             </td>
             <td style="text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
             <td>${apoyo.descripcion || '-'}</td>
@@ -692,6 +687,7 @@ function renderizarApoyos() {
         
         tbody.appendChild(tr);
     });
+}
     
     // 🆕 MOSTRAR INFORMACIÓN DE DEBUG (opcional)
     console.log('📊 Apoyos renderizados:', appState.apoyos.length);
@@ -1275,6 +1271,7 @@ function debugEstadisticas() {
 
 // Llamar después de cargar datos
 setTimeout(debugEstadisticas, 3000);
+
 
 
 
