@@ -434,7 +434,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Constancia de Apoyo - ${resultado.dirigente_nombre}</title>
+                <title>Constancia de Entrega - ${resultado.dirigente_nombre}</title>
                 <meta charset="UTF-8">
                 <style>
                     @page {
@@ -697,7 +697,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
                         </div>
                         
                         <div class="title-section">
-                            <h1>CONSTANCIA DE ENTREGA DE APOYO</h1>
+                            <h1>CONSTANCIA DE ENTREGA</h1>
                             <p>Documento Oficial - Sistema de Gestión Comunitaria</p>
                             <p>${new Date().toLocaleDateString('es-PA', { 
                                 weekday: 'long', 
@@ -1016,6 +1016,7 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
         });
     });
 });
+
 
 
 
