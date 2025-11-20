@@ -584,3 +584,35 @@ tr:hover {
     background-color: #e74c3c !important;
     flex: 1;
 }
+
+/* 🆕 ESTILOS PARA EL BOTÓN DE REGISTRAR APOYO EN VERIFICACIÓN */
+.result-found button {
+    background: #9b59b6 !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 15px !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    font-size: 0.9rem !important;
+    transition: background 0.3s !important;
+}
+
+.result-found button:hover {
+    background: #8e44ad !important;
+}
+
+/* 🆕 ESTILOS PARA EL BOTÓN DE AGREGAR DIRIGENTE */
+.result-not-found button {
+    background: #28a745 !important;
+    color: white !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 0.85rem !important;
+}
+
+.result-not-found button:hover {
+    background: #218838 !important;
+}
