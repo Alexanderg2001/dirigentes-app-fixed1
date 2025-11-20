@@ -1152,3 +1152,56 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
     }, 3000);
 }
 
+// =============================================
+// 🆕 FUNCIONES NUEVAS PARA SCROLL AUTOMÁTICO
+// =============================================
+
+// Función para scroll suave a cualquier sección
+function scrollToSection(sectionId) {
+    console.log('🎯 Haciendo scroll a:', sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+        // Ajuste para que no quede detrás del header
+        const offset = 100;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+        console.log('✅ Scroll completado');
+    }
+}
+
+// Función para resaltar una sección
+function highlightSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        // Aplicar resaltado azul
+        section.style.border = '3px solid #3498db';
+        section.style.boxShadow = '0 0 20px rgba(52, 152, 219, 0.5)';
+        section.style.transition = 'all 0.5s ease';
+        
+        // Quitar el resaltado después de 3 segundos
+        setTimeout(() => {
+            section.style.border = '';
+            section.style.boxShadow = '';
+        }, 3000);
+    }
+}
+
+// Función para verificar si un elemento está visible en pantalla
+function isElementInViewport(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return false;
+    
+    const rect = element.getBoundingClientRect();
+    return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+}
+
