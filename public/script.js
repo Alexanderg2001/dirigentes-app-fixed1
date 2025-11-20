@@ -502,27 +502,35 @@ async function buscarDirigente() {
                             <div style="overflow-x: auto;">
                                 <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
                                     <thead>
-                                        <tr style="background: #e3f2fd;">
-                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Fecha</th>
-                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tipo</th>
-                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Descripción</th>
-                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Monto</th>
-                                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Entregado por</th>
-                                        </tr>
-                                    </thead>
+    <tr style="background: #e3f2fd;">
+        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Fecha</th>
+        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tipo</th>
+        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Descripción</th>
+        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Monto</th>
+        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Entregado por</th>
+        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Constancia</th> <!-- 🆕 NUEVA COLUMNA -->
+    </tr>
+</thead>
                                     <tbody>
-                                        ${apoyos.map(apoyo => `
-                                            <tr>
-                                                <td style="padding: 8px; border: 1px solid #ddd;">${new Date(apoyo.fecha).toLocaleDateString('es-PA')}</td>
-                                                <td style="padding: 8px; border: 1px solid #ddd; text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
-                                                <td style="padding: 8px; border: 1px solid #ddd;">${apoyo.descripcion || '-'}</td>
-                                                <td style="padding: 8px; border: 1px solid #ddd; ${apoyo.tipo === 'economico' ? 'color: #27ae60; font-weight: bold;' : ''}">
-                                                    ${apoyo.tipo === 'economico' && apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}
-                                                </td>
-                                                <td style="padding: 8px; border: 1px solid #ddd;">${apoyo.colaborador_nombre || 'No especificado'}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
+    ${apoyos.map(apoyo => `
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;">${new Date(apoyo.fecha).toLocaleDateString('es-PA')}</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-transform: uppercase; font-weight: bold;">${apoyo.tipo}</td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${apoyo.descripcion || '-'}</td>
+            <td style="padding: 8px; border: 1px solid #ddd; ${apoyo.tipo === 'economico' ? 'color: #27ae60; font-weight: bold;' : ''}">
+                ${apoyo.tipo === 'economico' && apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}
+            </td>
+            <td style="padding: 8px; border: 1px solid #ddd;">${apoyo.colaborador_nombre || 'No especificado'}</td>
+            <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                <!-- 🆕 BOTÓN DE CONSTANCIA -->
+                <button onclick="verConstanciaApoyo(${apoyo.id})" 
+                        style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8em; display: flex; align-items: center; gap: 5px; margin: 0 auto;">
+                    📄 Ver
+                </button>
+            </td>
+        </tr>
+    `).join('')}
+</tbody>
                                 </table>
                             </div>
                             <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
@@ -1237,6 +1245,35 @@ function isElementInViewport(elementId) {
         rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
+}
+
+// =============================================
+// 🆕 FUNCIÓN PARA VER CONSTANCIA DESDE VERIFICACIÓN
+// =============================================
+
+function verConstanciaApoyo(apoyoId) {
+    console.log('📄 Abriendo constancia del apoyo ID:', apoyoId);
+    
+    // Verificar si el usuario está autenticado
+    if (!appState.isAuthenticated) {
+        mostrarNotificacion('🔐 Debe iniciar sesión para ver constancias', 'error');
+        
+        // Opcional: Hacer scroll al formulario de login
+        setTimeout(() => {
+            const loginSection = document.querySelector('header');
+            if (loginSection) {
+                loginSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 500);
+        
+        return;
+    }
+    
+    // Abrir la constancia en nueva pestaña
+    window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
+    
+    // Mostrar mensaje de confirmación
+    mostrarNotificacion('📄 Constancia abierta en nueva pestaña', 'success');
 }
 
 
