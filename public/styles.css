@@ -647,3 +647,74 @@ html {
         box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
     }
 }
+
+/* ============================================= */
+/* 🆕 ESTILOS PARA EL LOGO EN EL HEADER */
+/* ============================================= */
+
+/* Contenedor del logo */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+/* Logo principal */
+.header-logo {
+    height: 50px; /* Ajusta según el tamaño de tu logo */
+    width: auto;
+    max-width: 150px;
+    border-radius: 5px;
+    object-fit: contain;
+}
+
+/* Logo de respaldo (si no carga la imagen) */
+.logo-fallback {
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+.logo-fallback div:first-child {
+    font-size: 20px;
+    margin-bottom: 2px;
+}
+
+.logo-fallback div:last-child {
+    font-size: 10px;
+    opacity: 0.9;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .header-logo {
+        height: 40px;
+        max-width: 120px;
+    }
+    
+    .logo-fallback {
+        padding: 6px 10px;
+        min-width: 60px;
+    }
+    
+    .logo-fallback div:first-child {
+        font-size: 16px;
+    }
+    
+    .logo-fallback div:last-child {
+        font-size: 8px;
+    }
+    
+    header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    header h1 {
+        font-size: 1.2rem;
+    }
+}
