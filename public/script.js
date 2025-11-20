@@ -783,37 +783,42 @@ function inicializarFiltros() {
     cargarCorregimientos();
 }
 
-// 🆕 FUNCIÓN CORREGIDA PARA CARGAR CORREGIMIENTOS
+// 🆕 FUNCIÓN ACTUALIZADA - CORREGIMIENTOS CON ESPACIOS
 async function cargarCorregimientos() {
-    try {
-        // Obtener corregimientos ÚNICOS de los dirigentes existentes
-        const corregimientos = [...new Set(appState.dirigentes.map(d => d.corregimiento))].filter(Boolean);
-        
-        const select = document.getElementById('filtro-corregimiento');
-        if (!select) return;
-        
-        // Guardar el valor seleccionado actual
-        const valorActual = select.value;
-        
-        // Limpiar y agregar opciones
-        select.innerHTML = '<option value="">Todos los corregimientos</option>';
-        
-        corregimientos.sort().forEach(corregimiento => {
-            const option = document.createElement('option');
-            option.value = corregimiento;
-            option.textContent = corregimiento;
-            select.appendChild(option);
-        });
-        
-        // Restaurar selección si existe
-        if (valorActual && corregimientos.includes(valorActual)) {
-            select.value = valorActual;
-        }
-        
-        console.log('✅ Corregimientos cargados:', corregimientos.length);
-    } catch (error) {
-        console.log('❌ Error cargando corregimientos:', error);
-    }
+    // 🆕 LISTA FIJA CON LOS 16 CORREGIMIENTOS Y SUS ESPACIOS
+    const corregimientosFijos = [
+        "Boca de Tucué",
+        "Candelario Ovalle", 
+        "Cañaveral",
+        "Chiguirí Arriba",
+        "Coclé",
+        "El Coco",
+        "General Victoriano Lorenzo",
+        "Las Minas",
+        "Pajonal ",
+        "Penonomé ",
+        "Riecito",
+        "Rio Grande ",
+        "Río Indio", 
+        "San Miguel ",
+        "Toabré",
+        "Tulú"
+    ];
+    
+    const select = document.getElementById('filtro-corregimiento');
+    if (!select) return;
+    
+    // Limpiar y agregar opciones fijas
+    select.innerHTML = '<option value="">Todos los corregimientos</option>';
+    
+    corregimientosFijos.forEach(corregimiento => {
+        const option = document.createElement('option');
+        option.value = corregimiento;
+        option.textContent = corregimiento;
+        select.appendChild(option);
+    });
+    
+    console.log('✅ Corregimientos fijos cargados:', corregimientosFijos.length);
 }
 
 // 🆕 FUNCIÓN MEJORADA PARA FILTRAR DIRIGENTES
@@ -1275,6 +1280,7 @@ function verConstanciaApoyo(apoyoId) {
     // Mostrar mensaje de confirmación
     mostrarNotificacion('📄 Constancia abierta en nueva pestaña', 'success');
 }
+
 
 
 
