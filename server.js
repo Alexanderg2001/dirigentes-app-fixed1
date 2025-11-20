@@ -252,13 +252,14 @@ app.get('/api/buscar-dirigente', (req, res) => {
     });
 });
 
-// 🆕 VERIFICAR QUE ESTA RUTA EXISTA Y FUNCIONE
+// 🆕 RUTA MEJORADA - SUMA TODOS LOS MONTOS
 app.get('/api/estadisticas', requireAuth, (req, res) => {
     const estadisticas = {
         participacion: [],
         apoyos: [],
         totalDirigentes: 0,
-        totalApoyos: 0
+        totalApoyos: 0,
+        totalMontoGeneral: 0 // 🆕 NUEVO: total de TODOS los montos
     };
 
     // Contar dirigentes por participación
@@ -269,13 +270,22 @@ app.get('/api/estadisticas', requireAuth, (req, res) => {
     `, (err, rows) => {
         if (!err) estadisticas.participacion = rows;
 
-        // 🆕 CONTAR APOYOS POR TIPO - VERSIÓN MEJORADA
+        // 🆕 CONTAR APOYOS Y SUMAR TODOS LOS MONTOS (no solo económicos)
         db.all(`
             SELECT tipo, COUNT(*) as total, SUM(COALESCE(monto, 0)) as total_monto 
             FROM apoyos 
             GROUP BY tipo
         `, (err, rows) => {
-            if (!err) estadisticas.apoyos = rows;
+            if (!err) {
+                estadisticas.apoyos = rows;
+                
+                // 🆕 CALCULAR TOTAL GENERAL DE TODOS LOS MONTOS
+                let totalGeneral = 0;
+                rows.forEach(apoyo => {
+                    totalGeneral += apoyo.total_monto || 0;
+                });
+                estadisticas.totalMontoGeneral = totalGeneral;
+            }
 
             // Total de dirigentes
             db.get('SELECT COUNT(*) as total FROM dirigentes', (err, row) => {
@@ -285,7 +295,7 @@ app.get('/api/estadisticas', requireAuth, (req, res) => {
                 db.get('SELECT COUNT(*) as total FROM apoyos', (err, row) => {
                     if (!err && row) estadisticas.totalApoyos = row.total;
                     
-                    console.log('📊 Enviando estadísticas:', estadisticas); // 🆕 Para debug
+                    console.log('📊 Enviando estadísticas MEJORADAS:', estadisticas);
                     res.json(estadisticas);
                 });
             });
@@ -1006,6 +1016,7 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
         });
     });
 });
+
 
 
 
