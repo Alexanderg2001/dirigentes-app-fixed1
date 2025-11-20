@@ -554,26 +554,33 @@ tr:hover {
     font-style: italic;
 }
 
-/* 🆕 OCULTAR SOLO LOS BOTONES QUE QUEREMOS QUITAR */
-button.constancia,
-button.apoyo {
+/* 🆕 SOLO OCULTAR BOTONES EN LA SECCIÓN DE GESTIÓN DE DIRIGENTES */
+#gestion-dirigentes .actions button.constancia,
+#gestion-dirigentes .actions button.apoyo {
     display: none !important;
 }
 
-/* 🆕 MEJORAR APARIENCIA DE LOS BOTONES QUE QUEDAN */
-button.edit {
-    background-color: #f39c12 !important; /* Naranja */
+/* 🆕 ASEGURAR QUE LOS BOTONES DE CONSTANCIA EN APOYOS SE VEN */
+#gestion-apoyos .actions button.constancia {
+    display: inline-block !important;
+    background-color: #27ae60 !important;
+    padding: 0.5rem 1rem !important;
+    margin: 2px !important;
 }
 
-button.delete {
-    background-color: #e74c3c !important; /* Rojo */
+/* 🆕 MEJORAR BOTONES EN DIRIGENTES */
+#gestion-dirigentes .actions {
+    display: flex;
+    gap: 0.3rem;
+    min-width: 120px;
 }
 
-button.edit:hover {
-    background-color: #e67e22 !important;
+#gestion-dirigentes button.edit {
+    background-color: #f39c12 !important;
+    flex: 1;
 }
 
-button.delete:hover {
-    background-color: #c0392b !important;
+#gestion-dirigentes button.delete {
+    background-color: #e74c3c !important;
+    flex: 1;
 }
-
