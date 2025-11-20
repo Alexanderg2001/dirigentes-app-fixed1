@@ -236,7 +236,7 @@ function renderizarApoyos() {
     });
 }
 
-// Funciones básicas de formularios
+// 🆕 FUNCIÓN MEJORADA - CON SCROLL AL AGREGAR NUEVO
 function mostrarFormDirigente(dirigente = null) {
     const form = document.getElementById('form-dirigente');
     const title = document.getElementById('form-title');
@@ -257,6 +257,15 @@ function mostrarFormDirigente(dirigente = null) {
     }
     
     form.classList.remove('hidden');
+    
+    // 🆕 SCROLL AUTOMÁTICO SOLO SI NO ESTAMOS VIENDO LA SECCIÓN
+    setTimeout(() => {
+        if (!isElementInViewport('gestion-dirigentes')) {
+            console.log('📜 Haciendo scroll a Gestión de Dirigentes...');
+            scrollToSection('gestion-dirigentes');
+            highlightSection('gestion-dirigentes');
+        }
+    }, 100);
 }
 
 function ocultarFormDirigente() {
@@ -1214,5 +1223,6 @@ function isElementInViewport(elementId) {
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
 }
+
 
 
