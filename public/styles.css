@@ -718,3 +718,64 @@ html {
         font-size: 1.2rem;
     }
 }
+
+/* ============================================= */
+/* 🆕 ESTILOS PARA BOTONES DE CONSTANCIA EN VERIFICACIÓN */
+/* ============================================= */
+
+/* Botón de constancia en la tabla de verificación */
+.result-found button {
+    background: #27ae60 !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 0.8em !important;
+    transition: all 0.3s ease !important;
+    font-family: inherit !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin: 0 auto !important;
+}
+
+.result-found button:hover {
+    background: #219653 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+
+/* Mejorar la tabla para la nueva columna */
+.result-found table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 0.9em;
+}
+
+.result-found th {
+    background: #e3f2fd;
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+    font-weight: 600;
+}
+
+.result-found td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .result-found table {
+        font-size: 0.8em;
+    }
+    
+    .result-found button {
+        padding: 4px 8px !important;
+        font-size: 0.7em !important;
+    }
+}
