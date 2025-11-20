@@ -9,21 +9,37 @@
 <body>
     <div id="app">
         <!-- Encabezado -->
-        <header>
-            <h1>Sistema de Gestión de Dirigentes Comunitarios</h1>
-            <div id="auth-section">
-                <div id="login-form" class="auth-form">
-                    <h3>Iniciar Sesión</h3>
-                    <input type="text" id="username" placeholder="Usuario">
-                    <input type="password" id="password" placeholder="Contraseña">
-                    <button onclick="login()">Ingresar</button>
-                </div>
-                <div id="user-info" class="hidden">
-                    <span id="welcome-message">Bienvenido, Admin</span>
-                    <button onclick="logout()">Cerrar Sesión</button>
-                </div>
+       <header>
+    <!-- 🆕 CONTENEDOR DEL LOGO Y TÍTULO -->
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <!-- 🆕 LOGO -->
+        <div class="logo-container">
+            <img src="logo.png" alt="Logo" class="header-logo" 
+                 onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+            <!-- 🆕 LOGO DE RESPALDO POR SI NO CARGA LA IMAGEN -->
+            <div id="logo-fallback" class="logo-fallback" style="display: none;">
+                <div>🏢</div>
+                <div>COMUNIDAD</div>
             </div>
-        </header>
+        </div>
+        
+        <!-- TÍTULO -->
+        <h1>Sistema de Gestión de Dirigentes Comunitarios</h1>
+    </div>
+    
+    <div id="auth-section">
+        <div id="login-form" class="auth-form">
+            <h3>Iniciar Sesión</h3>
+            <input type="text" id="username" placeholder="Usuario">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="login()">Ingresar</button>
+        </div>
+        <div id="user-info" class="hidden">
+            <span id="welcome-message">Bienvenido, Admin</span>
+            <button onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+</header>
 
         <!-- Contenido principal -->
         <main>
@@ -261,6 +277,7 @@
         </table>
     </div>
 </section>
+
 
 
 
