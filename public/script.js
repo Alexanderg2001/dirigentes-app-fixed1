@@ -431,7 +431,7 @@ function generarConstanciaApoyo(apoyoId) {
     window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
 }
 
-// 🆕 FUNCIÓN MEJORADA - BUSCAR DIRIGENTE CON APOYOS
+// 🆕 FUNCIÓN MEJORADA CON BOTÓN DE REGISTRAR APOYO
 async function buscarDirigente() {
     const cedula = document.getElementById('search-cedula').value.trim();
     const searchResult = document.getElementById('search-result');
@@ -460,6 +460,14 @@ async function buscarDirigente() {
             searchResult.innerHTML = `
                 <div class="result-found">
                     <h3>✅ ¡Dirigente encontrado!</h3>
+                    
+                    <!-- 🆕 BOTÓN PARA REGISTRAR APOYO -->
+                    <div style="text-align: right; margin-bottom: 15px;">
+                        <button onclick="registrarApoyoDesdeVerificacion(${dirigente.id}, '${dirigente.nombre}', '${dirigente.cedula}')" 
+                                style="background: #9b59b6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            ➕ Registrar Apoyo a este Dirigente
+                        </button>
+                    </div>
                     
                     <!-- INFORMACIÓN DEL DIRIGENTE -->
                     <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
@@ -526,6 +534,15 @@ async function buscarDirigente() {
                     <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
                         Verifique que el número de cédula esté correcto.
                     </p>
+                    <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: 5px;">
+                        <p style="margin: 0; color: #856404;">
+                            💡 <strong>¿Desea agregar este dirigente al sistema?</strong><br>
+                            <button onclick="agregarDirigenteDesdeBusqueda('${cedula}')" 
+                                    style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-top: 8px;">
+                                ➕ Agregar Nuevo Dirigente
+                            </button>
+                        </p>
+                    </div>
                 </div>
             `;
         }
@@ -1005,6 +1022,35 @@ function inicializarBuscadorApoyos() {
     });
 }
 
+// 🆕 FUNCIÓN PARA REGISTRAR APOYO DESDE LA VERIFICACIÓN
+function registrarApoyoDesdeVerificacion(dirigenteId, dirigenteNombre, dirigenteCedula) {
+    // Verificar que el usuario esté autenticado
+    if (!appState.isAuthenticated) {
+        mostrarNotificacion('❌ Debe iniciar sesión para registrar apoyos', 'error');
+        return;
+    }
+    
+    // Mostrar el formulario de apoyo
+    mostrarFormApoyo();
+    
+    // 🆕 SELECCIONAR AUTOMÁTICAMENTE EL DIRIGENTE
+    setTimeout(() => {
+        const selectDirigente = document.getElementById('apoyo-dirigente');
+        if (selectDirigente) {
+            selectDirigente.value = dirigenteId;
+            
+            // Actualizar el buscador para mostrar el dirigente seleccionado
+            const buscador = document.getElementById('buscar-dirigente-apoyo');
+            if (buscador) {
+                buscador.value = `${dirigenteNombre} - ${dirigenteCedula}`;
+            }
+        }
+        
+        mostrarNotificacion(`✅ Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
+    }, 300);
+    
+    console.log('🎯 Registrando apoyo para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
+}
 
 
 
