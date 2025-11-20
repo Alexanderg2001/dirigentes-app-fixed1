@@ -602,7 +602,10 @@ async function cargarDashboard() {
     }
 }
 
+// 🆕 FUNCIÓN MEJORADA - MUESTRA TOTAL DE TODOS LOS APOYOS
 function actualizarDashboard(estadisticas) {
+    console.log('📊 Actualizando dashboard con:', estadisticas);
+    
     // Total de dirigentes
     const totalDirigentes = estadisticas.totalDirigentes || appState.dirigentes.length;
     document.getElementById('total-dirigentes').textContent = totalDirigentes;
@@ -616,10 +619,15 @@ function actualizarDashboard(estadisticas) {
                               appState.dirigentes.filter(d => d.participacion === 'buena').length;
     document.getElementById('buena-participacion').textContent = buenaParticipacion;
     
-    // Apoyos económicos
-    const totalMonto = estadisticas.apoyos?.find(a => a.tipo === 'economico')?.total_monto || 
-                      appState.apoyos.filter(a => a.tipo === 'economico').reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    // 🆕 APOYOS ECONÓMICOS - AHORA SUMA TODOS LOS TIPOS
+    const totalMonto = estadisticas.totalMontoGeneral || 
+                      // Si no existe el nuevo campo, calcular manualmente
+                      appState.apoyos.reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    
     document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
+    
+    // 🆕 MOSTRAR DETALLES EN CONSOLA PARA VERIFICAR
+    console.log('💰 Total general de montos:', totalMonto);
 }
 
 function calcularEstadisticasLocales() {
@@ -1223,6 +1231,7 @@ function isElementInViewport(elementId) {
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
 }
+
 
 
 
