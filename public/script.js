@@ -630,16 +630,23 @@ function actualizarDashboard(estadisticas) {
     console.log('💰 Total general de montos:', totalMonto);
 }
 
+// 🆕 FUNCIÓN MEJORADA - CALCULA TODOS LOS MONTOS LOCALMENTE
 function calcularEstadisticasLocales() {
     const totalDirigentes = appState.dirigentes.length;
     const totalApoyos = appState.apoyos.length;
     const buenaParticipacion = appState.dirigentes.filter(d => d.participacion === 'buena').length;
-    const totalMonto = appState.apoyos.filter(a => a.tipo === 'economico').reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
+    
+    // 🆕 SUMAR MONTOS DE TODOS LOS TIPOS DE APOYO
+    const totalMonto = appState.apoyos.reduce((sum, apoyo) => {
+        return sum + (parseFloat(apoyo.monto) || 0);
+    }, 0);
     
     document.getElementById('total-dirigentes').textContent = totalDirigentes;
     document.getElementById('total-apoyos').textContent = totalApoyos;
     document.getElementById('buena-participacion').textContent = buenaParticipacion;
     document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
+    
+    console.log('💰 Cálculo local - Monto total de todos los apoyos:', totalMonto);
 }
 
 // 🆕 FUNCIÓN MEJORADA PARA RENDERIZAR DIRIGENTES
@@ -1231,6 +1238,7 @@ function isElementInViewport(elementId) {
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
 }
+
 
 
 
