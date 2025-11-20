@@ -708,7 +708,7 @@ app.get('/constancia-apoyo/:apoyoId', requireAuth, (req, res) => {
                         </div>
                         
                         <div class="document-info">
-                            <div class="document-number">N° AP-${apoyoId.toString().padStart(4, '0')}</div>
+                            <div class="document-number">N° JDLG-${apoyoId.toString().padStart(4, '0')}</div>
                             <div class="document-type">Constancia Válida</div>
                         </div>
                     </div>
@@ -1016,6 +1016,7 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
         });
     });
 });
+
 
 
 
