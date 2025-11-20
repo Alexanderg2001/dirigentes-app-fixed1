@@ -679,11 +679,21 @@ function renderizarDirigentes(mostrarTodos = false) {
     console.log('✅ Mostrando', dirigentesAMostrar.length, 'dirigentes');
 }
 
-// 🆕 FUNCIONES PARA EDITAR Y ELIMINAR DIRIGENTES
+// 🆕 FUNCIÓN MEJORADA - CON SCROLL AUTOMÁTICO
 function editarDirigente(id) {
+    console.log('✏️ Editando dirigente ID:', id);
+    
     const dirigente = appState.dirigentes.find(d => d.id === id);
     if (dirigente) {
+        // 1. Primero mostrar el formulario de edición
         mostrarFormDirigente(dirigente);
+        
+        // 2. Esperar un poquito y luego hacer scroll automático
+        setTimeout(() => {
+            console.log('🔄 Haciendo scroll automático...');
+            scrollToSection('gestion-dirigentes');
+            highlightSection('gestion-dirigentes');
+        }, 200); // Esperar 200 milisegundos
     }
 }
 
@@ -1204,4 +1214,5 @@ function isElementInViewport(elementId) {
         rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
 }
+
 
