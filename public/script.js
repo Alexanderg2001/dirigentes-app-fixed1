@@ -124,6 +124,7 @@ async function cargarDatos() {
         inicializarFiltros();        
         cargarCorregimientos();
         inicializarBuscadorApoyos();
+        actualizarSelectDirigentes();
         console.log('✅ Todos los componentes inicializados');
     }, 100);
     
@@ -1150,3 +1151,4 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
         }
     }, 3000);
 }
+
