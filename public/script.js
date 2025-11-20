@@ -1022,46 +1022,131 @@ function inicializarBuscadorApoyos() {
     });
 }
 
-// 🆕 FUNCIÓN PARA REGISTRAR APOYO DESDE LA VERIFICACIÓN
+// 🆕 FUNCIÓN MEJORADA - PRE-CARGA CORRECTA DE DATOS
 function registrarApoyoDesdeVerificacion(dirigenteId, dirigenteNombre, dirigenteCedula) {
     // Verificar que el usuario esté autenticado
     if (!appState.isAuthenticated) {
         mostrarNotificacion('❌ Debe iniciar sesión para registrar apoyos', 'error');
+        // 🆕 Redirigir al login si no está autenticado
+        document.getElementById('username').focus();
         return;
     }
     
-    // Mostrar el formulario de apoyo
-    mostrarFormApoyo();
+    console.log('🎯 Intentando registrar apoyo para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
     
-    // 🆕 SELECCIONAR AUTOMÁTICAMENTE EL DIRIGENTE
-    setTimeout(() => {
+    // 🆕 PRIMERO asegurarnos de que el panel de administración esté visible
+    const adminPanel = document.getElementById('admin-panel');
+    if (adminPanel && adminPanel.classList.contains('hidden')) {
+        adminPanel.classList.remove('hidden');
+    }
+    
+    // 🆕 MOSTRAR LA SECCIÓN DE GESTIÓN DE APOYOS
+    const seccionApoyos = document.getElementById('gestion-apoyos');
+    if (seccionApoyos) {
+        // Hacer scroll suave a la sección de apoyos
+        seccionApoyos.scrollIntoView({ behavior: 'smooth' });
+        
+        // 🆕 ESPERAR un momento y luego abrir el formulario
+        setTimeout(() => {
+            mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula);
+        }, 500);
+    } else {
+        // Si no encuentra la sección, abrir directamente el formulario
+        mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula);
+    }
+}
+
+// 🆕 FUNCIÓN ESPECÍFICA PARA PRE-CARGAR DATOS EN FORMULARIO DE APOYO
+function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula) {
+    console.log('📝 Pre-cargando datos en formulario:', { dirigenteId, dirigenteNombre, dirigenteCedula });
+    
+    // 1. Mostrar el formulario de apoyo
+    const formApoyo = document.getElementById('form-apoyo');
+    if (!formApoyo) {
+        console.error('❌ No se encontró el formulario de apoyo');
+        mostrarNotificacion('Error: No se puede abrir el formulario de apoyo', 'error');
+        return;
+    }
+    
+    formApoyo.classList.remove('hidden');
+    
+    // 2. Configurar componentes básicos
+    configurarFechaAutomatica();
+    configurarTipoApoyo();
+    
+    // 🆕 3. ESPERAR a que el select de dirigentes se cargue
+    const esperarSelect = setInterval(() => {
         const selectDirigente = document.getElementById('apoyo-dirigente');
-        if (selectDirigente) {
-            selectDirigente.value = dirigenteId;
+        
+        if (selectDirigente && selectDirigente.options.length > 1) {
+            clearInterval(esperarSelect);
+            console.log('✅ Select de dirigentes cargado, procediendo a seleccionar...');
             
-            // Actualizar el buscador para mostrar el dirigente seleccionado
+            // 4. BUSCAR y SELECCIONAR el dirigente en el select
+            let encontrado = false;
+            for (let i = 0; i < selectDirigente.options.length; i++) {
+                const option = selectDirigente.options[i];
+                if (option.value == dirigenteId) {
+                    selectDirigente.value = dirigenteId;
+                    encontrado = true;
+                    console.log('✅ Dirigente seleccionado en el select');
+                    break;
+                }
+            }
+            
+            // 🆕 5. Si no se encuentra, forzar la selección
+            if (!encontrado && selectDirigente.options.length > 0) {
+                // Buscar por texto que coincida con el nombre o cédula
+                for (let i = 0; i < selectDirigente.options.length; i++) {
+                    const option = selectDirigente.options[i];
+                    if (option.text.includes(dirigenteCedula) || option.text.includes(dirigenteNombre)) {
+                        selectDirigente.value = option.value;
+                        encontrado = true;
+                        console.log('✅ Dirigente encontrado por búsqueda de texto');
+                        break;
+                    }
+                }
+            }
+            
+            // 🆕 6. ACTUALIZAR el buscador para mostrar el dirigente seleccionado
             const buscador = document.getElementById('buscar-dirigente-apoyo');
             if (buscador) {
                 buscador.value = `${dirigenteNombre} - ${dirigenteCedula}`;
+                console.log('✅ Buscador actualizado con datos del dirigente');
+                
+                // Forzar evento de input para filtrar
+                buscador.dispatchEvent(new Event('input'));
             }
+            
+            // 🆕 7. MOSTRAR confirmación visual
+            if (encontrado) {
+                mostrarNotificacion(`✅ Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
+                
+                // 🆕 RESALTAR visualmente el formulario
+                formApoyo.style.border = '2px solid #9b59b6';
+                formApoyo.style.boxShadow = '0 0 10px rgba(155, 89, 182, 0.3)';
+                
+                setTimeout(() => {
+                    formApoyo.style.border = '';
+                    formApoyo.style.boxShadow = '';
+                }, 3000);
+                
+            } else {
+                mostrarNotificacion(`⚠️ Dirigente encontrado pero no en la lista. Complete manualmente.`, 'warning');
+            }
+            
+        } else if (selectDirigente && selectDirigente.options.length <= 1) {
+            console.log('⏳ Esperando que se carguen los dirigentes en el select...');
         }
-        
-        mostrarNotificacion(`✅ Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
-    }, 300);
+    }, 100); // Verificar cada 100ms
     
-    console.log('🎯 Registrando apoyo para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
+    // 🆕 Timeout de seguridad - si después de 3 segundos no carga
+    setTimeout(() => {
+        clearInterval(esperarSelect);
+        const selectDirigente = document.getElementById('apoyo-dirigente');
+        if (selectDirigente && selectDirigente.value !== dirigenteId) {
+            console.warn('⚠️ No se pudo pre-seleccionar automáticamente');
+            mostrarNotificacion(`ℹ️ Busque manualmente a "${dirigenteNombre}" en la lista`, 'info');
+        }
+    }, 3000);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
