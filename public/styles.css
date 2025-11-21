@@ -910,3 +910,60 @@ html {
         padding: 8px 4px;
     }
 }
+
+/* 🆕 ESTILOS PARA EL BUSCADOR ELECTORAL */
+
+.search-filters {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 2px solid #e9ecef;
+}
+
+.search-filters h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 10px;
+}
+
+.search-filters input,
+.search-filters select {
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.search-filters input:focus,
+.search-filters select:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+.search-filters label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Efectos hover para las tarjetas del mapa */
+.mapa-container [style*="cursor: pointer"]:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Responsive para el buscador */
+@media (max-width: 768px) {
+    .search-filters [style*="grid-template-columns: 1fr 1fr auto auto"] {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .search-filters [style*="display: flex; gap: 10px;"] {
+        flex-direction: column;
+    }
+}
