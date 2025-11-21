@@ -232,25 +232,87 @@
                     </div>
                 </section>
 
-                <!-- 🆕 MÓDULO DE ANÁLISIS ELECTORAL -->
-                <section id="analisis-electoral" class="section">
-                    <h2>📊 Análisis de Resultados Electorales</h2>
-                    
-                    <!-- Filtros -->
-                    <div class="filtros-electorales" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <select id="filtro-corregimiento-electoral">
-                            <option value="">Todos los corregimientos</option>
-                        </select>
-                        <select id="filtro-centro-votacion">
-                            <option value="">Todos los centros de votación</option>
-                        </select>
-                        <button onclick="cargarDatosElectorales()" style="background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                            🔍 Aplicar Filtros
-                        </button>
-                        <button onclick="mostrarTodosLosDatos()" style="background: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                            📊 Ver Todo
-                        </button>
-                    </div>
+               <!-- 🆕 MÓDULO DE ANÁLISIS ELECTORAL -->
+<section id="analisis-electoral" class="section">
+    <h2>📊 Análisis de Resultados Electorales</h2>
+    
+    <!-- 🆕 BUSCADOR AVANZADO -->
+    <div class="search-filters" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin-bottom: 15px; color: #2c3e50;">🔍 Búsqueda Avanzada</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 15px; align-items: end;">
+            <!-- Búsqueda por texto -->
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                    🔎 Buscar por nombre:
+                </label>
+                <input type="text" id="buscar-electoral" placeholder="Escribe corregimiento, centro o mesa..." 
+                       style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+            </div>
+            
+            <!-- Filtro por corregimiento -->
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                    🏘️ Filtrar por corregimiento:
+                </label>
+                <select id="filtro-corregimiento-electoral" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                    <option value="">Todos los corregimientos</option>
+                </select>
+            </div>
+            
+            <!-- Filtro por centro -->
+            <div>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                    🏫 Filtrar por centro:
+                </label>
+                <select id="filtro-centro-votacion" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                    <option value="">Todos los centros</option>
+                </select>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div style="display: flex; gap: 10px;">
+                <button onclick="aplicarBusquedaElectoral()" 
+                        style="background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    🔍 Aplicar Filtros
+                </button>
+                <button onclick="limpiarBusquedaElectoral()" 
+                        style="background: #95a5a6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                    🗑️ Limpiar
+                </button>
+            </div>
+        </div>
+        
+        <!-- 🆕 RESULTADOS DE BÚSQUEDA -->
+        <div id="info-busqueda-electoral" class="info-resultados" style="display: none; margin-top: 15px;">
+            <p>📋 Mostrando <span id="contador-resultados-electoral">0</span> mesas de <span id="total-mesas-electoral">0</span></p>
+            <button onclick="limpiarBusquedaElectoral()" class="btn-ver-todos">
+                🔍 Ver todas las mesas
+            </button>
+        </div>
+    </div>
+
+    <!-- Resto del código se mantiene igual -->
+    <!-- Tarjetas de resumen -->
+    <div class="dashboard-cards">
+        <!-- ... tus tarjetas actuales ... -->
+    </div>
+
+    <!-- Gráfico de partidos -->
+    <div class="grafico-container">
+        <!-- ... tu gráfico actual ... -->
+    </div>
+
+    <!-- Mapa de corregimientos -->
+    <div class="mapa-container">
+        <!-- ... tu mapa actual ... -->
+    </div>
+
+    <!-- Tabla detallada -->
+    <div class="table-container">
+        <!-- ... tu tabla actual ... -->
+    </div>
+</section>
 
                     <!-- 🆕 FORMULARIO PARA INGRESAR DATOS ELECTORALES -->
 <div class="form-container" style="background: #e8f4f8; border-left: 4px solid #3498db;">
@@ -411,4 +473,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
