@@ -1797,7 +1797,8 @@ function mostrarTablaResultados() {
                 totalVotos: 0,
                 votosCD: 0,
                 votosPRD: 0,
-                votosPanameñista: 0
+                votosPanameñista: 0,
+                mesas: [] // 🆕 Guardar las mesas individuales
             };
         }
         
@@ -1805,6 +1806,7 @@ function mostrarTablaResultados() {
         porCentro[key].votosCD += mesa.partidos.CambioDemocratico || 0;
         porCentro[key].votosPRD += mesa.partidos.PRD || 0;
         porCentro[key].votosPanameñista += mesa.partidos.Panameñista || 0;
+        porCentro[key].mesas.push(mesa); // 🆕 Agregar mesa
     });
     
     // Mostrar en tabla
@@ -1827,8 +1829,44 @@ function mostrarTablaResultados() {
             <td style="color: ${colorResultado}; font-weight: bold;">
                 ${resultado}
             </td>
+            <td class="actions">
+                <button class="edit" onclick="editarCentroElectoral('${centro.corregimiento}', '${centro.centroVotacion}')" style="background: #f39c12; padding: 5px 10px; font-size: 0.8em;">
+                    ✏️ Editar
+                </button>
+            </td>
         `;
         tbody.appendChild(tr);
+        
+        // 🆕 MOSTRAR MESAS INDIVIDUALES
+        centro.mesas.forEach(mesa => {
+            const mesaTr = document.createElement('tr');
+            mesaTr.style.background = '#f8f9fa';
+            const mesaPorcentajeCD = mesa.validos > 0 ? ((mesa.partidos.CambioDemocratico / mesa.validos) * 100).toFixed(1) : 0;
+            const mesaResultado = mesa.partidos.CambioDemocratico > mesa.partidos.PRD ? '✅ CD' : '❌ PRD';
+            
+            mesaTr.innerHTML = `
+                <td style="padding-left: 40px; font-size: 0.9em; color: #666;">↳ ${mesa.mesa}</td>
+                <td style="font-size: 0.9em; color: #666;">${mesa.validos} votos</td>
+                <td style="font-size: 0.9em; color: #3498db; font-weight: bold;">${mesa.partidos.CambioDemocratico || 0}</td>
+                <td style="font-size: 0.9em; color: #e74c3c;">${mesa.partidos.PRD || 0}</td>
+                <td style="font-size: 0.9em; color: #f39c12;">${mesa.partidos.Panameñista || 0}</td>
+                <td style="font-size: 0.9em; font-weight: bold; color: ${mesaPorcentajeCD >= 50 ? '#27ae60' : '#e74c3c'}">
+                    ${mesaPorcentajeCD}%
+                </td>
+                <td style="font-size: 0.9em; color: ${mesa.partidos.CambioDemocratico > mesa.partidos.PRD ? '#27ae60' : '#e74c3c'};">
+                    ${mesaResultado}
+                </td>
+                <td class="actions">
+                    <button class="edit" onclick="editarDatoElectoral(${mesa.id})" style="background: #f39c12; padding: 3px 8px; font-size: 0.7em; margin: 2px;">
+                        ✏️
+                    </button>
+                    <button class="delete" onclick="eliminarDatoElectoral(${mesa.id})" style="background: #e74c3c; padding: 3px 8px; font-size: 0.7em; margin: 2px;">
+                        🗑️
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(mesaTr);
+        });
     });
 }
 
@@ -1957,4 +1995,5 @@ function generarGraficoPartidos() {
             contenedor.appendChild(barra);
         });
 }
+
 
