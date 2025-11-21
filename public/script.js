@@ -1901,7 +1901,11 @@ function inicializarModuloElectoral() {
     
     console.log('🗳️ Inicializando módulo electoral...');
     datosElectoralesFiltrados = [...datosElectorales];
-    cargarFiltrosElectorales();
+    
+    // 🆕 INICIALIZAR BUSCADOR
+    inicializarBuscadorElectoral();
+    
+    // Cargar datos iniciales
     cargarDatosElectorales();
 }
 
@@ -2228,6 +2232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formElectoral.addEventListener('submit', guardarDatosElectorales);
     }
 });
+
 
 
 
