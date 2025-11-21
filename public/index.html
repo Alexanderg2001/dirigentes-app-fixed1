@@ -10,13 +10,13 @@
     <div id="app">
         <!-- Encabezado -->
        <header>
-    <!-- 🆕 CONTENEDOR DEL LOGO Y TÍTULO -->
+    <!-- CONTENEDOR DEL LOGO Y TÍTULO -->
     <div style="display: flex; align-items: center; gap: 15px;">
-        <!-- 🆕 LOGO -->
+        <!-- LOGO -->
         <div class="logo-container">
             <img src="DashLogo.png" alt="Logo" class="header-logo" 
                  onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
-            <!-- 🆕 LOGO DE RESPALDO POR SI NO CARGA LA IMAGEN -->
+            <!-- LOGO DE RESPALDO POR SI NO CARGA LA IMAGEN -->
             <div id="logo-fallback" class="logo-fallback" style="display: none;">
                 <div>🏢</div>
                 <div>COMUNIDAD</div>
@@ -56,7 +56,7 @@
             <!-- Panel de administración (solo para usuarios autenticados) -->
             <div id="admin-panel" class="hidden">
                 
-                <!-- 🆕 DASHBOARD CON ESTADÍSTICAS -->
+                <!-- DASHBOARD CON ESTADÍSTICAS -->
                 <section id="dashboard" class="section">
                     <h2>Dashboard - Resumen General</h2>
                     <div class="dashboard-cards">
@@ -88,7 +88,7 @@
                     <h2>Gestión de Dirigentes</h2>
                     <button onclick="mostrarFormDirigente()">Agregar Dirigente</button>
                     
-                    <!-- 🆕 FILTROS AVANZADOS -->
+                    <!-- FILTROS AVANZADOS -->
                     <div class="search-filters">
                         <input type="text" id="buscar-dirigente" placeholder="🔍 Buscar por nombre, cédula, comunidad...">
                         <select id="filtro-corregimiento">
@@ -103,7 +103,7 @@
                     </div>
 
                     
-                    <!-- 🆕 INFORMACIÓN DE RESULTADOS -->
+                    <!-- INFORMACIÓN DE RESULTADOS -->
                     <div id="info-resultados" class="info-resultados" style="display: none;">
                         <p>📋 Mostrando <span id="contador-filtrados">0</span> dirigentes</p>
                         <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
@@ -181,7 +181,7 @@
                         <h3>Nuevo Apoyo</h3>
                         <form id="apoyo-form">
                             
-                            <!-- 🆕 BUSCADOR INTELIGENTE DE DIRIGENTES -->
+                            <!-- BUSCADOR INTELIGENTE DE DIRIGENTES -->
                             <div class="buscador-dirigentes">
                                 <label for="buscar-dirigente-apoyo">Buscar Dirigente:</label>
                                 <input type="text" id="buscar-dirigente-apoyo" placeholder="🔍 Escribe nombre, cédula o comunidad...">
@@ -231,6 +231,89 @@
                         </table>
                     </div>
                 </section>
+
+                <!-- 🆕 MÓDULO DE ANÁLISIS ELECTORAL -->
+                <section id="analisis-electoral" class="section">
+                    <h2>📊 Análisis de Resultados Electorales</h2>
+                    
+                    <!-- Filtros -->
+                    <div class="filtros-electorales" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <select id="filtro-corregimiento-electoral">
+                            <option value="">Todos los corregimientos</option>
+                        </select>
+                        <select id="filtro-centro-votacion">
+                            <option value="">Todos los centros de votación</option>
+                        </select>
+                        <button onclick="cargarDatosElectorales()" style="background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                            🔍 Aplicar Filtros
+                        </button>
+                        <button onclick="mostrarTodosLosDatos()" style="background: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                            📊 Ver Todo
+                        </button>
+                    </div>
+
+                    <!-- Tarjetas de resumen -->
+                    <div class="dashboard-cards">
+                        <div class="card" style="border-left: 4px solid #3498db;">
+                            <h3>Total Votos CD</h3>
+                            <div class="number" id="total-votos-cd">0</div>
+                            <div class="description">Votos de Cambio Democrático</div>
+                        </div>
+                        <div class="card" style="border-left: 4px solid #e74c3c;">
+                            <h3>Votos PRD</h3>
+                            <div class="number" id="total-votos-prd">0</div>
+                            <div class="description">Votos del PRD</div>
+                        </div>
+                        <div class="card" style="border-left: 4px solid #f39c12;">
+                            <h3>Porcentaje CD</h3>
+                            <div class="number" id="porcentaje-cd">0%</div>
+                            <div class="description">Del total válido</div>
+                        </div>
+                        <div class="card" style="border-left: 4px solid #9b59b6;">
+                            <h3>Mesas Ganadas</h3>
+                            <div class="number" id="mesas-ganadas">0/0</div>
+                            <div class="description">Mesas donde ganó CD</div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de partidos -->
+                    <div class="grafico-container" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h3>📈 Comparativa de Partidos Políticos</h3>
+                        <div id="grafico-partidos" style="height: 300px;">
+                            <!-- Gráfico se genera aquí -->
+                        </div>
+                    </div>
+
+                    <!-- Mapa de corregimientos -->
+                    <div class="mapa-container" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <h3>🗺️ Resultados por Corregimiento</h3>
+                        <div id="mapa-corregimientos" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                            <!-- Tarjetas de corregimientos -->
+                        </div>
+                    </div>
+
+                    <!-- Tabla detallada -->
+                    <div class="table-container">
+                        <h3>📋 Detalle por Centro de Votación</h3>
+                        <table id="tabla-resultados" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Corregimiento</th>
+                                    <th>Centro de Votación</th>
+                                    <th>Total Votos</th>
+                                    <th>CD</th>
+                                    <th>PRD</th>
+                                    <th>Panameñista</th>
+                                    <th>% CD</th>
+                                    <th>Resultado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpo-tabla-resultados">
+                                <!-- Datos se cargan aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -238,6 +321,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
