@@ -102,6 +102,42 @@
                         </select>
                     </div>
 
+                    <!-- 🆕 SECCIÓN PARA GESTIÓN DE COLABORADORES -->
+<section id="gestion-colaboradores" class="section">
+    <h2>Gestión de Colaboradores</h2>
+    <button onclick="mostrarFormColaborador()">Agregar Colaborador</button>
+    
+    <div id="form-colaborador" class="hidden form-container">
+        <h3 id="form-title-colaborador">Nuevo Colaborador</h3>
+        <form id="colaborador-form">
+            <input type="hidden" id="colaborador-id">
+            <input type="text" id="colaborador-nombre" placeholder="Nombre completo" required>
+            <input type="text" id="colaborador-cedula" placeholder="Cédula" required>
+            <input type="text" id="colaborador-cargo" placeholder="Cargo" required>
+            <div class="form-buttons">
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="ocultarFormColaborador()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="lista-colaboradores" class="table-container">
+    <table id="tabla-colaboradores">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Cédula</th>
+                <th>Cargo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="colaboradores-body">
+            <!-- Los datos se cargan dinámicamente -->
+        </tbody>
+    </table>
+</div>
+
                     <!-- 🆕 INFORMACIÓN DE RESULTADOS -->
                     <div id="info-resultados" class="info-resultados" style="display: none;">
                         <p>📋 Mostrando <span id="contador-filtrados">0</span> dirigentes</p>
@@ -237,47 +273,5 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-<!-- 🆕 SECCIÓN PARA GESTIÓN DE COLABORADORES -->
-<section id="gestion-colaboradores" class="section">
-    <h2>Gestión de Colaboradores</h2>
-    <button onclick="mostrarFormColaborador()">Agregar Colaborador</button>
-    
-    <div id="form-colaborador" class="hidden form-container">
-        <h3 id="form-title-colaborador">Nuevo Colaborador</h3>
-        <form id="colaborador-form">
-            <input type="hidden" id="colaborador-id">
-            <input type="text" id="colaborador-nombre" placeholder="Nombre completo" required>
-            <input type="text" id="colaborador-cedula" placeholder="Cédula" required>
-            <input type="text" id="colaborador-cargo" placeholder="Cargo" required>
-            <div class="form-buttons">
-                <button type="submit">Guardar</button>
-                <button type="button" onclick="ocultarFormColaborador()">Cancelar</button>
-            </div>
-        </form>
-    </div>
-
-    <div id="lista-colaboradores" class="table-container">
-    <table id="tabla-colaboradores">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Cédula</th>
-                <th>Cargo</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="colaboradores-body">
-            <!-- Los datos se cargan dinámicamente -->
-        </tbody>
-    </table>
-</div>
-
-
-
-
-
-
 
 
