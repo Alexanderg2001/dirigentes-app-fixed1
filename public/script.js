@@ -8,6 +8,168 @@ let appState = {
     userRol: null
 };
 
+// 🆕 DATOS ELECTORALES DE EJEMPLO (los reemplazarás con tus datos reales)
+const datosElectorales = [
+    {
+        id: 1,
+        corregimiento: "Boca de Tucué",
+        centroVotacion: "Escuela Primaria Boca de Tucué",
+        mesa: "Mesa 1",
+        escrutados: 250,
+        total: 250,
+        validos: 240,
+        blancos: 5,
+        nulos: 5,
+        partidos: {
+            PRD: 45,
+            PartidoPopular: 30,
+            MOLIRENA: 25,
+            Panameñista: 40,
+            CambioDemocratico: 60,
+            RealizandoMetas: 20,
+            MOCA: 20
+        },
+        candidatos: {
+            DanielRamos: 25,
+            NestosTinGuardia: 20,
+            JohnNicola: 15,
+            EyberCastañeda: 25,
+            JulioDeLaGuardia: 35,
+            NestorChen: 25,
+            RosarioBerrocal: 10,
+            RicardoRealizandoMetas: 10,
+            VictorCarles: 20
+        }
+    },
+    {
+        id: 2,
+        corregimiento: "Boca de Tucué",
+        centroVotacion: "Escuela Primaria Boca de Tucué",
+        mesa: "Mesa 2", 
+        escrutados: 300,
+        total: 300,
+        validos: 290,
+        blancos: 5,
+        nulos: 5,
+        partidos: {
+            PRD: 80,
+            PartidoPopular: 25,
+            MOLIRENA: 30,
+            Panameñista: 35,
+            CambioDemocratico: 75,
+            RealizandoMetas: 25,
+            MOCA: 20
+        },
+        candidatos: {
+            DanielRamos: 45,
+            NestosTinGuardia: 35,
+            JohnNicola: 20,
+            EyberCastañeda: 15,
+            JulioDeLaGuardia: 45,
+            NestorChen: 30,
+            RosarioBerrocal: 15,
+            RicardoRealizandoMetas: 10,
+            VictorCarles: 20
+        }
+    },
+    {
+        id: 3,
+        corregimiento: "Candelario Ovalle",
+        centroVotacion: "Escuela Candelario Ovalle",
+        mesa: "Mesa 1",
+        escrutados: 280,
+        total: 280,
+        validos: 270,
+        blancos: 5,
+        nulos: 5,
+        partidos: {
+            PRD: 90,
+            PartidoPopular: 20,
+            MOLIRENA: 25,
+            Panameñista: 30,
+            CambioDemocratico: 55,
+            RealizandoMetas: 30,
+            MOCA: 20
+        },
+        candidatos: {
+            DanielRamos: 50,
+            NestosTinGuardia: 40,
+            JohnNicola: 15,
+            EyberCastañeda: 15,
+            JulioDeLaGuardia: 30,
+            NestorChen: 25,
+            RosarioBerrocal: 20,
+            RicardoRealizandoMetas: 10,
+            VictorCarles: 20
+        }
+    },
+    {
+        id: 4,
+        corregimiento: "Cañaveral", 
+        centroVotacion: "Escuela Cañaveral Central",
+        mesa: "Mesa 1",
+        escrutados: 320,
+        total: 320,
+        validos: 310,
+        blancos: 5,
+        nulos: 5,
+        partidos: {
+            PRD: 65,
+            PartidoPopular: 35,
+            MOLIRENA: 40,
+            Panameñista: 45,
+            CambioDemocratico: 85,
+            RealizandoMetas: 25,
+            MOCA: 15
+        },
+        candidatos: {
+            DanielRamos: 35,
+            NestosTinGuardia: 30,
+            JohnNicola: 25,
+            EyberCastañeda: 20,
+            JulioDeLaGuardia: 50,
+            NestorChen: 35,
+            RosarioBerrocal: 15,
+            RicardoRealizandoMetas: 10,
+            VictorCarles: 15
+        }
+    },
+    {
+        id: 5,
+        corregimiento: "Chiguirí Arriba",
+        centroVotacion: "Escuela Chiguirí Arriba",
+        mesa: "Mesa 1",
+        escrutados: 200,
+        total: 200,
+        validos: 195,
+        blancos: 3,
+        nulos: 2,
+        partidos: {
+            PRD: 75,
+            PartidoPopular: 15,
+            MOLIRENA: 20,
+            Panameñista: 25,
+            CambioDemocratico: 40,
+            RealizandoMetas: 10,
+            MOCA: 10
+        },
+        candidatos: {
+            DanielRamos: 40,
+            NestosTinGuardia: 35,
+            JohnNicola: 12,
+            EyberCastañeda: 13,
+            JulioDeLaGuardia: 25,
+            NestorChen: 15,
+            RosarioBerrocal: 5,
+            RicardoRealizandoMetas: 5,
+            VictorCarles: 10
+        }
+    }
+];
+
+// 🆕 Variable para controlar el módulo electoral
+let datosElectoralesFiltrados = [];
+
 // Inicialización SEGURA
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Página cargada correctamente');
@@ -28,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Event listeners configurados');
 });
 
-// 🆕 FUNCIÓN LOGIN SUPER SEGURA
+// FUNCIÓN LOGIN SUPER SEGURA
 async function login() {
     console.log('🔄 Botón login presionado');
     
@@ -97,14 +259,26 @@ function actualizarUI() {
         if (loginForm) loginForm.classList.add('hidden');
         if (userInfo) userInfo.classList.remove('hidden');
         if (adminPanel) adminPanel.classList.remove('hidden');
+        
+        // 🆕 MOSTRAR MÓDULO ELECTORAL
+        const moduloElectoral = document.getElementById('analisis-electoral');
+        if (moduloElectoral) {
+            moduloElectoral.classList.remove('hidden');
+        }
     } else {
         if (loginForm) loginForm.classList.remove('hidden');
         if (userInfo) userInfo.classList.add('hidden');
         if (adminPanel) adminPanel.classList.add('hidden');
+        
+        // 🆕 OCULTAR MÓDULO ELECTORAL
+        const moduloElectoral = document.getElementById('analisis-electoral');
+        if (moduloElectoral) {
+            moduloElectoral.classList.add('hidden');
+        }
     }
 }
 
-// 🆕 FUNCIÓN COMPLETAMENTE ACTUALIZADA
+// FUNCIÓN COMPLETAMENTE ACTUALIZADA
 async function cargarDatos() {
     if (!appState.isAuthenticated) return;
     
@@ -118,35 +292,39 @@ async function cargarDatos() {
     await cargarApoyos();
     await cargarDashboard();
     
-    // 🆕 INICIALIZAR COMPONENTES DESPUÉS DE CARGAR DATOS
+    // INICIALIZAR COMPONENTES DESPUÉS DE CARGAR DATOS
     setTimeout(() => {
         renderizarDirigentes();      
         inicializarFiltros();        
         cargarCorregimientos();
         inicializarBuscadorApoyos();
         actualizarSelectDirigentes();
+        
+        // 🆕 INICIALIZAR MÓDULO ELECTORAL
+        inicializarModuloElectoral();
+        
         console.log('✅ Todos los componentes inicializados');
     }, 100);
     
     console.log('✅ Todos los datos cargados');
 }
 
-// 🆕 FUNCIÓN MEJORADA - CARGAR TODOS LOS DIRIGENTES
+// FUNCIÓN MEJORADA - CARGAR TODOS LOS DIRIGENTES
 async function cargarDirigentes() {
     try {
-        // 🆕 Cambiar para cargar TODOS los dirigentes, no solo los últimos 10
-        const response = await fetch('/api/dirigentes/todos'); // 🆕 Usar esta ruta
+        const response = await fetch('/api/dirigentes/todos');
         const data = await response.json();
         
         if (response.ok) {
             appState.dirigentes = data;
-            appState.todosLosDirigentes = data; // 🆕 Guardar copia de todos
+            appState.todosLosDirigentes = data;
             console.log('✅ TODOS los dirigentes cargados:', data.length);
         }
     } catch (error) {
         console.error('Error al cargar dirigentes:', error);
     }
 }
+
 // Funciones básicas de colaboradores
 async function cargarColaboradores() {
     try {
@@ -193,7 +371,7 @@ async function cargarApoyos() {
     }
 }
 
-// 🆕 FUNCIÓN SEGURA PARA RENDERIZAR APOYOS
+// FUNCIÓN SEGURA PARA RENDERIZAR APOYOS
 function renderizarApoyos() {
     const tbody = document.getElementById('apoyos-body');
     if (!tbody) {
@@ -236,7 +414,7 @@ function renderizarApoyos() {
     });
 }
 
-// 🆕 FUNCIÓN MEJORADA - CON SCROLL AL AGREGAR NUEVO
+// FUNCIÓN MEJORADA - CON SCROLL AL AGREGAR NUEVO
 function mostrarFormDirigente(dirigente = null) {
     const form = document.getElementById('form-dirigente');
     const title = document.getElementById('form-title');
@@ -258,7 +436,7 @@ function mostrarFormDirigente(dirigente = null) {
     
     form.classList.remove('hidden');
     
-    // 🆕 SCROLL AUTOMÁTICO SOLO SI NO ESTAMOS VIENDO LA SECCIÓN
+    // SCROLL AUTOMÁTICO SOLO SI NO ESTAMOS VIENDO LA SECCIÓN
     setTimeout(() => {
         if (!isElementInViewport('gestion-dirigentes')) {
             console.log('📜 Haciendo scroll a Gestión de Dirigentes...');
@@ -317,7 +495,7 @@ async function guardarDirigente(event) {
     }
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO DE APOYO
+// FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO DE APOYO
 function mostrarFormApoyo(dirigenteId = null, dirigenteNombre = null) {
     const form = document.getElementById('form-apoyo');
     if (!form) return;
@@ -325,15 +503,15 @@ function mostrarFormApoyo(dirigenteId = null, dirigenteNombre = null) {
     // Mostrar formulario
     form.classList.remove('hidden');
     
-    // 🆕 INICIALIZAR COMPONENTES
+    // INICIALIZAR COMPONENTES
     configurarFechaAutomatica();
     configurarTipoApoyo();
     inicializarBuscadorApoyos();
     
-    // 🆕 CARGAR DIRIGENTES EN EL SELECT
+    // CARGAR DIRIGENTES EN EL SELECT
     actualizarSelectDirigentes();
     
-    // 🆕 SI SE PASA UN DIRIGENTE ESPECÍFICO, SELECCIONARLO
+    // SI SE PASA UN DIRIGENTE ESPECÍFICO, SELECCIONARLO
     if (dirigenteId && dirigenteNombre) {
         setTimeout(() => {
             const select = document.getElementById('apoyo-dirigente');
@@ -356,7 +534,7 @@ function ocultarFormApoyo() {
     document.getElementById('form-apoyo').classList.add('hidden');
 }
 
-// 🆕 FUNCIÓN CORREGIDA - MENSAJES EN VERDE
+// FUNCIÓN CORREGIDA - MENSAJES EN VERDE
 async function registrarApoyo(event) {
     event.preventDefault();
     
@@ -406,7 +584,7 @@ async function registrarApoyo(event) {
         const data = await response.json();
         
         if (response.ok) {
-            // 🆕 MENSAJE DE ÉXITO EN VERDE
+            // MENSAJE DE ÉXITO EN VERDE
             const mensajeExito = data.message || `✅ Apoyo ${tipo} registrado exitosamente por $${montoNumerico.toFixed(2)}`;
             mostrarNotificacion(mensajeExito, 'success');
             
@@ -417,7 +595,7 @@ async function registrarApoyo(event) {
             await cargarDashboard();
             
         } else {
-            // 🆕 MENSAJE DE ERROR EN ROJO
+            // MENSAJE DE ERROR EN ROJO
             const mensajeError = data.error || 'Error al registrar el apoyo';
             mostrarNotificacion(`❌ ${mensajeError}`, 'error');
         }
@@ -441,7 +619,7 @@ function generarConstanciaApoyo(apoyoId) {
     window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
 }
 
-// 🆕 FUNCIÓN MEJORADA CON BOTÓN DE REGISTRAR APOYO
+// FUNCIÓN MEJORADA CON BOTÓN DE REGISTRAR APOYO
 async function buscarDirigente() {
     const cedula = document.getElementById('search-cedula').value.trim();
     const searchResult = document.getElementById('search-result');
@@ -462,7 +640,7 @@ async function buscarDirigente() {
             const apoyos = data.apoyos || [];
             const claseParticipacion = `participacion-${dirigente.participacion}`;
             
-            // 🆕 CALCULAR TOTAL DE APOYOS ECONÓMICOS
+            // CALCULAR TOTAL DE APOYOS ECONÓMICOS
             const totalEconomico = apoyos
                 .filter(a => a.tipo === 'economico' && a.monto)
                 .reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
@@ -471,7 +649,7 @@ async function buscarDirigente() {
                 <div class="result-found">
                     <h3>✅ ¡Dirigente encontrado!</h3>
                     
-                    <!-- 🆕 BOTÓN PARA REGISTRAR APOYO -->
+                    <!-- BOTÓN PARA REGISTRAR APOYO -->
                     <div style="text-align: right; margin-bottom: 15px;">
                         <button onclick="registrarApoyoDesdeVerificacion(${dirigente.id}, '${dirigente.nombre}', '${dirigente.cedula}')" 
                                 style="background: #9b59b6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
@@ -494,7 +672,7 @@ async function buscarDirigente() {
                         </div>
                     </div>
                     
-                    <!-- 🆕 HISTORIAL DE APOYOS -->
+                    <!-- HISTORIAL DE APOYOS -->
                     <div style="margin-top: 20px;">
                         <h4 style="margin-bottom: 15px; color: #2c3e50;">📦 Historial de Apoyos Entregados (${apoyos.length})</h4>
                         
@@ -508,7 +686,7 @@ async function buscarDirigente() {
         <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Descripción</th>
         <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Monto</th>
         <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Entregado por</th>
-        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Constancia</th> <!-- 🆕 NUEVA COLUMNA -->
+        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Constancia</th>
     </tr>
 </thead>
                                     <tbody>
@@ -522,7 +700,7 @@ async function buscarDirigente() {
             </td>
             <td style="padding: 8px; border: 1px solid #ddd;">${apoyo.colaborador_nombre || 'No especificado'}</td>
             <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
-                <!-- 🆕 BOTÓN DE CONSTANCIA -->
+                <!-- BOTÓN DE CONSTANCIA -->
                 <button onclick="verConstanciaApoyo(${apoyo.id})" 
                         style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8em; display: flex; align-items: center; gap: 5px; margin: 0 auto;">
                     📄 Ver
@@ -590,11 +768,7 @@ function mostrarNotificacion(mensaje, tipo) {
     }, 3000);
 }
 
-// =============================================
-// 🆕 FUNCIONES NUEVAS AGREGADAS
-// =============================================
-
-// 🆕 FUNCIONES DEL DASHBOARD
+// FUNCIONES DEL DASHBOARD
 async function cargarDashboard() {
     if (!appState.isAuthenticated) return;
     
@@ -610,7 +784,7 @@ async function cargarDashboard() {
     }
 }
 
-// 🆕 FUNCIÓN MEJORADA - MUESTRA TOTAL DE TODOS LOS APOYOS
+// FUNCIÓN MEJORADA - MUESTRA TOTAL DE TODOS LOS APOYOS
 function actualizarDashboard(estadisticas) {
     console.log('📊 Actualizando dashboard con:', estadisticas);
     
@@ -627,24 +801,24 @@ function actualizarDashboard(estadisticas) {
                               appState.dirigentes.filter(d => d.participacion === 'buena').length;
     document.getElementById('buena-participacion').textContent = buenaParticipacion;
     
-    // 🆕 APOYOS ECONÓMICOS - AHORA SUMA TODOS LOS TIPOS
+    // APOYOS ECONÓMICOS - AHORA SUMA TODOS LOS TIPOS
     const totalMonto = estadisticas.totalMontoGeneral || 
                       // Si no existe el nuevo campo, calcular manualmente
                       appState.apoyos.reduce((sum, a) => sum + (parseFloat(a.monto) || 0), 0);
     
     document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
     
-    // 🆕 MOSTRAR DETALLES EN CONSOLA PARA VERIFICAR
+    // MOSTRAR DETALLES EN CONSOLA PARA VERIFICAR
     console.log('💰 Total general de montos:', totalMonto);
 }
 
-// 🆕 FUNCIÓN MEJORADA - CALCULA TODOS LOS MONTOS LOCALMENTE
+// FUNCIÓN MEJORADA - CALCULA TODOS LOS MONTOS LOCALMENTE
 function calcularEstadisticasLocales() {
     const totalDirigentes = appState.dirigentes.length;
     const totalApoyos = appState.apoyos.length;
     const buenaParticipacion = appState.dirigentes.filter(d => d.participacion === 'buena').length;
     
-    // 🆕 SUMAR MONTOS DE TODOS LOS TIPOS DE APOYO
+    // SUMAR MONTOS DE TODOS LOS TIPOS DE APOYO
     const totalMonto = appState.apoyos.reduce((sum, apoyo) => {
         return sum + (parseFloat(apoyo.monto) || 0);
     }, 0);
@@ -657,7 +831,7 @@ function calcularEstadisticasLocales() {
     console.log('💰 Cálculo local - Monto total de todos los apoyos:', totalMonto);
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA RENDERIZAR DIRIGENTES
+// FUNCIÓN MEJORADA PARA RENDERIZAR DIRIGENTES
 function renderizarDirigentes(mostrarTodos = false) {
     const tbody = document.getElementById('dirigentes-body');
     if (!tbody) {
@@ -667,7 +841,7 @@ function renderizarDirigentes(mostrarTodos = false) {
     
     tbody.innerHTML = '';
     
-    // 🆕 Decidir qué dirigentes mostrar
+    // Decidir qué dirigentes mostrar
     const dirigentesAMostrar = mostrarTodos ? 
         appState.dirigentes : 
         obtenerUltimosDirigentes();
@@ -711,7 +885,7 @@ function renderizarDirigentes(mostrarTodos = false) {
     console.log('✅ Mostrando', dirigentesAMostrar.length, 'dirigentes');
 }
 
-// 🆕 FUNCIÓN MEJORADA - CON SCROLL AUTOMÁTICO
+// FUNCIÓN MEJORADA - CON SCROLL AUTOMÁTICO
 function editarDirigente(id) {
     console.log('✏️ Editando dirigente ID:', id);
     
@@ -759,7 +933,7 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
     mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
 }
 
-// 🆕 FUNCIONES PARA FILTROS DE DIRIGENTES
+// FUNCIONES PARA FILTROS DE DIRIGENTES
 function inicializarFiltros() {
     const buscarInput = document.getElementById('buscar-dirigente');
     const filtroCorregimiento = document.getElementById('filtro-corregimiento');
@@ -783,9 +957,9 @@ function inicializarFiltros() {
     cargarCorregimientos();
 }
 
-// 🆕 FUNCIÓN ACTUALIZADA - CORREGIMIENTOS CON ESPACIOS
+// FUNCIÓN ACTUALIZADA - CORREGIMIENTOS CON ESPACIOS
 async function cargarCorregimientos() {
-    // 🆕 LISTA FIJA CON LOS 16 CORREGIMIENTOS Y SUS ESPACIOS
+    // LISTA FIJA CON LOS 16 CORREGIMIENTOS Y SUS ESPACIOS
     const corregimientosFijos = [
         "Boca de Tucué",
         "Candelario Ovalle", 
@@ -821,7 +995,7 @@ async function cargarCorregimientos() {
     console.log('✅ Corregimientos fijos cargados:', corregimientosFijos.length);
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA FILTRAR DIRIGENTES
+// FUNCIÓN MEJORADA PARA FILTRAR DIRIGENTES
 async function filtrarDirigentes() {
     const query = document.getElementById('buscar-dirigente')?.value.toLowerCase() || '';
     const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
@@ -851,7 +1025,7 @@ async function filtrarDirigentes() {
     }
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR DIRIGENTES FILTRADOS
+// FUNCIÓN MEJORADA PARA MOSTRAR DIRIGENTES FILTRADOS
 function mostrarDirigentesFiltrados(dirigentesFiltrados) {
     const tbody = document.getElementById('dirigentes-body');
     const infoResultados = document.getElementById('info-resultados');
@@ -911,31 +1085,7 @@ function mostrarDirigentesFiltrados(dirigentesFiltrados) {
     console.log('✅ Mostrando', dirigentesFiltrados.length, 'dirigentes filtrados');
 }
 
-// 🆕 FUNCIÓN ESPECIAL PARA EDITAR DESDE FILTROS
-async function editarDirigenteDesdeFiltro(id) {
-    try {
-        // Cargar el dirigente específico desde el servidor
-        const response = await fetch(`/api/dirigentes/${id}`);
-        if (!response.ok) {
-            throw new Error('No se pudo cargar el dirigente');
-        }
-        
-        const dirigente = await response.json();
-        mostrarFormDirigente(dirigente);
-        
-    } catch (error) {
-        console.error('Error al cargar dirigente para editar:', error);
-        // Intentar encontrar en los datos locales
-        const dirigenteLocal = appState.dirigentes.find(d => d.id === id);
-        if (dirigenteLocal) {
-            mostrarFormDirigente(dirigenteLocal);
-        } else {
-            mostrarNotificacion('No se pudo cargar el dirigente para editar', 'error');
-        }
-    }
-}
-
-// 🆕 FUNCIÓN MEJORADA PARA FILTRADO LOCAL
+// FUNCIÓN MEJORADA PARA FILTRADO LOCAL
 function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
     
     console.log('🔍 FILTRANDO con', appState.dirigentes.length, 'dirigentes totales');
@@ -974,9 +1124,9 @@ function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
     mostrarDirigentesFiltrados(dirigentesFiltrados);
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR TODOS LOS DIRIGENTES
+// FUNCIÓN MEJORADA PARA MOSTRAR TODOS LOS DIRIGENTES
 function mostrarTodosLosDirigentes() {
-    renderizarDirigentes(true); // 🆕 true = mostrar todos
+    renderizarDirigentes(true); // true = mostrar todos
     mostrarNotificacion(`Mostrando todos los ${appState.dirigentes.length} dirigentes`, 'success');
     
     // Ocultar el botón "Ver todos" ya que ya estamos viendo todos
@@ -986,7 +1136,7 @@ function mostrarTodosLosDirigentes() {
     }
 }
 
-// 🆕 FUNCIÓN MEJORADA PARA ACTUALIZAR SELECT DE DIRIGENTES
+// FUNCIÓN MEJORADA PARA ACTUALIZAR SELECT DE DIRIGENTES
 function actualizarSelectDirigentes(dirigentesFiltrados = null) {
     const select = document.getElementById('apoyo-dirigente');
     if (!select) return;
@@ -1022,7 +1172,7 @@ function actualizarSelectDirigentes(dirigentesFiltrados = null) {
     }
 }
 
-// 🆕 FUNCIÓN PARA OBTENER SOLO LOS ÚLTIMOS 10 DIRIGENTES (para el dashboard)
+// FUNCIÓN PARA OBTENER SOLO LOS ÚLTIMOS 10 DIRIGENTES (para el dashboard)
 function obtenerUltimosDirigentes() {
     if (!appState.dirigentes || appState.dirigentes.length === 0) {
         return [];
@@ -1034,7 +1184,7 @@ function obtenerUltimosDirigentes() {
         .slice(0, 10);
 }
 
-// 🆕 FUNCIÓN PARA EL BUSCADOR INTELIGENTE DE DIRIGENTES EN APOYOS
+// FUNCIÓN PARA EL BUSCADOR INTELIGENTE DE DIRIGENTES EN APOYOS
 function inicializarBuscadorApoyos() {
     const buscador = document.getElementById('buscar-dirigente-apoyo');
     const selectDirigentes = document.getElementById('apoyo-dirigente');
@@ -1070,31 +1220,31 @@ function inicializarBuscadorApoyos() {
     });
 }
 
-// 🆕 FUNCIÓN MEJORADA - PRE-CARGA CORRECTA DE DATOS
+// FUNCIÓN MEJORADA - PRE-CARGA CORRECTA DE DATOS
 function registrarApoyoDesdeVerificacion(dirigenteId, dirigenteNombre, dirigenteCedula) {
     // Verificar que el usuario esté autenticado
     if (!appState.isAuthenticated) {
         mostrarNotificacion('❌ Debe iniciar sesión para registrar apoyos', 'error');
-        // 🆕 Redirigir al login si no está autenticado
+        // Redirigir al login si no está autenticado
         document.getElementById('username').focus();
         return;
     }
     
     console.log('🎯 Intentando registrar apoyo para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
     
-    // 🆕 PRIMERO asegurarnos de que el panel de administración esté visible
+    // PRIMERO asegurarnos de que el panel de administración esté visible
     const adminPanel = document.getElementById('admin-panel');
     if (adminPanel && adminPanel.classList.contains('hidden')) {
         adminPanel.classList.remove('hidden');
     }
     
-    // 🆕 MOSTRAR LA SECCIÓN DE GESTIÓN DE APOYOS
+    // MOSTRAR LA SECCIÓN DE GESTIÓN DE APOYOS
     const seccionApoyos = document.getElementById('gestion-apoyos');
     if (seccionApoyos) {
         // Hacer scroll suave a la sección de apoyos
         seccionApoyos.scrollIntoView({ behavior: 'smooth' });
         
-        // 🆕 ESPERAR un momento y luego abrir el formulario
+        // ESPERAR un momento y luego abrir el formulario
         setTimeout(() => {
             mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula);
         }, 500);
@@ -1104,7 +1254,7 @@ function registrarApoyoDesdeVerificacion(dirigenteId, dirigenteNombre, dirigente
     }
 }
 
-// 🆕 FUNCIÓN ESPECÍFICA PARA PRE-CARGAR DATOS EN FORMULARIO DE APOYO
+// FUNCIÓN ESPECÍFICA PARA PRE-CARGAR DATOS EN FORMULARIO DE APOYO
 function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula) {
     console.log('📝 Pre-cargando datos en formulario:', { dirigenteId, dirigenteNombre, dirigenteCedula });
     
@@ -1122,7 +1272,7 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
     configurarFechaAutomatica();
     configurarTipoApoyo();
     
-    // 🆕 3. ESPERAR a que el select de dirigentes se cargue
+    // 3. ESPERAR a que el select de dirigentes se cargue
     const esperarSelect = setInterval(() => {
         const selectDirigente = document.getElementById('apoyo-dirigente');
         
@@ -1142,7 +1292,7 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
                 }
             }
             
-            // 🆕 5. Si no se encuentra, forzar la selección
+            // 5. Si no se encuentra, forzar la selección
             if (!encontrado && selectDirigente.options.length > 0) {
                 // Buscar por texto que coincida con el nombre o cédula
                 for (let i = 0; i < selectDirigente.options.length; i++) {
@@ -1156,7 +1306,7 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
                 }
             }
             
-            // 🆕 6. ACTUALIZAR el buscador para mostrar el dirigente seleccionado
+            // 6. ACTUALIZAR el buscador para mostrar el dirigente seleccionado
             const buscador = document.getElementById('buscar-dirigente-apoyo');
             if (buscador) {
                 buscador.value = `${dirigenteNombre} - ${dirigenteCedula}`;
@@ -1166,11 +1316,11 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
                 buscador.dispatchEvent(new Event('input'));
             }
             
-            // 🆕 7. MOSTRAR confirmación visual
+            // 7. MOSTRAR confirmación visual
             if (encontrado) {
                 mostrarNotificacion(`✅ Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
                 
-                // 🆕 RESALTAR visualmente el formulario
+                // RESALTAR visualmente el formulario
                 formApoyo.style.border = '2px solid #9b59b6';
                 formApoyo.style.boxShadow = '0 0 10px rgba(155, 89, 182, 0.3)';
                 
@@ -1188,7 +1338,7 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
         }
     }, 100); // Verificar cada 100ms
     
-    // 🆕 Timeout de seguridad - si después de 3 segundos no carga
+    // Timeout de seguridad - si después de 3 segundos no carga
     setTimeout(() => {
         clearInterval(esperarSelect);
         const selectDirigente = document.getElementById('apoyo-dirigente');
@@ -1199,9 +1349,7 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
     }, 3000);
 }
 
-// =============================================
-// 🆕 FUNCIONES NUEVAS PARA SCROLL AUTOMÁTICO
-// =============================================
+// FUNCIONES PARA SCROLL AUTOMÁTICO
 
 // Función para scroll suave a cualquier sección
 function scrollToSection(sectionId) {
@@ -1252,10 +1400,7 @@ function isElementInViewport(elementId) {
     );
 }
 
-// =============================================
-// 🆕 FUNCIÓN PARA VER CONSTANCIA DESDE VERIFICACIÓN
-// =============================================
-
+// FUNCIÓN PARA VER CONSTANCIA DESDE VERIFICACIÓN
 function verConstanciaApoyo(apoyoId) {
     console.log('📄 Abriendo constancia del apoyo ID:', apoyoId);
     
@@ -1281,8 +1426,278 @@ function verConstanciaApoyo(apoyoId) {
     mostrarNotificacion('📄 Constancia abierta en nueva pestaña', 'success');
 }
 
+// 🆕 FUNCIONES PARA EL MÓDULO ELECTORAL
 
+function inicializarModuloElectoral() {
+    if (!appState.isAuthenticated) return;
+    
+    console.log('🗳️ Inicializando módulo electoral...');
+    datosElectoralesFiltrados = [...datosElectorales];
+    cargarFiltrosElectorales();
+    cargarDatosElectorales();
+}
 
+function cargarFiltrosElectorales() {
+    // Cargar corregimientos únicos
+    const corregimientos = [...new Set(datosElectorales.map(d => d.corregimiento))];
+    const selectCorregimiento = document.getElementById('filtro-corregimiento-electoral');
+    
+    if (selectCorregimiento) {
+        selectCorregimiento.innerHTML = '<option value="">Todos los corregimientos</option>';
+        corregimientos.forEach(corregimiento => {
+            const option = document.createElement('option');
+            option.value = corregimiento;
+            option.textContent = corregimiento;
+            selectCorregimiento.appendChild(option);
+        });
+    }
+    
+    // Cargar centros de votación únicos
+    const centros = [...new Set(datosElectorales.map(d => d.centroVotacion))];
+    const selectCentro = document.getElementById('filtro-centro-votacion');
+    
+    if (selectCentro) {
+        selectCentro.innerHTML = '<option value="">Todos los centros de votación</option>';
+        centros.forEach(centro => {
+            const option = document.createElement('option');
+            option.value = centro;
+            option.textContent = centro;
+            selectCentro.appendChild(option);
+        });
+    }
+}
 
+function cargarDatosElectorales() {
+    const corregimiento = document.getElementById('filtro-corregimiento-electoral')?.value || '';
+    const centro = document.getElementById('filtro-centro-votacion')?.value || '';
+    
+    // Aplicar filtros
+    let datosFiltrados = datosElectorales;
+    
+    if (corregimiento) {
+        datosFiltrados = datosFiltrados.filter(d => d.corregimiento === corregimiento);
+    }
+    
+    if (centro) {
+        datosFiltrados = datosFiltrados.filter(d => d.centroVotacion === centro);
+    }
+    
+    datosElectoralesFiltrados = datosFiltrados;
+    actualizarEstadisticasElectorales();
+    mostrarTablaResultados();
+    generarMapaCorregimientos();
+    generarGraficoPartidos();
+}
 
+function mostrarTodosLosDatos() {
+    document.getElementById('filtro-corregimiento-electoral').value = '';
+    document.getElementById('filtro-centro-votacion').value = '';
+    cargarDatosElectorales();
+}
 
+function actualizarEstadisticasElectorales() {
+    const datos = datosElectoralesFiltrados;
+    
+    // Calcular totales
+    const totalVotosCD = datos.reduce((sum, mesa) => sum + (mesa.partidos.CambioDemocratico || 0), 0);
+    const totalVotosPRD = datos.reduce((sum, mesa) => sum + (mesa.partidos.PRD || 0), 0);
+    const totalVotosValidos = datos.reduce((sum, mesa) => sum + (mesa.validos || 0), 0);
+    
+    const porcentajeCD = totalVotosValidos > 0 ? ((totalVotosCD / totalVotosValidos) * 100).toFixed(1) : 0;
+    
+    // Contar mesas ganadas
+    const mesasGanadas = datos.filter(mesa => {
+        const votosCD = mesa.partidos.CambioDemocratico || 0;
+        const maxOtros = Math.max(
+            mesa.partidos.PRD || 0,
+            mesa.partidos.Panameñista || 0,
+            mesa.partidos.MOLIRENA || 0,
+            mesa.partidos.PartidoPopular || 0
+        );
+        return votosCD > maxOtros;
+    }).length;
+    
+    // Actualizar tarjetas
+    document.getElementById('total-votos-cd').textContent = totalVotosCD.toLocaleString();
+    document.getElementById('total-votos-prd').textContent = totalVotosPRD.toLocaleString();
+    document.getElementById('porcentaje-cd').textContent = `${porcentajeCD}%`;
+    document.getElementById('mesas-ganadas').textContent = `${mesasGanadas}/${datos.length}`;
+}
+
+function mostrarTablaResultados() {
+    const tbody = document.getElementById('cuerpo-tabla-resultados');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    // Agrupar por centro de votación
+    const porCentro = {};
+    datosElectoralesFiltrados.forEach(mesa => {
+        const key = `${mesa.corregimiento}-${mesa.centroVotacion}`;
+        if (!porCentro[key]) {
+            porCentro[key] = {
+                corregimiento: mesa.corregimiento,
+                centroVotacion: mesa.centroVotacion,
+                totalVotos: 0,
+                votosCD: 0,
+                votosPRD: 0,
+                votosPanameñista: 0
+            };
+        }
+        
+        porCentro[key].totalVotos += mesa.validos || 0;
+        porCentro[key].votosCD += mesa.partidos.CambioDemocratico || 0;
+        porCentro[key].votosPRD += mesa.partidos.PRD || 0;
+        porCentro[key].votosPanameñista += mesa.partidos.Panameñista || 0;
+    });
+    
+    // Mostrar en tabla
+    Object.values(porCentro).forEach(centro => {
+        const porcentajeCD = centro.totalVotos > 0 ? ((centro.votosCD / centro.totalVotos) * 100).toFixed(1) : 0;
+        const resultado = centro.votosCD > centro.votosPRD ? '✅ Ganó CD' : '❌ Ganó PRD';
+        const colorResultado = centro.votosCD > centro.votosPRD ? '#27ae60' : '#e74c3c';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${centro.corregimiento}</strong></td>
+            <td>${centro.centroVotacion}</td>
+            <td>${centro.totalVotos.toLocaleString()}</td>
+            <td style="color: #3498db; font-weight: bold;">${centro.votosCD}</td>
+            <td style="color: #e74c3c;">${centro.votosPRD}</td>
+            <td style="color: #f39c12;">${centro.votosPanameñista}</td>
+            <td style="font-weight: bold; color: ${porcentajeCD >= 50 ? '#27ae60' : '#e74c3c'}">
+                ${porcentajeCD}%
+            </td>
+            <td style="color: ${colorResultado}; font-weight: bold;">
+                ${resultado}
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function generarMapaCorregimientos() {
+    const contenedor = document.getElementById('mapa-corregimientos');
+    if (!contenedor) return;
+    
+    contenedor.innerHTML = '';
+    
+    // Agrupar por corregimiento
+    const porCorregimiento = {};
+    datosElectoralesFiltrados.forEach(mesa => {
+        if (!porCorregimiento[mesa.corregimiento]) {
+            porCorregimiento[mesa.corregimiento] = {
+                votosCD: 0,
+                votosPRD: 0,
+                totalVotos: 0
+            };
+        }
+        
+        porCorregimiento[mesa.corregimiento].votosCD += mesa.partidos.CambioDemocratico || 0;
+        porCorregimiento[mesa.corregimiento].votosPRD += mesa.partidos.PRD || 0;
+        porCorregimiento[mesa.corregimiento].totalVotos += mesa.validos || 0;
+    });
+    
+    // Crear tarjetas de corregimientos
+    Object.entries(porCorregimiento).forEach(([corregimiento, datos]) => {
+        const porcentajeCD = datos.totalVotos > 0 ? ((datos.votosCD / datos.totalVotos) * 100).toFixed(1) : 0;
+        const color = porcentajeCD >= 50 ? '#27ae60' : '#e74c3c';
+        const icono = porcentajeCD >= 50 ? '✅' : '❌';
+        
+        const tarjeta = document.createElement('div');
+        tarjeta.style.cssText = `
+            padding: 15px;
+            border: 2px solid ${color};
+            border-radius: 8px;
+            background: ${color}15;
+            text-align: center;
+            transition: transform 0.2s;
+        `;
+        tarjeta.onmouseover = () => tarjeta.style.transform = 'scale(1.05)';
+        tarjeta.onmouseout = () => tarjeta.style.transform = 'scale(1)';
+        
+        tarjeta.innerHTML = `
+            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">${corregimiento}</h4>
+            <div style="font-size: 28px; font-weight: bold; color: ${color}; margin: 10px 0;">
+                ${porcentajeCD}%
+            </div>
+            <div style="font-size: 14px; color: #666; margin-bottom: 8px;">
+                ${datos.votosCD} de ${datos.totalVotos} votos
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                <span style="color: #3498db;">CD: ${datos.votosCD}</span>
+                <span style="color: #e74c3c;">PRD: ${datos.votosPRD}</span>
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; font-weight: bold; color: ${color};">
+                ${icono} ${porcentajeCD >= 50 ? 'GANAMOS' : 'PERDIMOS'}
+            </div>
+        `;
+        contenedor.appendChild(tarjeta);
+    });
+}
+
+function generarGraficoPartidos() {
+    const contenedor = document.getElementById('grafico-partidos');
+    if (!contenedor) return;
+    
+    // Calcular totales por partido
+    const totalesPartidos = {
+        CambioDemocratico: 0,
+        PRD: 0,
+        Panameñista: 0,
+        MOLIRENA: 0,
+        PartidoPopular: 0,
+        RealizandoMetas: 0,
+        MOCA: 0
+    };
+    
+    datosElectoralesFiltrados.forEach(mesa => {
+        Object.keys(totalesPartidos).forEach(partido => {
+            totalesPartidos[partido] += mesa.partidos[partido] || 0;
+        });
+    });
+    
+    const totalGeneral = Object.values(totalesPartidos).reduce((a, b) => a + b, 0);
+    
+    // Colores para cada partido
+    const coloresPartidos = {
+        CambioDemocratico: '#3498db',
+        PRD: '#e74c3c', 
+        Panameñista: '#f39c12',
+        MOLIRENA: '#9b59b6',
+        PartidoPopular: '#2ecc71',
+        RealizandoMetas: '#e67e22',
+        MOCA: '#34495e'
+    };
+    
+    // Generar gráfico de barras
+    contenedor.innerHTML = '';
+    
+    Object.entries(totalesPartidos)
+        .sort(([,a], [,b]) => b - a)
+        .forEach(([partido, votos]) => {
+            if (votos === 0) return;
+            
+            const porcentaje = totalGeneral > 0 ? ((votos / totalGeneral) * 100).toFixed(1) : 0;
+            const anchoBarra = totalGeneral > 0 ? ((votos / totalGeneral) * 100) : 0;
+            
+            const barra = document.createElement('div');
+            barra.style.marginBottom = '12px';
+            barra.innerHTML = `
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 5px;">
+                    <span style="font-weight: bold; color: #2c3e50; min-width: 180px;">${partido}:</span>
+                    <span style="font-weight: bold; color: ${coloresPartidos[partido]}; margin: 0 10px;">
+                        ${votos} votos
+                    </span>
+                    <span style="color: #666; font-size: 12px;">${porcentaje}%</span>
+                </div>
+                <div style="height: 25px; background: #ecf0f1; border-radius: 12px; overflow: hidden;">
+                    <div style="width: ${anchoBarra}%; height: 100%; background: ${coloresPartidos[partido]}; 
+                         display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; 
+                         color: white; font-weight: bold; font-size: 12px; transition: width 1s ease-in-out;">
+                    </div>
+                </div>
+            `;
+            contenedor.appendChild(barra);
+        });
+}
