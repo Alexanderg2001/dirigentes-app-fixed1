@@ -167,6 +167,262 @@ const datosElectorales = [
     }
 ];
 
+// 🆕 FUNCIONES PARA INGRESAR DATOS MANUALMENTE
+
+function mostrarFormularioElectoral() {
+    const formulario = document.getElementById('formulario-electoral');
+    formulario.classList.remove('hidden');
+    
+    // Limpiar formulario
+    document.getElementById('form-datos-electorales').reset();
+}
+
+function ocultarFormularioElectoral() {
+    document.getElementById('formulario-electoral').classList.add('hidden');
+}
+
+function calcularTotales() {
+    // Obtener valores de los partidos
+    const cd = parseInt(document.getElementById('electoral-cd').value) || 0;
+    const prd = parseInt(document.getElementById('electoral-prd').value) || 0;
+    const popular = parseInt(document.getElementById('electoral-popular').value) || 0;
+    const molirena = parseInt(document.getElementById('electoral-molirena').value) || 0;
+    const panamenista = parseInt(document.getElementById('electoral-panamenista').value) || 0;
+    const rm = parseInt(document.getElementById('electoral-rm').value) || 0;
+    const moca = parseInt(document.getElementById('electoral-moca').value) || 0;
+    
+    // Calcular total
+    const totalVotos = cd + prd + popular + molirena + panamenista + rm + moca;
+    
+    // Mostrar resultado
+    alert(`📊 Total de votos calculados: ${totalVotos}\n\n` +
+          `Cambio Democrático: ${cd}\n` +
+          `PRD: ${prd}\n` +
+          `Partido Popular: ${popular}\n` +
+          `MOLIRENA: ${molirena}\n` +
+          `Panameñista: ${panamenista}\n` +
+          `Realizando Metas: ${rm}\n` +
+          `MOCA: ${moca}`);
+}
+
+// 🆕 FUNCIÓN PARA GUARDAR DATOS ELECTORALES
+async function guardarDatosElectorales(event) {
+    event.preventDefault();
+    
+    // Obtener valores del formulario
+    const corregimiento = document.getElementById('electoral-corregimiento').value;
+    const centroVotacion = document.getElementById('electoral-centro').value;
+    const mesa = document.getElementById('electoral-mesa').value;
+    const escrutados = parseInt(document.getElementById('electoral-escrutados').value) || 0;
+    const validos = parseInt(document.getElementById('electoral-validos').value) || 0;
+    const blancos = parseInt(document.getElementById('electoral-blancos').value) || 0;
+    const nulos = parseInt(document.getElementById('electoral-nulos').value) || 0;
+    
+    // Obtener votos por partido
+    const votosCD = parseInt(document.getElementById('electoral-cd').value) || 0;
+    const votosPRD = parseInt(document.getElementById('electoral-prd').value) || 0;
+    const votosPopular = parseInt(document.getElementById('electoral-popular').value) || 0;
+    const votosMOLIRENA = parseInt(document.getElementById('electoral-molirena').value) || 0;
+    const votosPanamenista = parseInt(document.getElementById('electoral-panamenista').value) || 0;
+    const votosRM = parseInt(document.getElementById('electoral-rm').value) || 0;
+    const votosMOCA = parseInt(document.getElementById('electoral-moca').value) || 0;
+    
+    // Validaciones
+    if (!corregimiento || !centroVotacion || !mesa) {
+        mostrarNotificacion('❌ Complete todos los campos obligatorios', 'error');
+        return;
+    }
+    
+    // Calcular total de votos ingresados
+    const totalVotosIngresados = votosCD + votosPRD + votosPopular + votosMOLIRENA + votosPanamenista + votosRM + votosMOCA;
+    
+    if (totalVotosIngresados === 0) {
+        mostrarNotificacion('❌ Ingrese al menos algunos votos', 'error');
+        return;
+    }
+    
+    // Crear objeto con los datos
+    const nuevoDatoElectoral = {
+        id: Date.now(), // ID temporal
+        corregimiento: corregimiento,
+        centroVotacion: centroVotacion,
+        mesa: mesa,
+        escrutados: escrutados,
+        total: escrutados,
+        validos: validos,
+        blancos: blancos,
+        nulos: nulos,
+        partidos: {
+            CambioDemocratico: votosCD,
+            PRD: votosPRD,
+            PartidoPopular: votosPopular,
+            MOLIRENA: votosMOLIRENA,
+            Panameñista: votosPanamenista,
+            RealizandoMetas: votosRM,
+            MOCA: votosMOCA
+        },
+        candidatos: {
+            // Puedes agregar datos de candidatos después si quieres
+            DanielRamos: 0,
+            NestosTinGuardia: 0,
+            JohnNicola: 0,
+            EyberCastañeda: 0,
+            JulioDeLaGuardia: 0,
+            NestorChen: 0,
+            RosarioBerrocal: 0,
+            RicardoRealizandoMetas: 0,
+            VictorCarles: 0
+        }
+    };
+    
+    try {
+        // Agregar a los datos existentes
+        datosElectorales.push(nuevoDatoElectoral);
+        
+        // Actualizar la interfaz
+        cargarDatosElectorales();
+        
+        // Ocultar formulario
+        ocultarFormularioElectoral();
+        
+        // Mostrar mensaje de éxito
+        mostrarNotificacion(`✅ Datos de ${centroVotacion} - ${mesa} guardados exitosamente`, 'success');
+        
+        console.log('📥 Nuevo dato electoral guardado:', nuevoDatoElectoral);
+        
+    } catch (error) {
+        console.error('❌ Error al guardar datos electorales:', error);
+        mostrarNotificacion('❌ Error al guardar los datos', 'error');
+    }
+}
+
+// 🆕 FUNCIÓN PARA EDITAR DATOS EXISTENTES
+function editarDatoElectoral(id) {
+    const dato = datosElectorales.find(d => d.id === id);
+    if (!dato) {
+        mostrarNotificacion('❌ Dato no encontrado', 'error');
+        return;
+    }
+    
+    // Llenar el formulario con los datos existentes
+    document.getElementById('electoral-corregimiento').value = dato.corregimiento;
+    document.getElementById('electoral-centro').value = dato.centroVotacion;
+    document.getElementById('electoral-mesa').value = dato.mesa;
+    document.getElementById('electoral-escrutados').value = dato.escrutados;
+    document.getElementById('electoral-validos').value = dato.validos;
+    document.getElementById('electoral-blancos').value = dato.blancos;
+    document.getElementById('electoral-nulos').value = dato.nulos;
+    
+    // Llenar votos por partido
+    document.getElementById('electoral-cd').value = dato.partidos.CambioDemocratico || 0;
+    document.getElementById('electoral-prd').value = dato.partidos.PRD || 0;
+    document.getElementById('electoral-popular').value = dato.partidos.PartidoPopular || 0;
+    document.getElementById('electoral-molirena').value = dato.partidos.MOLIRENA || 0;
+    document.getElementById('electoral-panamenista').value = dato.partidos.Panameñista || 0;
+    document.getElementById('electoral-rm').value = dato.partidos.RealizandoMetas || 0;
+    document.getElementById('electoral-moca').value = dato.partidos.MOCA || 0;
+    
+    // Mostrar formulario
+    mostrarFormularioElectoral();
+    
+    // Cambiar el comportamiento del botón guardar temporalmente
+    const form = document.getElementById('form-datos-electorales');
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        actualizarDatoElectoral(id);
+    };
+    
+    // Cambiar texto del botón
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.textContent = '💾 Actualizar Datos';
+    submitBtn.style.background = '#f39c12';
+}
+
+// 🆕 FUNCIÓN PARA ACTUALIZAR DATOS EXISTENTES
+function actualizarDatoElectoral(id) {
+    const datoIndex = datosElectorales.findIndex(d => d.id === id);
+    if (datoIndex === -1) {
+        mostrarNotificacion('❌ Dato no encontrado para actualizar', 'error');
+        return;
+    }
+    
+    // Obtener nuevos valores del formulario
+    const corregimiento = document.getElementById('electoral-corregimiento').value;
+    const centroVotacion = document.getElementById('electoral-centro').value;
+    const mesa = document.getElementById('electoral-mesa').value;
+    const escrutados = parseInt(document.getElementById('electoral-escrutados').value) || 0;
+    const validos = parseInt(document.getElementById('electoral-validos').value) || 0;
+    const blancos = parseInt(document.getElementById('electoral-blancos').value) || 0;
+    const nulos = parseInt(document.getElementById('electoral-nulos').value) || 0;
+    
+    // Obtener votos por partido
+    const votosCD = parseInt(document.getElementById('electoral-cd').value) || 0;
+    const votosPRD = parseInt(document.getElementById('electoral-prd').value) || 0;
+    const votosPopular = parseInt(document.getElementById('electoral-popular').value) || 0;
+    const votosMOLIRENA = parseInt(document.getElementById('electoral-molirena').value) || 0;
+    const votosPanamenista = parseInt(document.getElementById('electoral-panamenista').value) || 0;
+    const votosRM = parseInt(document.getElementById('electoral-rm').value) || 0;
+    const votosMOCA = parseInt(document.getElementById('electoral-moca').value) || 0;
+    
+    // Actualizar el dato
+    datosElectorales[datoIndex] = {
+        ...datosElectorales[datoIndex],
+        corregimiento,
+        centroVotacion,
+        mesa,
+        escrutados,
+        total: escrutados,
+        validos,
+        blancos,
+        nulos,
+        partidos: {
+            CambioDemocratico: votosCD,
+            PRD: votosPRD,
+            PartidoPopular: votosPopular,
+            MOLIRENA: votosMOLIRENA,
+            Panameñista: votosPanamenista,
+            RealizandoMetas: votosRM,
+            MOCA: votosMOCA
+        }
+    };
+    
+    // Actualizar la interfaz
+    cargarDatosElectorales();
+    
+    // Ocultar formulario
+    ocultarFormularioElectoral();
+    
+    // Restaurar comportamiento normal del formulario
+    const form = document.getElementById('form-datos-electorales');
+    form.onsubmit = guardarDatosElectorales;
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.textContent = '💾 Guardar Datos';
+    submitBtn.style.background = '#27ae60';
+    
+    mostrarNotificacion('✅ Datos actualizados exitosamente', 'success');
+}
+
+// 🆕 FUNCIÓN PARA ELIMINAR DATOS
+function eliminarDatoElectoral(id) {
+    if (!confirm('¿Está seguro de que desea eliminar estos datos electorales?')) {
+        return;
+    }
+    
+    const datoIndex = datosElectorales.findIndex(d => d.id === id);
+    if (datoIndex === -1) {
+        mostrarNotificacion('❌ Dato no encontrado', 'error');
+        return;
+    }
+    
+    const datoEliminado = datosElectorales.splice(datoIndex, 1)[0];
+    
+    // Actualizar la interfaz
+    cargarDatosElectorales();
+    
+    mostrarNotificacion(`✅ Datos de ${datoEliminado.centroVotacion} - ${datoEliminado.mesa} eliminados`, 'success');
+}
+
 // 🆕 Variable para controlar el módulo electoral
 let datosElectoralesFiltrados = [];
 
@@ -1701,3 +1957,4 @@ function generarGraficoPartidos() {
             contenedor.appendChild(barra);
         });
 }
+
