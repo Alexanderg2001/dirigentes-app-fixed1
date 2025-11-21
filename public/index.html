@@ -252,6 +252,96 @@
                         </button>
                     </div>
 
+                    <!-- 🆕 FORMULARIO PARA INGRESAR DATOS ELECTORALES -->
+<div class="form-container" style="background: #e8f4f8; border-left: 4px solid #3498db;">
+    <h3>📥 Ingresar Datos Electorales Manualmente</h3>
+    <button onclick="mostrarFormularioElectoral()" style="background: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
+        ➕ Agregar Nueva Mesa Electoral
+    </button>
+
+    <div id="formulario-electoral" class="hidden">
+        <form id="form-datos-electorales">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <!-- Información básica -->
+                <div>
+                    <h4>Información de la Mesa</h4>
+                    <select id="electoral-corregimiento" required>
+                        <option value="">Seleccione corregimiento</option>
+                        <option value="Boca de Tucué">Boca de Tucué</option>
+                        <option value="Candelario Ovalle">Candelario Ovalle</option>
+                        <option value="Cañaveral">Cañaveral</option>
+                        <option value="Chiguirí Arriba">Chiguirí Arriba</option>
+                        <option value="Coclé">Coclé</option>
+                        <option value="El Coco">El Coco</option>
+                        <option value="General Victoriano Lorenzo">General Victoriano Lorenzo</option>
+                        <option value="Las Minas">Las Minas</option>
+                        <option value="Pajonal">Pajonal</option>
+                        <option value="Penonomé">Penonomé</option>
+                        <option value="Riecito">Riecito</option>
+                        <option value="Rio Grande">Rio Grande</option>
+                        <option value="Río Indio">Río Indio</option>
+                        <option value="San Miguel">San Miguel</option>
+                        <option value="Toabré">Toabré</option>
+                        <option value="Tulú">Tulú</option>
+                    </select>
+                    
+                    <input type="text" id="electoral-centro" placeholder="Centro de votación" required>
+                    <input type="text" id="electoral-mesa" placeholder="Número de mesa" required>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="number" id="electoral-escrutados" placeholder="Escrutados" required>
+                        <input type="number" id="electoral-validos" placeholder="Votos válidos" required>
+                        <input type="number" id="electoral-blancos" placeholder="Votos en blanco">
+                        <input type="number" id="electoral-nulos" placeholder="Votos nulos">
+                    </div>
+                </div>
+
+                <!-- Votos por partido -->
+                <div>
+                    <h4>Votos por Partido</h4>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                            <label>Cambio Democrático:</label>
+                            <input type="number" id="electoral-cd" placeholder="0" min="0" style="width: 80px;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                            <label>PRD:</label>
+                            <input type="number" id="electoral-prd" placeholder="0" min="0" style="width: 80px;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                            <label>Partido Popular:</label>
+                            <input type="number" id="electoral-popular" placeholder="0" min="0" style="width: 80px;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                            <label>MOLIRENA:</label>
+                            <input type="number" id="electoral-molirena" placeholder="0" min="0" style="width: 80px;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                            <label>Panameñista:</label>
+                            <input type="number" id="electoral-panamenista" placeholder="0" min="0" style="width: 80px;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                            <label>Realizando Metas:</label>
+                            <input type="number" id="electoral-rm" placeholder="0" min="0" style="width: 80px;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                            <label>MOCA:</label>
+                            <input type="number" id="electoral-moca" placeholder="0" min="0" style="width: 80px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="form-buttons" style="margin-top: 20px;">
+                <button type="submit" style="background: #27ae60;">💾 Guardar Datos</button>
+                <button type="button" onclick="ocultarFormularioElectoral()" style="background: #95a5a6;">❌ Cancelar</button>
+                <button type="button" onclick="calcularTotales()" style="background: #3498db;">🧮 Calcular Totales</button>
+            </div>
+        </form>
+    </div>
+</div>
+
                     <!-- Tarjetas de resumen -->
                     <div class="dashboard-cards">
                         <div class="card" style="border-left: 4px solid #3498db;">
@@ -321,3 +411,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
