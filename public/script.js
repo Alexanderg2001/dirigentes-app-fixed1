@@ -1996,4 +1996,12 @@ function generarGraficoPartidos() {
         });
 }
 
+// 🆕 CONFIGURAR EVENT LISTENER PARA EL FORMULARIO
+document.addEventListener('DOMContentLoaded', function() {
+    const formElectoral = document.getElementById('form-datos-electorales');
+    if (formElectoral) {
+        formElectoral.addEventListener('submit', guardarDatosElectorales);
+    }
+});
+
 
