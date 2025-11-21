@@ -2095,13 +2095,15 @@ function generarMapaCorregimientos() {
             porCorregimiento[mesa.corregimiento] = {
                 votosCD: 0,
                 votosPRD: 0,
-                totalVotos: 0
+                totalVotos: 0,
+                mesas: 0
             };
         }
         
         porCorregimiento[mesa.corregimiento].votosCD += mesa.partidos.CambioDemocratico || 0;
         porCorregimiento[mesa.corregimiento].votosPRD += mesa.partidos.PRD || 0;
         porCorregimiento[mesa.corregimiento].totalVotos += mesa.validos || 0;
+        porCorregimiento[mesa.corregimiento].mesas += 1;
     });
     
     // Crear tarjetas de corregimientos
@@ -2118,9 +2120,14 @@ function generarMapaCorregimientos() {
             background: ${color}15;
             text-align: center;
             transition: transform 0.2s;
+            cursor: pointer;
         `;
+        
         tarjeta.onmouseover = () => tarjeta.style.transform = 'scale(1.05)';
         tarjeta.onmouseout = () => tarjeta.style.transform = 'scale(1)';
+        
+        // 🆕 HACER CLIC PARA FILTRAR POR CORREGIMIENTO
+        tarjeta.onclick = () => buscarDesdeDashboard('corregimiento', corregimiento);
         
         tarjeta.innerHTML = `
             <h4 style="margin: 0 0 10px 0; color: #2c3e50;">${corregimiento}</h4>
@@ -2134,8 +2141,14 @@ function generarMapaCorregimientos() {
                 <span style="color: #3498db;">CD: ${datos.votosCD}</span>
                 <span style="color: #e74c3c;">PRD: ${datos.votosPRD}</span>
             </div>
+            <div style="font-size: 11px; color: #7f8c8d; margin-bottom: 5px;">
+                📊 ${datos.mesas} mesa${datos.mesas !== 1 ? 's' : ''}
+            </div>
             <div style="margin-top: 8px; font-size: 12px; font-weight: bold; color: ${color};">
                 ${icono} ${porcentajeCD >= 50 ? 'GANAMOS' : 'PERDIMOS'}
+            </div>
+            <div style="margin-top: 5px; font-size: 10px; color: #3498db;">
+                👆 Click para filtrar
             </div>
         `;
         contenedor.appendChild(tarjeta);
@@ -2215,6 +2228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formElectoral.addEventListener('submit', guardarDatosElectorales);
     }
 });
+
 
 
 
