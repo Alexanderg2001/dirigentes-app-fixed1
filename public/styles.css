@@ -312,7 +312,7 @@ tr:hover {
     100% { opacity: 0; transform: translateY(-20px); }
 }
 
-/* 🆕 ESTILOS PARA BUSCADOR INTELIGENTE */
+/* ESTILOS PARA BUSCADOR INTELIGENTE */
 .buscador-dirigentes {
     margin-bottom: 1rem;
 }
@@ -366,7 +366,7 @@ tr:hover {
     background-color: #f0f8ff;
 }
 
-/* 🆕 ESTILOS PARA DASHBOARD */
+/* ESTILOS PARA DASHBOARD */
 .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -403,7 +403,7 @@ tr:hover {
     color: #666;
 }
 
-/* 🆕 ESTILOS PARA FILTROS Y RESULTADOS */
+/* ESTILOS PARA FILTROS Y RESULTADOS */
 .info-resultados {
     background: #e3f2fd;
     border: 1px solid #2196f3;
@@ -476,7 +476,7 @@ tr:hover {
     }
 }
 
-/* 🆕 ESTILOS PARA LA TABLA DE APOYOS EN BÚSQUEDA */
+/* ESTILOS PARA LA TABLA DE APOYOS EN BÚSQUEDA */
 .result-found table {
     width: 100%;
     border-collapse: collapse;
@@ -505,7 +505,7 @@ tr:hover {
     background: #e3f2fd;
 }
 
-/* 🆕 ESTILOS PARA LAS SECCIONES DE INFORMACIÓN */
+/* ESTILOS PARA LAS SECCIONES DE INFORMACIÓN */
 .info-section {
     margin-bottom: 20px;
     padding: 15px;
@@ -521,7 +521,7 @@ tr:hover {
     padding-bottom: 5px;
 }
 
-/* 🆕 RESPONSIVE PARA TABLAS */
+/* RESPONSIVE PARA TABLAS */
 @media (max-width: 768px) {
     .result-found table {
         font-size: 0.8em;
@@ -537,7 +537,7 @@ tr:hover {
     }
 }
 
-/* 🆕 ESTILOS MEJORADOS PARA LA TABLA DE APOYOS */
+/* ESTILOS MEJORADOS PARA LA TABLA DE APOYOS */
 #apoyos-body td:first-child {
     max-width: 200px;
     min-width: 150px;
@@ -548,19 +548,19 @@ tr:hover {
     opacity: 0.7;
 }
 
-/* 🆕 DESTACAR DIRIGENTES DESCONOCIDOS */
+/* DESTACAR DIRIGENTES DESCONOCIDOS */
 .dirigente-desconocido {
     color: #e74c3c;
     font-style: italic;
 }
 
-/* 🆕 SOLO OCULTAR BOTONES EN LA SECCIÓN DE GESTIÓN DE DIRIGENTES */
+/* SOLO OCULTAR BOTONES EN LA SECCIÓN DE GESTIÓN DE DIRIGENTES */
 #gestion-dirigentes .actions button.constancia,
 #gestion-dirigentes .actions button.apoyo {
     display: none !important;
 }
 
-/* 🆕 ASEGURAR QUE LOS BOTONES DE CONSTANCIA EN APOYOS SE VEN */
+/* ASEGURAR QUE LOS BOTONES DE CONSTANCIA EN APOYOS SE VEN */
 #gestion-apoyos .actions button.constancia {
     display: inline-block !important;
     background-color: #27ae60 !important;
@@ -568,7 +568,7 @@ tr:hover {
     margin: 2px !important;
 }
 
-/* 🆕 MEJORAR BOTONES EN DIRIGENTES */
+/* MEJORAR BOTONES EN DIRIGENTES */
 #gestion-dirigentes .actions {
     display: flex;
     gap: 0.3rem;
@@ -585,7 +585,7 @@ tr:hover {
     flex: 1;
 }
 
-/* 🆕 ESTILOS PARA EL BOTÓN DE REGISTRAR APOYO EN VERIFICACIÓN */
+/* ESTILOS PARA EL BOTÓN DE REGISTRAR APOYO EN VERIFICACIÓN */
 .result-found button {
     background: #9b59b6 !important;
     color: white !important;
@@ -602,7 +602,7 @@ tr:hover {
     background: #8e44ad !important;
 }
 
-/* 🆕 ESTILOS PARA EL BOTÓN DE AGREGAR DIRIGENTE */
+/* ESTILOS PARA EL BOTÓN DE AGREGAR DIRIGENTE */
 .result-not-found button {
     background: #28a745 !important;
     color: white !important;
@@ -618,7 +618,7 @@ tr:hover {
 }
 
 /* ============================================= */
-/* 🆕 ESTILOS PARA SCROLL AUTOMÁTICO */
+/* ESTILOS PARA SCROLL AUTOMÁTICO */
 /* ============================================= */
 
 /* Hacer que el scroll sea suave en toda la página */
@@ -649,7 +649,7 @@ html {
 }
 
 /* ============================================= */
-/* 🆕 ESTILOS PARA EL LOGO EN EL HEADER */
+/* ESTILOS PARA EL LOGO EN EL HEADER */
 /* ============================================= */
 
 /* Contenedor del logo */
@@ -720,7 +720,7 @@ html {
 }
 
 /* ============================================= */
-/* 🆕 ESTILOS PARA BOTONES DE CONSTANCIA EN VERIFICACIÓN */
+/* ESTILOS PARA BOTONES DE CONSTANCIA EN VERIFICACIÓN */
 /* ============================================= */
 
 /* Botón de constancia en la tabla de verificación */
@@ -777,5 +777,136 @@ html {
     .result-found button {
         padding: 4px 8px !important;
         font-size: 0.7em !important;
+    }
+}
+
+/* ============================================= */
+/* 🆕 ESTILOS PARA EL MÓDULO ELECTORAL */
+/* ============================================= */
+
+.filtros-electorales {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.filtros-electorales select {
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    background: white;
+}
+
+.filtros-electorales select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.filtros-electorales button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.filtros-electorales button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Tarjetas electorales específicas */
+.dashboard-cards .card[style*="border-left: 4px solid #3498db"] {
+    border-left: 4px solid #3498db !important;
+}
+
+.dashboard-cards .card[style*="border-left: 4px solid #e74c3c"] {
+    border-left: 4px solid #e74c3c !important;
+}
+
+.dashboard-cards .card[style*="border-left: 4px solid #f39c12"] {
+    border-left: 4px solid #f39c12 !important;
+}
+
+.dashboard-cards .card[style*="border-left: 4px solid #9b59b6"] {
+    border-left: 4px solid #9b59b6 !important;
+}
+
+/* Gráfico de partidos */
+.grafico-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.grafico-container h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 10px;
+}
+
+/* Mapa de corregimientos */
+.mapa-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.mapa-container h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 10px;
+}
+
+/* Tabla de resultados electorales */
+#tabla-resultados {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+#tabla-resultados th {
+    background: #2c3e50;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+#tabla-resultados td {
+    padding: 10px;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+#tabla-resultados tr:hover {
+    background: #f8f9fa;
+}
+
+/* Responsive para módulo electoral */
+@media (max-width: 768px) {
+    .filtros-electorales {
+        grid-template-columns: 1fr;
+    }
+    
+    .mapa-corregimientos {
+        grid-template-columns: 1fr;
+    }
+    
+    #tabla-resultados {
+        font-size: 0.8em;
+    }
+    
+    #tabla-resultados th,
+    #tabla-resultados td {
+        padding: 8px 4px;
     }
 }
