@@ -296,6 +296,218 @@ async function guardarDatosElectorales(event) {
     }
 }
 
+// 🆕 FUNCIONES DE BÚSQUEDA Y FILTRADO AVANZADO
+
+function inicializarBuscadorElectoral() {
+    console.log('🔍 Inicializando buscador electoral...');
+    
+    // Configurar event listeners para búsqueda en tiempo real
+    const buscarInput = document.getElementById('buscar-electoral');
+    const filtroCorregimiento = document.getElementById('filtro-corregimiento-electoral');
+    const filtroCentro = document.getElementById('filtro-centro-votacion');
+    
+    if (buscarInput) {
+        buscarInput.addEventListener('input', function() {
+            // Búsqueda en tiempo real con delay
+            clearTimeout(this.buscarTimeout);
+            this.buscarTimeout = setTimeout(() => {
+                aplicarBusquedaElectoral();
+            }, 500);
+        });
+    }
+    
+    if (filtroCorregimiento) {
+        filtroCorregimiento.addEventListener('change', function() {
+            actualizarCentrosPorCorregimiento(this.value);
+            aplicarBusquedaElectoral();
+        });
+    }
+    
+    if (filtroCentro) {
+        filtroCentro.addEventListener('change', aplicarBusquedaElectoral);
+    }
+    
+    // Cargar opciones de filtros
+    cargarOpcionesBusqueda();
+}
+
+function cargarOpcionesBusqueda() {
+    // Cargar corregimientos únicos
+    const corregimientos = [...new Set(datosElectorales.map(d => d.corregimiento))].sort();
+    const selectCorregimiento = document.getElementById('filtro-corregimiento-electoral');
+    
+    if (selectCorregimiento) {
+        selectCorregimiento.innerHTML = '<option value="">Todos los corregimientos</option>';
+        corregimientos.forEach(corregimiento => {
+            const option = document.createElement('option');
+            option.value = corregimiento;
+            option.textContent = corregimiento;
+            selectCorregimiento.appendChild(option);
+        });
+    }
+    
+    // Cargar centros de votación únicos
+    const centros = [...new Set(datosElectorales.map(d => d.centroVotacion))].sort();
+    const selectCentro = document.getElementById('filtro-centro-votacion');
+    
+    if (selectCentro) {
+        selectCentro.innerHTML = '<option value="">Todos los centros de votación</option>';
+        centros.forEach(centro => {
+            const option = document.createElement('option');
+            option.value = centro;
+            option.textContent = centro;
+            selectCentro.appendChild(option);
+        });
+    }
+}
+
+function actualizarCentrosPorCorregimiento(corregimientoSeleccionado) {
+    const selectCentro = document.getElementById('filtro-centro-votacion');
+    if (!selectCentro) return;
+    
+    let centrosFiltrados;
+    
+    if (corregimientoSeleccionado) {
+        centrosFiltrados = [...new Set(
+            datosElectorales
+                .filter(d => d.corregimiento === corregimientoSeleccionado)
+                .map(d => d.centroVotacion)
+        )].sort();
+    } else {
+        centrosFiltrados = [...new Set(datosElectorales.map(d => d.centroVotacion))].sort();
+    }
+    
+    // Guardar selección actual
+    const seleccionActual = selectCentro.value;
+    
+    // Actualizar opciones
+    selectCentro.innerHTML = '<option value="">Todos los centros de votación</option>';
+    centrosFiltrados.forEach(centro => {
+        const option = document.createElement('option');
+        option.value = centro;
+        option.textContent = centro;
+        selectCentro.appendChild(option);
+    });
+    
+    // Restaurar selección si todavía existe
+    if (centrosFiltrados.includes(seleccionActual)) {
+        selectCentro.value = seleccionActual;
+    }
+}
+
+function aplicarBusquedaElectoral() {
+    const textoBusqueda = document.getElementById('buscar-electoral').value.toLowerCase().trim();
+    const corregimiento = document.getElementById('filtro-corregimiento-electoral').value;
+    const centro = document.getElementById('filtro-centro-votacion').value;
+    
+    console.log('🔍 Aplicando búsqueda:', { textoBusqueda, corregimiento, centro });
+    
+    // Aplicar filtros
+    let datosFiltrados = datosElectorales;
+    
+    // Filtro por texto de búsqueda
+    if (textoBusqueda) {
+        datosFiltrados = datosFiltrados.filter(mesa => 
+            mesa.corregimiento.toLowerCase().includes(textoBusqueda) ||
+            mesa.centroVotacion.toLowerCase().includes(textoBusqueda) ||
+            mesa.mesa.toLowerCase().includes(textoBusqueda)
+        );
+    }
+    
+    // Filtro por corregimiento
+    if (corregimiento) {
+        datosFiltrados = datosFiltrados.filter(mesa => mesa.corregimiento === corregimiento);
+    }
+    
+    // Filtro por centro de votación
+    if (centro) {
+        datosFiltrados = datosFiltrados.filter(mesa => mesa.centroVotacion === centro);
+    }
+    
+    // Actualizar datos filtrados
+    datosElectoralesFiltrados = datosFiltrados;
+    
+    // Actualizar interfaz
+    actualizarEstadisticasElectorales();
+    mostrarTablaResultados();
+    generarMapaCorregimientos();
+    generarGraficoPartidos();
+    
+    // Mostrar información de resultados
+    mostrarInfoBusqueda(datosFiltrados.length);
+}
+
+function mostrarInfoBusqueda(cantidadFiltrados) {
+    const infoBusqueda = document.getElementById('info-busqueda-electoral');
+    const contadorResultados = document.getElementById('contador-resultados-electoral');
+    const totalMesas = document.getElementById('total-mesas-electoral');
+    
+    if (infoBusqueda && contadorResultados && totalMesas) {
+        contadorResultados.textContent = cantidadFiltrados;
+        totalMesas.textContent = datosElectorales.length;
+        
+        if (cantidadFiltrados !== datosElectorales.length) {
+            infoBusqueda.style.display = 'flex';
+        } else {
+            infoBusqueda.style.display = 'none';
+        }
+    }
+}
+
+function limpiarBusquedaElectoral() {
+    console.log('🧹 Limpiando búsqueda electoral...');
+    
+    // Limpiar campos de búsqueda
+    document.getElementById('buscar-electoral').value = '';
+    document.getElementById('filtro-corregimiento-electoral').value = '';
+    document.getElementById('filtro-centro-votacion').value = '';
+    
+    // Recargar todas las opciones de centros
+    cargarOpcionesBusqueda();
+    
+    // Mostrar todos los datos
+    datosElectoralesFiltrados = [...datosElectorales];
+    
+    // Actualizar interfaz
+    actualizarEstadisticasElectorales();
+    mostrarTablaResultados();
+    generarMapaCorregimientos();
+    generarGraficoPartidos();
+    
+    // Ocultar información de búsqueda
+    const infoBusqueda = document.getElementById('info-busqueda-electoral');
+    if (infoBusqueda) {
+        infoBusqueda.style.display = 'none';
+    }
+    
+    mostrarNotificacion('🔍 Mostrando todas las mesas electorales', 'success');
+}
+
+// 🆕 FUNCIÓN DE BÚSQUEDA RÁPIDA DESDE EL DASHBOARD
+function buscarDesdeDashboard(tipo, valor) {
+    console.log(`🎯 Búsqueda rápida: ${tipo} = ${valor}`);
+    
+    switch(tipo) {
+        case 'corregimiento':
+            document.getElementById('filtro-corregimiento-electoral').value = valor;
+            actualizarCentrosPorCorregimiento(valor);
+            break;
+        case 'centro':
+            document.getElementById('filtro-centro-votacion').value = valor;
+            break;
+    }
+    
+    aplicarBusquedaElectoral();
+    
+    // Hacer scroll a la sección electoral
+    setTimeout(() => {
+        document.getElementById('analisis-electoral').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }, 300);
+}
+
 // 🆕 FUNCIÓN PARA EDITAR DATOS EXISTENTES
 function editarDatoElectoral(id) {
     const dato = datosElectorales.find(d => d.id === id);
@@ -2003,5 +2215,6 @@ document.addEventListener('DOMContentLoaded', function() {
         formElectoral.addEventListener('submit', guardarDatosElectorales);
     }
 });
+
 
 
