@@ -2230,6 +2230,132 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// 🆕 FUNCIONES PARA CONTROLAR DASHBOARDS SEPARADOS
+
+function mostrarDashboard(tipo) {
+    // Ocultar todos los dashboards
+    document.getElementById('dashboard-dirigentes').classList.add('hidden');
+    document.getElementById('dashboard-electoral').classList.add('hidden');
+    
+    // Remover activo de todos los botones
+    document.getElementById('btn-dirigentes').style.background = '#3498db';
+    document.getElementById('btn-electoral').style.background = '#9b59b6';
+    
+    // Mostrar dashboard seleccionado
+    if (tipo === 'dirigentes') {
+        document.getElementById('dashboard-dirigentes').classList.remove('hidden');
+        document.getElementById('btn-dirigentes').style.background = '#2980b9';
+        console.log('👥 Mostrando dashboard de dirigentes');
+    } else if (tipo === 'electoral') {
+        document.getElementById('dashboard-electoral').classList.remove('hidden');
+        document.getElementById('btn-electoral').style.background = '#8e44ad';
+        
+        // 🆕 INICIALIZAR Y ACTUALIZAR DATOS ELECTORALES
+        inicializarModuloElectoral();
+        console.log('📊 Mostrando dashboard electoral');
+    }
+}
+
+// 🆕 FUNCIÓN CORREGIDA PARA ACTUALIZAR ESTADÍSTICAS ELECTORALES
+function actualizarEstadisticasElectorales() {
+    const datos = datosElectoralesFiltrados;
+    
+    // 🆕 CALCULAR NUEVAS ESTADÍSTICAS
+    const totalMesas = datos.length;
+    const totalVotosCD = datos.reduce((sum, mesa) => sum + (mesa.partidos.CambioDemocratico || 0), 0);
+    const totalVotosPRD = datos.reduce((sum, mesa) => sum + (mesa.partidos.PRD || 0), 0);
+    const totalVotosValidos = datos.reduce((sum, mesa) => sum + (mesa.validos || 0), 0);
+    const totalEscrutados = datos.reduce((sum, mesa) => sum + (mesa.escrutados || 0), 0);
+    
+    const porcentajeCD = totalVotosValidos > 0 ? ((totalVotosCD / totalVotosValidos) * 100).toFixed(1) : 0;
+    const participacionTotal = totalEscrutados > 0 ? ((totalVotosValidos / totalEscrutados) * 100).toFixed(1) : 0;
+    
+    // 🆕 Contar mesas ganadas (CORREGIDO)
+    const mesasGanadas = datos.filter(mesa => {
+        const votosCD = mesa.partidos.CambioDemocratico || 0;
+        
+        // Encontrar el máximo de los otros partidos principales
+        const otrosPartidos = [
+            mesa.partidos.PRD || 0,
+            mesa.partidos.Panameñista || 0,
+            mesa.partidos.MOLIRENA || 0,
+            mesa.partidos.PartidoPopular || 0,
+            mesa.partidos.RealizandoMetas || 0,
+            mesa.partidos.MOCA || 0,
+            mesa.partidos.RicardoJaen || 0,
+            mesa.partidos.RaulCamargo || 0,
+            mesa.partidos.ReyesAguilar || 0
+        ];
+        
+        const maxOtros = Math.max(...otrosPartidos);
+        return votosCD > maxOtros;
+    }).length;
+    
+    console.log('📊 Estadísticas electorales calculadas:', {
+        totalMesas,
+        totalVotosCD,
+        totalVotosPRD,
+        porcentajeCD,
+        mesasGanadas,
+        participacionTotal
+    });
+    
+    // 🆕 ACTUALIZAR TARJETAS DEL DASHBOARD ELECTORAL
+    document.getElementById('total-mesas').textContent = totalMesas.toLocaleString();
+    document.getElementById('total-votos-cd').textContent = totalVotosCD.toLocaleString();
+    document.getElementById('total-votos-prd').textContent = totalVotosPRD.toLocaleString();
+    document.getElementById('porcentaje-cd').textContent = `${porcentajeCD}%`;
+    document.getElementById('mesas-ganadas').textContent = `${mesasGanadas}/${totalMesas}`;
+    document.getElementById('participacion-total').textContent = `${participacionTotal}%`;
+}
+
+// 🆕 FUNCIÓN MEJORADA PARA GUARDAR DATOS ELECTORALES
+async function guardarDatosElectorales(event) {
+    event.preventDefault();
+    
+    // ... (todo el código anterior de validaciones y obtención de datos) ...
+    
+    try {
+        // Agregar a los datos existentes
+        datosElectorales.push(nuevoDatoElectoral);
+        
+        // 🆕 ACTUALIZAR EL DASHBOARD ELECTORAL INMEDIATAMENTE
+        datosElectoralesFiltrados = [...datosElectorales];
+        actualizarEstadisticasElectorales();
+        mostrarTablaResultados();
+        generarMapaCorregimientos();
+        generarGraficoPartidos();
+        
+        // Ocultar formulario
+        ocultarFormularioElectoral();
+        
+        // Mostrar mensaje de éxito
+        mostrarNotificacion(`✅ Datos de ${centroVotacion} - ${mesa} guardados exitosamente`, 'success');
+        
+        console.log('📥 Nuevo dato electoral guardado y dashboard actualizado:', nuevoDatoElectoral);
+        
+    } catch (error) {
+        console.error('❌ Error al guardar datos electorales:', error);
+        mostrarNotificacion('❌ Error al guardar los datos', 'error');
+    }
+}
+
+// 🆕 MODIFICAR LA INICIALIZACIÓN
+function inicializarModuloElectoral() {
+    if (!appState.isAuthenticated) return;
+    
+    console.log('🗳️ Inicializando módulo electoral...');
+    datosElectoralesFiltrados = [...datosElectorales];
+    
+    // 🆕 ACTUALIZAR ESTADÍSTICAS INMEDIATAMENTE
+    actualizarEstadisticasElectorales();
+    
+    // Inicializar buscador y componentes
+    inicializarBuscadorElectoral();
+    cargarDatosElectorales();
+    
+    console.log('✅ Módulo electoral inicializado con', datosElectorales.length, 'mesas');
+}
 
 
 
