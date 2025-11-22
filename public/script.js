@@ -752,15 +752,12 @@ async function cargarDatos() {
     
     console.log('📥 Cargando todos los datos...');
     
-    // 1. Primero cargar los dirigentes
+    // 1. Cargar datos de dirigentes
     await cargarDirigentes();
-    
-    // 2. Luego cargar el resto de datos
     await cargarColaboradores();
     await cargarApoyos();
-    await cargarDashboard();
     
-    // INICIALIZAR COMPONENTES DESPUÉS DE CARGAR DATOS
+    // 🆕 2. INICIALIZAR DASHBOARD DE DIRIGENTES POR DEFECTO
     setTimeout(() => {
         renderizarDirigentes();      
         inicializarFiltros();        
@@ -768,10 +765,10 @@ async function cargarDatos() {
         inicializarBuscadorApoyos();
         actualizarSelectDirigentes();
         
-        // 🆕 INICIALIZAR MÓDULO ELECTORAL
-        inicializarModuloElectoral();
+        // 🆕 CARGAR DASHBOARD DE DIRIGENTES POR DEFECTO
+        mostrarDashboard('dirigentes');
         
-        console.log('✅ Todos los componentes inicializados');
+        console.log('✅ Todos los componentes de dirigentes inicializados');
     }, 100);
     
     console.log('✅ Todos los datos cargados');
@@ -2232,6 +2229,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formElectoral.addEventListener('submit', guardarDatosElectorales);
     }
 });
+
 
 
 
