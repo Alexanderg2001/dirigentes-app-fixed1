@@ -2358,8 +2358,90 @@ function inicializarModuloElectoral() {
     console.log('✅ Módulo electoral inicializado con', datosElectorales.length, 'mesas');
 }
 
+// 🆕 FUNCIÓN PARA CAMBIAR ENTRE DASHBOARDS
+function mostrarDashboard(tipo) {
+    console.log('🎯 Cambiando a dashboard: ' + tipo);
+    
+    // Ocultar todos los dashboards
+    document.getElementById('dashboard-dirigentes').classList.add('hidden');
+    document.getElementById('dashboard-electoral').classList.add('hidden');
+    
+    // Cambiar colores de botones
+    document.getElementById('btn-dirigentes').style.background = '#3498db';
+    document.getElementById('btn-electoral').style.background = '#9b59b6';
+    
+    // Mostrar dashboard seleccionado
+    if (tipo === 'dirigentes') {
+        document.getElementById('dashboard-dirigentes').classList.remove('hidden');
+        document.getElementById('btn-dirigentes').style.background = '#2980b9';
+        
+        // ACTUALIZAR DATOS DE DIRIGENTES
+        actualizarDashboardDirigentes();
+        console.log('👥 Mostrando dashboard de dirigentes');
+        
+    } else if (tipo === 'electoral') {
+        document.getElementById('dashboard-electoral').classList.remove('hidden');
+        document.getElementById('btn-electoral').style.background = '#8e44ad';
+        
+        // INICIALIZAR DATOS ELECTORALES
+        inicializarModuloElectoral();
+        console.log('📊 Mostrando dashboard electoral');
+    }
+}
 
+// 🆕 FUNCIÓN PARA ACTUALIZAR ESTADÍSTICAS DE DIRIGENTES
+async function actualizarDashboardDirigentes() {
+    console.log('📊 Actualizando estadísticas de dirigentes...');
+    
+    try {
+        // Intentar cargar del servidor
+        const response = await fetch('/api/estadisticas');
+        
+        if (response.ok) {
+            const estadisticas = await response.json();
+            actualizarDashboard(estadisticas);
+            console.log('✅ Estadísticas cargadas del servidor');
+        } else {
+            // Si falla, calcular localmente
+            throw new Error('Servidor no disponible');
+        }
+    } catch (error) {
+        console.log('🔄 Usando cálculo local...');
+        calcularEstadisticasLocales();
+    }
+}
 
+// 🆕 FUNCIÓN DE EMERGENCIA - VER DATOS
+function verDatosActuales() {
+    console.log('🔍 Revisando datos actuales:');
+    console.log('- Dirigentes:', appState.dirigentes.length);
+    console.log('- Apoyos:', appState.apoyos.length);
+    console.log('- Colaboradores:', appState.colaboradores.length);
+    
+    alert('📊 Datos actuales:\n' +
+          'Dirigentes: ' + appState.dirigentes.length + '\n' +
+          'Apoyos: ' + appState.apoyos.length + '\n' +
+          'Colaboradores: ' + appState.colaboradores.length);
+}
 
-
-
+// 🆕 TEMPORAL: AGREGAR BOTÓN DE PRUEBA
+// Esto es solo para probar - lo quitarás después
+setTimeout(() => {
+    // Agregar botón de prueba si no existe
+    if (!document.getElementById('btn-prueba')) {
+        const btnPrueba = document.createElement('button');
+        btnPrueba.id = 'btn-prueba';
+        btnPrueba.textContent = '🔍 Ver Datos (Prueba)';
+        btnPrueba.style.position = 'fixed';
+        btnPrueba.style.top = '10px';
+        btnPrueba.style.right = '10px';
+        btnPrueba.style.zIndex = '10000';
+        btnPrueba.style.background = '#e74c3c';
+        btnPrueba.style.color = 'white';
+        btnPrueba.style.padding = '10px';
+        btnPrueba.style.border = 'none';
+        btnPrueba.style.borderRadius = '5px';
+        btnPrueba.onclick = verDatosActuales;
+        document.body.appendChild(btnPrueba);
+    }
+}, 3000);
