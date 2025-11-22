@@ -752,23 +752,24 @@ async function cargarDatos() {
     
     console.log('📥 Cargando todos los datos...');
     
-    // 1. Cargar datos de dirigentes
+    // 1. Cargar datos básicos
     await cargarDirigentes();
     await cargarColaboradores();
     await cargarApoyos();
     
-    // 🆕 2. INICIALIZAR DASHBOARD DE DIRIGENTES POR DEFECTO
+    // 2. INICIALIZAR COMPONENTES Y MOSTRAR DASHBOARD DE DIRIGENTES
     setTimeout(() => {
+        // Inicializar componentes básicos
         renderizarDirigentes();      
         inicializarFiltros();        
         cargarCorregimientos();
         inicializarBuscadorApoyos();
         actualizarSelectDirigentes();
         
-        // 🆕 CARGAR DASHBOARD DE DIRIGENTES POR DEFECTO
+        // CARGAR Y MOSTRAR DASHBOARD DE DIRIGENTES CON DATOS
         mostrarDashboard('dirigentes');
         
-        console.log('✅ Todos los componentes de dirigentes inicializados');
+        console.log('✅ Todos los componentes inicializados');
     }, 100);
     
     console.log('✅ Todos los datos cargados');
@@ -2356,6 +2357,7 @@ function inicializarModuloElectoral() {
     
     console.log('✅ Módulo electoral inicializado con', datosElectorales.length, 'mesas');
 }
+
 
 
 
