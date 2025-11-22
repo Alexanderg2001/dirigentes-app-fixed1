@@ -54,34 +54,447 @@
             </section>
 
             <!-- Panel de administración (solo para usuarios autenticados) -->
-            <div id="admin-panel" class="hidden">
-                
-                <!-- DASHBOARD CON ESTADÍSTICAS -->
-                <section id="dashboard" class="section">
-                    <h2>Dashboard - Resumen General</h2>
-                    <div class="dashboard-cards">
-                        <div class="card">
-                            <h3>Total Dirigentes</h3>
-                            <div class="number" id="total-dirigentes">0</div>
-                            <div class="description">Registrados en el sistema</div>
-                        </div>
-                        <div class="card">
-                            <h3>Total Apoyos</h3>
-                            <div class="number" id="total-apoyos">0</div>
-                            <div class="description">Apoyos registrados</div>
-                        </div>
-                        <div class="card">
-                            <h3>Buena Participación</h3>
-                            <div class="number" id="buena-participacion">0</div>
-                            <div class="description">Dirigentes activos</div>
-                        </div>
-                        <div class="card">
-                            <h3>Monto Distribuido</h3>
-                            <div class="number" id="total-monto">$0</div>
-                            <div class="description">Total en apoyos registrados</div>
-                        </div>
+            <!-- Panel de administración (solo para usuarios autenticados) -->
+<div id="admin-panel" class="hidden">
+    
+    <!-- 🆕 MENÚ DE NAVEGACIÓN ENTRE DASHBOARDS -->
+    <nav class="dashboard-menu" style="display: flex; gap: 10px; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e9ecef;">
+        <button id="btn-dirigentes" onclick="mostrarDashboard('dirigentes')" 
+                style="padding: 12px 20px; background: #2980b9; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px;">
+            👥 Gestión de Dirigentes
+        </button>
+        <button id="btn-electoral" onclick="mostrarDashboard('electoral')" 
+                style="padding: 12px 20px; background: #9b59b6; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px;">
+            📊 Análisis Electoral
+        </button>
+    </nav>
+
+    <!-- 🆕 DASHBOARD DE DIRIGENTES (VISIBLE POR DEFECTO) -->
+    <div id="dashboard-dirigentes" class="dashboard-content">
+        
+        <!-- Dashboard de dirigentes existente - COPIA ESTO DE TU CÓDIGO ACTUAL -->
+        <section id="dashboard" class="section">
+            <h2>Dashboard - Resumen General de Dirigentes</h2>
+            <div class="dashboard-cards">
+                <div class="card">
+                    <h3>Total Dirigentes</h3>
+                    <div class="number" id="total-dirigentes">0</div>
+                    <div class="description">Registrados en el sistema</div>
+                </div>
+                <div class="card">
+                    <h3>Total Apoyos</h3>
+                    <div class="number" id="total-apoyos">0</div>
+                    <div class="description">Apoyos registrados</div>
+                </div>
+                <div class="card">
+                    <h3>Buena Participación</h3>
+                    <div class="number" id="buena-participacion">0</div>
+                    <div class="description">Dirigentes activos</div>
+                </div>
+                <div class="card">
+                    <h3>Monto Distribuido</h3>
+                    <div class="number" id="total-monto">$0</div>
+                    <div class="description">Total en apoyos registrados</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gestión de dirigentes - COPIA ESTO DE TU CÓDIGO ACTUAL -->
+        <section id="gestion-dirigentes" class="section">
+            <h2>Gestión de Dirigentes</h2>
+            <button onclick="mostrarFormDirigente()">Agregar Dirigente</button>
+            
+            <!-- FILTROS AVANZADOS -->
+            <div class="search-filters">
+                <input type="text" id="buscar-dirigente" placeholder="🔍 Buscar por nombre, cédula, comunidad...">
+                <select id="filtro-corregimiento">
+                    <option value="">Todos los corregimientos</option>
+                </select>
+                <select id="filtro-participacion">
+                    <option value="">Toda participación</option>
+                    <option value="buena">Buena</option>
+                    <option value="regular">Regular</option>
+                    <option value="mala">Mala</option>
+                </select>
+            </div>
+
+            <!-- INFORMACIÓN DE RESULTADOS -->
+            <div id="info-resultados" class="info-resultados" style="display: none;">
+                <p>📋 Mostrando <span id="contador-filtrados">0</span> dirigentes</p>
+                <button onclick="mostrarTodosLosDirigentes()" class="btn-ver-todos">
+                    🔍 Ver todos los dirigentes
+                </button>
+            </div>
+            
+            <div id="form-dirigente" class="hidden form-container">
+                <h3 id="form-title">Nuevo Dirigente</h3>
+                <form id="dirigente-form">
+                    <input type="hidden" id="dirigente-id">
+                    <input type="text" id="dirigente-nombre" placeholder="Nombre completo" required>
+                    <input type="text" id="dirigente-cedula" placeholder="Cédula" required>
+                    <input type="text" id="dirigente-telefono" placeholder="Teléfono">
+                   <select id="dirigente-corregimiento" required>
+    <option value="">Seleccione un corregimiento</option>
+    <option value="Boca de Tucué">Boca de Tucué</option>
+    <option value="Candelario Ovalle">Candelario Ovalle</option>
+    <option value="Cañaveral">Cañaveral</option>
+    <option value="Chiguirí Arriba">Chiguirí Arriba</option>
+    <option value="Coclé">Coclé</option>
+    <option value="El Coco">El Coco</option>
+    <option value="General Victoriano Lorenzo">General Victoriano Lorenzo</option>
+    <option value="Las Minas">Las Minas</option>
+    <option value="Pajonal ">Pajonal </option>
+    <option value="Penonomé ">Penonomé </option>
+    <option value="Riecito">Riecito</option>
+    <option value="Rio Grande ">Rio Grande </option>
+    <option value="Río Indio">Río Indio</option>
+    <option value="San Miguel ">San Miguel </option>
+    <option value="Toabré">Toabré</option>
+    <option value="Tulú">Tulú</option>
+</select>
+                    <input type="text" id="dirigente-comunidad" placeholder="Comunidad" required>
+                    <input type="text" id="dirigente-coordinador" placeholder="Coordinador" required>
+                    <select id="dirigente-participacion">
+                        <option value="buena">Buena participación</option>
+                        <option value="regular" selected>Participación regular</option>
+                        <option value="mala">Mala participación</option>
+                    </select>
+                    <div class="form-buttons">
+                        <button type="submit">Guardar</button>
+                        <button type="button" onclick="ocultarFormDirigente()">Cancelar</button>
                     </div>
-                </section>
+                </form>
+            </div>
+
+            <div id="lista-dirigentes" class="table-container">
+                <table id="tabla-dirigentes">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Cédula</th>
+                            <th>Teléfono</th>
+                            <th>Corregimiento</th>
+                            <th>Comunidad</th>
+                            <th>Coordinador</th>
+                            <th>Participación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dirigentes-body">
+                        <!-- Los datos se cargan dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Gestión de apoyos - COPIA ESTO DE TU CÓDIGO ACTUAL -->
+        <section id="gestion-apoyos" class="section">
+            <h2>Registro de Apoyos</h2>
+            <button onclick="mostrarFormApoyo()">Registrar Apoyo</button>
+            
+            <div id="form-apoyo" class="hidden form-container">
+                <h3>Nuevo Apoyo</h3>
+                <form id="apoyo-form">
+                    
+                    <!-- BUSCADOR INTELIGENTE DE DIRIGENTES -->
+                    <div class="buscador-dirigentes">
+                        <label for="buscar-dirigente-apoyo">Buscar Dirigente:</label>
+                        <input type="text" id="buscar-dirigente-apoyo" placeholder="🔍 Escribe nombre, cédula o comunidad...">
+                        <div id="contador-resultados" class="contador-resultados"></div>
+                    </div>
+                    
+                    <select id="apoyo-dirigente" size="5" required style="height: 120px; margin-top: 10px;">
+                        <option value="">Seleccione un dirigente de la lista</option>
+                    </select>
+                    
+                    <select id="apoyo-colaborador" required>
+                        <option value="">Seleccionar colaborador que entrega</option>
+                    </select>
+                    
+                    <select id="apoyo-tipo" required>
+                        <option value="">Tipo de apoyo</option>
+                        <option value="economico">Económico</option>
+                        <option value="viveres">Víveres</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                    
+                    <input type="text" id="apoyo-descripcion" placeholder="Descripción del apoyo">
+                    <input type="number" id="apoyo-monto" placeholder="Monto (si es económico)" step="0.01" min="0">
+                    <input type="date" id="apoyo-fecha" required readonly style="background-color: #f0f0f0;">
+                    
+                    <div class="form-buttons">
+                        <button type="submit">Registrar</button>
+                        <button type="button" onclick="ocultarFormApoyo()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div id="lista-apoyos" class="table-container">
+                <table id="tabla-apoyos">
+                    <thead>
+                        <tr>
+                            <th>Dirigente</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Monto</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apoyos-body">
+                        <!-- Los datos se cargan dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- 🆕 DASHBOARD ELECTORAL SEPARADO (OCULTO INICIALMENTE) -->
+    <div id="dashboard-electoral" class="dashboard-content hidden">
+        
+        <!-- 🆕 DASHBOARD ELECTORAL CON ESTADÍSTICAS PROPIAS -->
+        <section class="section">
+            <h2>📊 Dashboard Electoral - Resumen General</h2>
+            
+            <!-- Tarjetas de resumen electoral -->
+            <div class="dashboard-cards">
+                <div class="card" style="border-left: 4px solid #3498db;">
+                    <h3>Total Mesas Registradas</h3>
+                    <div class="number" id="total-mesas">0</div>
+                    <div class="description">Mesas electorales en sistema</div>
+                </div>
+                <div class="card" style="border-left: 4px solid #27ae60;">
+                    <h3>Total Votos CD</h3>
+                    <div class="number" id="total-votos-cd">0</div>
+                    <div class="description">Votos de Cambio Democrático</div>
+                </div>
+                <div class="card" style="border-left: 4px solid #e74c3c;">
+                    <h3>Votos PRD</h3>
+                    <div class="number" id="total-votos-prd">0</div>
+                    <div class="description">Votos del PRD</div>
+                </div>
+                <div class="card" style="border-left: 4px solid #f39c12;">
+                    <h3>Porcentaje CD</h3>
+                    <div class="number" id="porcentaje-cd">0%</div>
+                    <div class="description">Del total válido</div>
+                </div>
+                <div class="card" style="border-left: 4px solid #9b59b6;">
+                    <h3>Mesas Ganadas</h3>
+                    <div class="number" id="mesas-ganadas">0/0</div>
+                    <div class="description">Mesas donde ganó CD</div>
+                </div>
+                <div class="card" style="border-left: 4px solid #1abc9c;">
+                    <h3>Participación</h3>
+                    <div class="number" id="participacion-total">0%</div>
+                    <div class="description">Porcentaje de participación</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🆕 MÓDULO COMPLETO DE ANÁLISIS ELECTORAL -->
+        <section id="analisis-electoral" class="section">
+            <h2>🔍 Análisis Detallado de Resultados</h2>
+            
+            <!-- BUSCADOR AVANZADO -->
+            <div class="search-filters" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e9ecef;">
+                <h3 style="margin-bottom: 15px; color: #2c3e50;">🔍 Búsqueda Avanzada</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 15px; align-items: end;">
+                    <!-- Búsqueda por texto -->
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                            🔎 Buscar por nombre:
+                        </label>
+                        <input type="text" id="buscar-electoral" placeholder="Escribe corregimiento, centro o mesa..." 
+                               style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                    </div>
+                    
+                    <!-- Filtro por corregimiento -->
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                            🏘️ Filtrar por corregimiento:
+                        </label>
+                        <select id="filtro-corregimiento-electoral" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                            <option value="">Todos los corregimientos</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Filtro por centro -->
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                            🏫 Filtrar por centro:
+                        </label>
+                        <select id="filtro-centro-votacion" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                            <option value="">Todos los centros</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="aplicarBusquedaElectoral()" 
+                                style="background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            🔍 Aplicar Filtros
+                        </button>
+                        <button onclick="limpiarBusquedaElectoral()" 
+                                style="background: #95a5a6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+                            🗑️ Limpiar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- RESULTADOS DE BÚSQUEDA -->
+                <div id="info-busqueda-electoral" class="info-resultados" style="display: none; margin-top: 15px;">
+                    <p>📋 Mostrando <span id="contador-resultados-electoral">0</span> mesas de <span id="total-mesas-electoral">0</span></p>
+                    <button onclick="limpiarBusquedaElectoral()" class="btn-ver-todos">
+                        🔍 Ver todas las mesas
+                    </button>
+                </div>
+            </div>
+
+            <!-- FORMULARIO PARA INGRESAR DATOS MANUALMENTE -->
+            <div class="form-container" style="background: #e8f4f8; border-left: 4px solid #3498db;">
+                <h3>📥 Ingresar Datos Electorales Manualmente</h3>
+                <button onclick="mostrarFormularioElectoral()" style="background: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 15px;">
+                    ➕ Agregar Nueva Mesa Electoral
+                </button>
+
+                <div id="formulario-electoral" class="hidden">
+                    <form id="form-datos-electorales">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <!-- Información básica -->
+                            <div>
+                                <h4>Información de la Mesa</h4>
+                                <select id="electoral-corregimiento" required>
+                                    <option value="">Seleccione corregimiento</option>
+                                    <option value="Boca de Tucué">Boca de Tucué</option>
+                                    <option value="Candelario Ovalle">Candelario Ovalle</option>
+                                    <option value="Cañaveral">Cañaveral</option>
+                                    <option value="Chiguirí Arriba">Chiguirí Arriba</option>
+                                    <option value="Coclé">Coclé</option>
+                                    <option value="El Coco">El Coco</option>
+                                    <option value="General Victoriano Lorenzo">General Victoriano Lorenzo</option>
+                                    <option value="Las Minas">Las Minas</option>
+                                    <option value="Pajonal">Pajonal</option>
+                                    <option value="Penonomé">Penonomé</option>
+                                    <option value="Riecito">Riecito</option>
+                                    <option value="Rio Grande">Rio Grande</option>
+                                    <option value="Río Indio">Río Indio</option>
+                                    <option value="San Miguel">San Miguel</option>
+                                    <option value="Toabré">Toabré</option>
+                                    <option value="Tulú">Tulú</option>
+                                </select>
+                                
+                                <input type="text" id="electoral-centro" placeholder="Centro de votación" required>
+                                <input type="text" id="electoral-mesa" placeholder="Número de mesa" required>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <input type="number" id="electoral-escrutados" placeholder="Escrutados" required>
+                                    <input type="number" id="electoral-validos" placeholder="Votos válidos" required>
+                                    <input type="number" id="electoral-blancos" placeholder="Votos en blanco">
+                                    <input type="number" id="electoral-nulos" placeholder="Votos nulos">
+                                </div>
+                            </div>
+
+                            <!-- Votos por partido -->
+                            <div>
+                                <h4>Votos por Partido</h4>
+                                <div style="display: grid; grid-template-columns: 1fr; gap: 8px;">
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>Cambio Democrático:</label>
+                                        <input type="number" id="electoral-cd" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>PRD:</label>
+                                        <input type="number" id="electoral-prd" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>Partido Popular:</label>
+                                        <input type="number" id="electoral-popular" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>MOLIRENA:</label>
+                                        <input type="number" id="electoral-molirena" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>Panameñista:</label>
+                                        <input type="number" id="electoral-panamenista" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>Realizando Metas:</label>
+                                        <input type="number" id="electoral-rm" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>MOCA:</label>
+                                        <input type="number" id="electoral-moca" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    
+                                    <!-- NUEVOS PARTIDOS -->
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; border-top: 2px solid #3498db; padding-top: 10px;">
+                                        <label>LP Ricardo Jaén:</label>
+                                        <input type="number" id="electoral-ricardo-jaen" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>LP Raúl Camargo:</label>
+                                        <input type="number" id="electoral-raul-camargo" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                                        <label>LP Reyes Aguilar:</label>
+                                        <input type="number" id="electoral-reyes-aguilar" placeholder="0" min="0" style="width: 80px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="form-buttons" style="margin-top: 20px;">
+                            <button type="submit" style="background: #27ae60;">💾 Guardar Datos</button>
+                            <button type="button" onclick="ocultarFormularioElectoral()" style="background: #95a5a6;">❌ Cancelar</button>
+                            <button type="button" onclick="calcularTotales()" style="background: #3498db;">🧮 Calcular Totales</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Gráfico de partidos -->
+            <div class="grafico-container" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h3>📈 Comparativa de Partidos Políticos</h3>
+                <div id="grafico-partidos" style="height: 300px;">
+                    <!-- Gráfico se genera aquí -->
+                </div>
+            </div>
+
+            <!-- Mapa de corregimientos -->
+            <div class="mapa-container" style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h3>🗺️ Resultados por Corregimiento</h3>
+                <div id="mapa-corregimientos" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                    <!-- Tarjetas de corregimientos -->
+                </div>
+            </div>
+
+            <!-- Tabla detallada -->
+            <div class="table-container">
+                <h3>📋 Detalle por Centro de Votación</h3>
+                <table id="tabla-resultados" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Corregimiento</th>
+                            <th>Centro de Votación</th>
+                            <th>Total Votos</th>
+                            <th>CD</th>
+                            <th>PRD</th>
+                            <th>Panameñista</th>
+                            <th>% CD</th>
+                            <th>Resultado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-resultados">
+                        <!-- Datos se cargan aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</div>
 
                 <!-- Gestión de dirigentes -->
                 <section id="gestion-dirigentes" class="section">
@@ -473,5 +886,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
