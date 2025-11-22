@@ -2424,24 +2424,3 @@ function verDatosActuales() {
           'Colaboradores: ' + appState.colaboradores.length);
 }
 
-// 🆕 TEMPORAL: AGREGAR BOTÓN DE PRUEBA
-// Esto es solo para probar - lo quitarás después
-setTimeout(() => {
-    // Agregar botón de prueba si no existe
-    if (!document.getElementById('btn-prueba')) {
-        const btnPrueba = document.createElement('button');
-        btnPrueba.id = 'btn-prueba';
-        btnPrueba.textContent = '🔍 Ver Datos (Prueba)';
-        btnPrueba.style.position = 'fixed';
-        btnPrueba.style.top = '10px';
-        btnPrueba.style.right = '10px';
-        btnPrueba.style.zIndex = '10000';
-        btnPrueba.style.background = '#e74c3c';
-        btnPrueba.style.color = 'white';
-        btnPrueba.style.padding = '10px';
-        btnPrueba.style.border = 'none';
-        btnPrueba.style.borderRadius = '5px';
-        btnPrueba.onclick = verDatosActuales;
-        document.body.appendChild(btnPrueba);
-    }
-}, 3000);
