@@ -1017,6 +1017,34 @@ app.delete('/api/colaboradores/:id', requireAuth, (req, res) => {
     });
 });
 
+// 🆕 RUTA PARA ACTUALIZAR APOYO (agregar en server.js)
+app.put('/api/apoyos/:id', requireAuth, (req, res) => {
+    const apoyoId = req.params.id;
+    const { dirigente_id, colaborador_id, tipo, descripcion, monto, fecha } = req.body;
+    
+    db.run(
+        'UPDATE apoyos SET dirigente_id = ?, colaborador_id = ?, tipo = ?, descripcion = ?, monto = ?, fecha = ? WHERE id = ?',
+        [dirigente_id, colaborador_id, tipo, descripcion, monto, fecha, apoyoId],
+        function(err) {
+            if (err) {
+                return res.status(500).json({ error: 'Error al actualizar apoyo' });
+            }
+            res.json({ message: 'Apoyo actualizado exitosamente' });
+        }
+    );
+});
+
+// 🆕 RUTA PARA ELIMINAR APOYO (agregar en server.js)
+app.delete('/api/apoyos/:id', requireAuth, (req, res) => {
+    const apoyoId = req.params.id;
+    
+    db.run('DELETE FROM apoyos WHERE id = ?', [apoyoId], function(err) {
+        if (err) {
+            return res.status(500).json({ error: 'Error al eliminar apoyo' });
+        }
+        res.json({ message: 'Apoyo eliminado exitosamente' });
+    });
+});
 
 
 
