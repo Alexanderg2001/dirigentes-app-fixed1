@@ -2867,6 +2867,21 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Campo contraseña existe:', !!passwordField);
 });
 
+// 🆕 SOLUCIÓN: AGREGAR EVENT LISTENER DIRECTO
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM completamente cargado');
+    
+    const loginBtn = document.getElementById('btn-login');
+    if (loginBtn) {
+        console.log('✅ Botón de login encontrado, agregando event listener...');
+        loginBtn.addEventListener('click', login);
+    } else {
+        console.error('❌ Botón de login NO encontrado con id="btn-login"');
+    }
+    
+    // Verificar que la función login existe
+    console.log('🔍 Función login disponible:', typeof login);
+});
 
 
 
