@@ -8,6 +8,49 @@ let appState = {
     userRol: null
 };
 
+// 🆕 FUNCIÓN LOGIN - AGREGAR AQUÍ
+async function login() {
+    console.log('🔄 Botón login presionado - FUNCIÓN EJECUTADA');
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    if (!username || !password) {
+        mostrarNotificacion('Por favor complete todos los campos', 'error');
+        return;
+    }
+    
+    console.log('📡 Intentando login con:', username);
+    
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        console.log('📨 Respuesta recibida:', response.status);
+        const data = await response.json();
+        console.log('📊 Datos:', data);
+        
+        if (data.success) {
+            appState.isAuthenticated = true;
+            appState.userRol = data.rol;
+            console.log('✅ Login exitoso como:', data.rol);
+            
+            actualizarUI();
+            await cargarDatos();
+            mostrarNotificacion(`Sesión iniciada como ${data.rol}`, 'success');
+        } else {
+            console.log('❌ Login fallido:', data.error);
+            mostrarNotificacion(data.error || 'Credenciales incorrectas', 'error');
+        }
+    } catch (error) {
+        console.error('💥 Error en login:', error);
+        mostrarNotificacion('Error al conectar con el servidor', 'error');
+    }
+}
+
 // 🆕 DATOS ELECTORALES DE EJEMPLO (los reemplazarás con tus datos reales)
 const datosElectorales = [
     {
@@ -2882,6 +2925,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verificar que la función login existe
     console.log('🔍 Función login disponible:', typeof login);
 });
+
 
 
 
