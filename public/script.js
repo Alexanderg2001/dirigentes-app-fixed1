@@ -1198,23 +1198,28 @@ function inicializarFiltros() {
 }
 
 function cargarCorregimientos() {
+    console.log('🔄 Cargando corregimientos para filtros...');
+    
+    // 🆕 LISTA CON ESPACIOS PARA LOS CORREGIMIENTOS PROBLEMÁTICOS
     const corregimientosFijos = [
         "Boca de Tucué", "Candelario Ovalle", "Cañaveral", "Chiguirí Arriba", "Coclé",
-        "El Coco", "General Victoriano Lorenzo", "Las Minas", "Pajonal", "Penonomé",
-        "Riecito", "Rio Grande", "Río Indio", "San Miguel", "Toabré", "Tulú"
+        "El Coco", "General Victoriano Lorenzo", "Las Minas", "Pajonal ", "Penonomé ",
+        "Riecito", "Rio Grande ", "Río Indio", "San Miguel ", "Toabré", "Tulú"
     ];
     
-    const select = document.getElementById('filtro-corregimiento');
-    if (!select) return;
+    const selectFiltro = document.getElementById('filtro-corregimiento');
     
-    select.innerHTML = '<option value="">Todos los corregimientos</option>';
-    
-    corregimientosFijos.forEach(corregimiento => {
-        const option = document.createElement('option');
-        option.value = corregimiento;
-        option.textContent = corregimiento;
-        select.appendChild(option);
-    });
+    // Cargar en el filtro
+    if (selectFiltro) {
+        selectFiltro.innerHTML = '<option value="">Todos los corregimientos</option>';
+        corregimientosFijos.forEach(corregimiento => {
+            const option = document.createElement('option');
+            option.value = corregimiento;
+            option.textContent = corregimiento;
+            selectFiltro.appendChild(option);
+        });
+        console.log('✅ Filtro de corregimientos cargado CON ESPACIOS:', corregimientosFijos);
+    }
 }
 
 async function filtrarDirigentes() {
@@ -1483,6 +1488,7 @@ async function cargarDatos() {
         mostrarNotificacion('Error al cargar los datos del sistema', 'error');
     }
 }
+
 
 
 
