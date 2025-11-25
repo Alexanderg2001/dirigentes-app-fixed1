@@ -2711,4 +2711,77 @@ async function registrarApoyo(event) {
     }
 }
 
+// 🆕 SISTEMA PARA GUARDAR Y RECUPERAR FILTROS
+
+// Función para guardar los filtros actuales
+function guardarFiltros() {
+    const filtros = {
+        buscar: document.getElementById('buscar-dirigente').value,
+        corregimiento: document.getElementById('filtro-corregimiento').value,
+        participacion: document.getElementById('filtro-participacion').value,
+        coordinador: document.getElementById('filtro-coordinador').value // 🆕 NUEVO
+    };
+    
+    // Guardar en localStorage
+    localStorage.setItem('filtrosDirigentes', JSON.stringify(filtros));
+    console.log('💾 Filtros guardados:', filtros);
+}
+
+// Función para cargar los filtros guardados
+function cargarFiltrosGuardados() {
+    try {
+        const filtrosGuardados = localStorage.getItem('filtrosDirigentes');
+        if (filtrosGuardados) {
+            const filtros = JSON.parse(filtrosGuardados);
+            
+            // Aplicar filtros guardados
+            if (document.getElementById('buscar-dirigente') && filtros.buscar) {
+                document.getElementById('buscar-dirigente').value = filtros.buscar;
+            }
+            if (document.getElementById('filtro-corregimiento') && filtros.corregimiento) {
+                document.getElementById('filtro-corregimiento').value = filtros.corregimiento;
+            }
+            if (document.getElementById('filtro-participacion') && filtros.participacion) {
+                document.getElementById('filtro-participacion').value = filtros.participacion;
+            }
+            // 🆕 CARGAR FILTRO DE COORDINADOR
+            if (document.getElementById('filtro-coordinador') && filtros.coordinador) {
+                document.getElementById('filtro-coordinador').value = filtros.coordinador;
+            }
+            
+            console.log('📂 Filtros cargados:', filtros);
+            return filtros;
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar filtros guardados:', error);
+    }
+    return null;
+}
+
+// Función para obtener filtros guardados
+function obtenerFiltrosGuardados() {
+    try {
+        const filtrosGuardados = localStorage.getItem('filtrosDirigentes');
+        return filtrosGuardados ? JSON.parse(filtrosGuardados) : {};
+    } catch (error) {
+        return {};
+    }
+}
+
+// Función para limpiar todos los filtros
+function limpiarFiltros() {
+    // Limpiar campos
+    document.getElementById('buscar-dirigente').value = '';
+    document.getElementById('filtro-corregimiento').value = '';
+    document.getElementById('filtro-participacion').value = '';
+    document.getElementById('filtro-coordinador').value = '';
+    
+    // Limpiar localStorage
+    localStorage.removeItem('filtrosDirigentes');
+    
+    // Aplicar filtros (mostrar todos)
+    filtrarDirigentes();
+    
+    mostrarNotificacion('🧹 Filtros limpiados', 'success');
+}
 
