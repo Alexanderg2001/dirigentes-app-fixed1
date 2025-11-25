@@ -965,6 +965,33 @@ async function guardarDirigente(event) {
             ocultarFormDirigente();
             await cargarDirigentes();
             await renderizarDirigentes();
+
+            // 🆕 ACTUALIZAR LISTA DE COORDINADORES Y MANTENER FILTROS
+        cargarCoordinadores();
+        await filtrarDirigentes(); // Mantener los filtros aplicados
+        
+    } else {
+        mostrarNotificacion(data.error, 'error');
+    }
+}
+
+// En la función eliminarDirigente(), después de eliminar, agrega:
+async function eliminarDirigente(id) {
+    // ... código existente ...
+    
+    if (response.ok) {
+        mostrarNotificacion(data.message, 'success');
+        await cargarDirigentes();
+        await renderizarDirigentes();
+        
+        // 🆕 ACTUALIZAR LISTA DE COORDINADORES Y MANTENER FILTROS
+        cargarCoordinadores();
+        await filtrarDirigentes(); // Mantener los filtros aplicados
+        
+    } else {
+        mostrarNotificacion(data.error, 'error');
+    }
+}
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -2799,6 +2826,7 @@ function limpiarFiltros() {
     
     mostrarNotificacion('🧹 Filtros limpiados', 'success');
 }
+
 
 
 
