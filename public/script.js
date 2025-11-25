@@ -621,13 +621,14 @@ async function registrarApoyo(event) {
     }
 }
 
-// 🆕 FUNCIÓN CORREGIDA PARA RENDERIZAR APOYOS CON BOTONES
+// 🆕 FUNCIÓN ACTUALIZADA - Reemplaza la función renderizarApoyos completa
 function renderizarApoyos() {
-    const tbody = document.getElementById('apoyos-body');
-    if (!tbody) {
-        console.log('❌ Tabla de apoyos no encontrada');
-        return;
-    }
+    console.log('📦 Renderizando apoyos con filtros...');
+    
+    // En lugar de renderizar directamente, usamos la función de filtros
+    // Esto mostrará todos los apoyos inicialmente
+    mostrarApoyosFiltrados(appState.apoyos);
+}
     
     tbody.innerHTML = '';
     
@@ -1765,6 +1766,7 @@ function inicializarFiltrosApoyosAvanzados() {
         }
     });
 }
+
 
 
 
