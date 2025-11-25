@@ -1411,28 +1411,53 @@ function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
     mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
 }
 
-// FUNCIONES PARA FILTROS DE DIRIGENTES
+// 🆕 FUNCIÓN MEJORADA PARA INICIALIZAR FILTROS
 function inicializarFiltros() {
+    console.log('🔧 Inicializando filtros...');
+    
     const buscarInput = document.getElementById('buscar-dirigente');
     const filtroCorregimiento = document.getElementById('filtro-corregimiento');
     const filtroParticipacion = document.getElementById('filtro-participacion');
+    const filtroCoordinador = document.getElementById('filtro-coordinador'); // 🆕 NUEVO
+    
+    // 🆕 CARGAR FILTROS GUARDADOS
+    cargarFiltrosGuardados();
     
     if (buscarInput) {
         buscarInput.addEventListener('input', function() {
-            setTimeout(() => filtrarDirigentes(), 300);
+            clearTimeout(this.buscarTimeout);
+            this.buscarTimeout = setTimeout(() => {
+                filtrarDirigentes();
+                guardarFiltros(); // 🆕 GUARDAR FILTROS
+            }, 500);
         });
     }
     
     if (filtroCorregimiento) {
-        filtroCorregimiento.addEventListener('change', filtrarDirigentes);
+        filtroCorregimiento.addEventListener('change', function() {
+            filtrarDirigentes();
+            guardarFiltros(); // 🆕 GUARDAR FILTROS
+        });
     }
     
     if (filtroParticipacion) {
-        filtroParticipacion.addEventListener('change', filtrarDirigentes);
+        filtroParticipacion.addEventListener('change', function() {
+            filtrarDirigentes();
+            guardarFiltros(); // 🆕 GUARDAR FILTROS
+        });
     }
     
-    // Cargar opciones de corregimientos
+    // 🆕 EVENT LISTENER PARA NUEVO FILTRO DE COORDINADOR
+    if (filtroCoordinador) {
+        filtroCoordinador.addEventListener('change', function() {
+            filtrarDirigentes();
+            guardarFiltros(); // 🆕 GUARDAR FILTROS
+        });
+    }
+    
+    // Cargar opciones de filtros
     cargarCorregimientos();
+    cargarCoordinadores(); // 🆕 CARGAR COORDINADORES
 }
 
 // FUNCIÓN ACTUALIZADA - CORREGIMIENTOS CON ESPACIOS
@@ -2651,3 +2676,4 @@ async function registrarApoyo(event) {
         mostrarNotificacion('❌ Error de conexión con el servidor', 'error');
     }
 }
+
