@@ -621,14 +621,28 @@ async function registrarApoyo(event) {
     }
 }
 
-// 🆕 FUNCIÓN ACTUALIZADA - Reemplaza la función renderizarApoyos completa
-function renderizarApoyos() {
-    console.log('📦 Renderizando apoyos con filtros...');
+// 🆕 FUNCIÓN PARA EDITAR APOYO
+async function editarApoyo(apoyoId) {
+    console.log('✏️ Editando apoyo ID:', apoyoId);
     
-    // En lugar de renderizar directamente, usamos la función de filtros
-    // Esto mostrará todos los apoyos inicialmente
-    mostrarApoyosFiltrados(appState.apoyos);
-}
+    const apoyo = appState.apoyos.find(a => a.id === apoyoId);
+    if (!apoyo) {
+        mostrarNotificacion('❌ Apoyo no encontrado', 'error');
+        return;
+    }
+    
+    // Mostrar formulario de apoyo
+    mostrarFormApoyo();
+    
+    // Esperar a que el formulario se cargue
+    setTimeout(async () => {
+        try {
+      function renderizarApoyos() {
+    const tbody = document.getElementById('apoyos-body');
+    if (!tbody) {
+        console.log('❌ Tabla de apoyos no encontrada');
+        return;
+    }
     
     tbody.innerHTML = '';
     
@@ -655,19 +669,9 @@ function renderizarApoyos() {
             <td>${apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}</td>
             <td>${new Date(apoyo.fecha).toLocaleDateString()}</td>
             <td class="actions">
-                <!-- 🆕 BOTONES DE ACCIÓN COMPLETOS -->
-                <button class="edit" onclick="editarApoyo(${apoyo.id})" 
-                        style="background: #f39c12; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px; font-size: 0.8em;">
-                    ✏️ Editar
-                </button>
-                <button class="delete" onclick="eliminarApoyo(${apoyo.id})" 
-                        style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px; font-size: 0.8em;">
-                    🗑️ Eliminar
-                </button>
-                <button class="constancia" onclick="generarConstanciaApoyo(${apoyo.id})"
-                        style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px; font-size: 0.8em;">
-                    📄 Constancia
-                </button>
+                <button class="edit" onclick="editarApoyo(${apoyo.id})">✏️ Editar</button>
+                <button class="delete" onclick="eliminarApoyo(${apoyo.id})">🗑️ Eliminar</button>
+                <button class="constancia" onclick="generarConstanciaApoyo(${apoyo.id})">📄 Constancia</button>
             </td>
         `;
         
@@ -676,23 +680,7 @@ function renderizarApoyos() {
     
     console.log('✅ Apoyos renderizados con acciones:', appState.apoyos.length);
 }
-
-// 🆕 FUNCIÓN PARA EDITAR APOYO
-async function editarApoyo(apoyoId) {
-    console.log('✏️ Editando apoyo ID:', apoyoId);
-    
-    const apoyo = appState.apoyos.find(a => a.id === apoyoId);
-    if (!apoyo) {
-        mostrarNotificacion('❌ Apoyo no encontrado', 'error');
-        return;
-    }
-    
-    // Mostrar formulario de apoyo
-    mostrarFormApoyo();
-    
-    // Esperar a que el formulario se cargue
-    setTimeout(async () => {
-        try {
+            
             // Cargar datos en el formulario
             document.getElementById('apoyo-dirigente').value = apoyo.dirigente_id;
             document.getElementById('apoyo-colaborador').value = apoyo.colaborador_id;
@@ -1766,6 +1754,7 @@ function inicializarFiltrosApoyosAvanzados() {
         }
     });
 }
+
 
 
 
