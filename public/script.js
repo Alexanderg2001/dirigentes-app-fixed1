@@ -1532,13 +1532,14 @@ function cargarCoordinadores() {
     }
 }
 
-// FUNCIÓN MEJORADA PARA FILTRAR DIRIGENTES
+// 🆕 FUNCIÓN MEJORADA PARA FILTRAR DIRIGENTES
 async function filtrarDirigentes() {
     const query = document.getElementById('buscar-dirigente')?.value.toLowerCase() || '';
     const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
     const participacion = document.getElementById('filtro-participacion')?.value || '';
+    const coordinador = document.getElementById('filtro-coordinador')?.value || ''; // 🆕 NUEVO
     
-    console.log('🔍 Filtros aplicados:', { query, corregimiento, participacion });
+    console.log('🔍 Filtros aplicados:', { query, corregimiento, participacion, coordinador });
     
     try {
         // Primero intentar con el servidor
@@ -1546,6 +1547,7 @@ async function filtrarDirigentes() {
         if (query) params.append('q', query);
         if (corregimiento) params.append('corregimiento', corregimiento);
         if (participacion) params.append('participacion', participacion);
+        if (coordinador) params.append('coordinador', coordinador); // 🆕 NUEVO
         
         const response = await fetch(`/api/dirigentes/buscar?${params}`);
         
@@ -1558,7 +1560,7 @@ async function filtrarDirigentes() {
     } catch (error) {
         console.log('🔄 Usando filtrado local:', error);
         // Fallback: filtrar localmente
-        filtrarDirigentesLocalmente(query, corregimiento, participacion);
+        filtrarDirigentesLocalmente(query, corregimiento, participacion, coordinador); // 🆕 ACTUALIZADO
     }
 }
 
@@ -2797,5 +2799,6 @@ function limpiarFiltros() {
     
     mostrarNotificacion('🧹 Filtros limpiados', 'success');
 }
+
 
 
