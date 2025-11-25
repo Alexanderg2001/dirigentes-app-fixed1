@@ -1508,6 +1508,131 @@ async function cargarDatos() {
     }
 }
 
+// 🆕 FUNCIONES PARA CONSTANCIAS
+
+// Función para generar constancia de dirigente
+function generarConstancia(dirigenteId) {
+    console.log('📄 Generando constancia para dirigente ID:', dirigenteId);
+    
+    // Abrir en nueva pestaña
+    const url = `/constancia/${dirigenteId}`;
+    window.open(url, '_blank');
+}
+
+// 🆕 FUNCIÓN PARA VER CONSTANCIA DE APOYO DESDE BÚSQUEDA PÚBLICA
+function verConstanciaApoyo(apoyoId) {
+    console.log('📄 Ver constancia de apoyo ID:', apoyoId);
+    
+    if (!appState.isAuthenticated) {
+        mostrarNotificacion('🔒 Debe iniciar sesión para ver constancias de apoyo', 'error');
+        return;
+    }
+    
+    const url = `/constancia-apoyo/${apoyoId}`;
+    window.open(url, '_blank');
+}
+
+// 🆕 FUNCIÓN PARA GENERAR CONSTANCIA DE APOYO DESDE GESTIÓN
+function generarConstanciaApoyo(apoyoId) {
+    console.log('📄 Generando constancia de apoyo ID:', apoyoId);
+    
+    const url = `/constancia-apoyo/${apoyoId}`;
+    window.open(url, '_blank');
+}
+
+// 🆕 FUNCIÓN PARA REGISTRAR APOYO DESDE VERIFICACIÓN (MEJORADA)
+function registrarApoyoDesdeVerificacion(dirigenteId, dirigenteNombre, dirigenteCedula) {
+    if (!appState.isAuthenticated) {
+        mostrarNotificacion('❌ Debe iniciar sesión para registrar apoyos', 'error');
+        document.getElementById('username').focus();
+        return;
+    }
+    
+    console.log('🎯 Registrando apoyo para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
+    
+    // Asegurar que el panel de administración esté visible
+    const adminPanel = document.getElementById('admin-panel');
+    if (adminPanel && adminPanel.classList.contains('hidden')) {
+        adminPanel.classList.remove('hidden');
+    }
+    
+    // Mostrar dashboard de dirigentes primero
+    mostrarDashboard('dirigentes');
+    
+    // Esperar un poco y luego hacer scroll a la sección de apoyos
+    setTimeout(() => {
+        const seccionApoyos = document.getElementById('gestion-apoyos');
+        if (seccionApoyos) {
+            // Hacer scroll suave a la sección de apoyos
+            seccionApoyos.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start'
+            });
+            
+            // Resaltar la sección
+            highlightSection('gestion-apoyos');
+            
+            // Esperar un poco más y abrir el formulario
+            setTimeout(() => {
+                mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula);
+            }, 800);
+        }
+    }, 300);
+}
+
+// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO CON DIRIGENTE PRECARGADO
+function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula) {
+    console.log('📝 Abriendo formulario para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
+    
+    const formApoyo = document.getElementById('form-apoyo');
+    if (!formApoyo) {
+        console.error('❌ No se encontró el formulario de apoyo');
+        return;
+    }
+    
+    // Mostrar formulario
+    formApoyo.classList.remove('hidden');
+    
+    // Configurar componentes básicos
+    configurarFechaAutomatica();
+    
+    // Esperar a que el select de dirigentes se cargue
+    const esperarSelect = setInterval(() => {
+        const selectDirigente = document.getElementById('apoyo-dirigente');
+        
+        if (selectDirigente && selectDirigente.options.length > 1) {
+            clearInterval(esperarSelect);
+            console.log('✅ Select de dirigentes cargado');
+            
+            // Buscar y seleccionar el dirigente
+            let encontrado = false;
+            for (let i = 0; i < selectDirigente.options.length; i++) {
+                const option = selectDirigente.options[i];
+                if (option.value == dirigenteId) {
+                    selectDirigente.value = dirigenteId;
+                    encontrado = true;
+                    console.log('✅ Dirigente seleccionado automáticamente:', dirigenteNombre);
+                    break;
+                }
+            }
+            
+            if (encontrado) {
+                mostrarNotificacion(`✅ Dirigente "${dirigenteNombre}" seleccionado`, 'success');
+            } else {
+                console.warn('⚠️ Dirigente no encontrado en select, mostrando manual');
+                mostrarNotificacion(`ℹ️ Busque manualmente a "${dirigenteNombre}"`, 'info');
+            }
+            
+        } else if (selectDirigente && selectDirigente.options.length <= 1) {
+            console.log('⏳ Esperando carga de dirigentes...');
+        }
+    }, 100);
+    
+    // Timeout de seguridad
+    setTimeout(() => {
+        clearInterval(esperarSelect);
+    }, 3000);
+}
 
 
 
