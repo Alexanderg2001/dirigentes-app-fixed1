@@ -405,15 +405,75 @@ async function eliminarDirigente(id) {
     }
 }
 
+// 🆕 FUNCIÓN CORREGIDA PARA EDITAR DIRIGENTE CON SCROLL
 function editarDirigente(id) {
+    console.log('✏️ Editando dirigente ID:', id);
+    
     const dirigente = appState.dirigentes.find(d => d.id === id);
     if (dirigente) {
-        mostrarFormDirigente(dirigente);
+        // Primero mostrar el dashboard de dirigentes
+        mostrarDashboard('dirigentes');
+        
+        // Esperar un poco y luego hacer scroll
+        setTimeout(() => {
+            const seccionGestion = document.getElementById('gestion-dirigentes');
+            if (seccionGestion) {
+                // Hacer scroll suave
+                seccionGestion.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start'
+                });
+                
+                // Resaltar la sección
+                highlightSection('gestion-dirigentes');
+                
+                // Esperar un poco más y abrir el formulario
+                setTimeout(() => {
+                    mostrarFormDirigente(dirigente);
+                }, 800);
+            }
+        }, 300);
+    } else {
+        mostrarNotificacion('❌ No se encontró el dirigente', 'error');
     }
 }
 
-function generarConstancia(id) {
-    window.open(`/constancia/${id}`, '_blank');
+// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO DE DIRIGENTE
+function mostrarFormDirigente(dirigente = null) {
+    const form = document.getElementById('form-dirigente');
+    const title = document.getElementById('form-title');
+    
+    if (!form) return;
+    
+    if (dirigente) {
+        title.textContent = 'Editar Dirigente';
+        document.getElementById('dirigente-id').value = dirigente.id;
+        document.getElementById('dirigente-nombre').value = dirigente.nombre;
+        document.getElementById('dirigente-cedula').value = dirigente.cedula;
+        document.getElementById('dirigente-telefono').value = dirigente.telefono || '';
+        document.getElementById('dirigente-corregimiento').value = dirigente.corregimiento;
+        document.getElementById('dirigente-comunidad').value = dirigente.comunidad;
+        document.getElementById('dirigente-coordinador').value = dirigente.coordinador;
+        document.getElementById('dirigente-participacion').value = dirigente.participacion;
+    } else {
+        title.textContent = 'Nuevo Dirigente';
+        document.getElementById('dirigente-form').reset();
+    }
+    
+    form.classList.remove('hidden');
+    
+    // Hacer scroll al formulario si no está visible
+    setTimeout(() => {
+        const formRect = form.getBoundingClientRect();
+        const isVisible = formRect.top >= 0 && formRect.bottom <= window.innerHeight;
+        
+        if (!isVisible) {
+            form.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center'
+            });
+        }
+    }, 100);
 }
 
 // FUNCIÓN PARA RENDERIZAR DIRIGENTES
@@ -1322,6 +1382,7 @@ async function cargarDatos() {
         mostrarNotificacion('Error al cargar los datos del sistema', 'error');
     }
 }
+
 
 
 
