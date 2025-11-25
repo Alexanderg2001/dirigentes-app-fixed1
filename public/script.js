@@ -1247,19 +1247,38 @@ async function filtrarDirigentes() {
 }
 
 function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
+    console.log('🔍 Filtros aplicados:', { 
+        query: query, 
+        corregimiento: corregimiento, 
+        participacion: participacion 
+    });
+    
     let dirigentesFiltrados = [...appState.dirigentes];
     
     if (query) {
+        const queryLower = query.toLowerCase().trim();
         dirigentesFiltrados = dirigentesFiltrados.filter(d => 
-            (d.nombre && d.nombre.toLowerCase().includes(query)) ||
+            (d.nombre && d.nombre.toLowerCase().includes(queryLower)) ||
             (d.cedula && d.cedula.includes(query)) ||
-            (d.comunidad && d.comunidad.toLowerCase().includes(query)) ||
-            (d.coordinador && d.coordinador.toLowerCase().includes(query))
+            (d.comunidad && d.comunidad.toLowerCase().includes(queryLower)) ||
+            (d.coordinador && d.coordinador.toLowerCase().includes(queryLower))
         );
     }
     
     if (corregimiento) {
-        dirigentesFiltrados = dirigentesFiltrados.filter(d => d.corregimiento === corregimiento);
+        console.log('🏘️ Filtrando por corregimiento (CON ESPACIOS):', `"${corregimiento}"`);
+        
+        dirigentesFiltrados = dirigentesFiltrados.filter(d => {
+            const corregimientoDirigente = d.corregimiento || '';
+            const coincide = corregimientoDirigente === corregimiento;
+            
+            // 🆕 DEBUG DETALLADO
+            console.log(`   Comparando: "${corregimientoDirigente}" === "${corregimiento}" → ${coincide}`);
+            
+            return coincide;
+        });
+        
+        console.log(`📋 Encontrados ${dirigentesFiltrados.length} dirigentes para "${corregimiento}"`);
     }
     
     if (participacion) {
@@ -1488,6 +1507,7 @@ async function cargarDatos() {
         mostrarNotificacion('Error al cargar los datos del sistema', 'error');
     }
 }
+
 
 
 
