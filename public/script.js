@@ -2837,6 +2837,35 @@ function limpiarFiltros() {
     mostrarNotificacion('🧹 Filtros limpiados', 'success');
 }
 
+// 🆕 CÓDIGO TEMPORAL PARA DIAGNOSTICAR (ELIMINAR DESPUÉS)
+console.log('🔧 Script.js cargado correctamente');
+
+// Verificar que las funciones existan
+console.log('✅ Función login existe:', typeof login);
+console.log('✅ Función cargarDatos existe:', typeof cargarDatos);
+
+// Agregar event listener directo al botón de login
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Página completamente cargada');
+    
+    const loginBtn = document.querySelector('#login-form button');
+    if (loginBtn) {
+        console.log('✅ Botón de login encontrado');
+        // Agregar event listener adicional por si acaso
+        loginBtn.addEventListener('click', function(e) {
+            console.log('🎯 Click detectado en botón login');
+            login();
+        });
+    } else {
+        console.error('❌ Botón de login NO encontrado');
+    }
+    
+    // Verificar que los campos de login existan
+    const usernameField = document.getElementById('username');
+    const passwordField = document.getElementById('password');
+    console.log('✅ Campo usuario existe:', !!usernameField);
+    console.log('✅ Campo contraseña existe:', !!passwordField);
+});
 
 
 
