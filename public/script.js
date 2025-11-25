@@ -560,9 +560,13 @@ async function registrarApoyo(event) {
     }
 }
 
+// 🆕 FUNCIÓN CORREGIDA PARA RENDERIZAR APOYOS CON BOTONES
 function renderizarApoyos() {
     const tbody = document.getElementById('apoyos-body');
-    if (!tbody) return;
+    if (!tbody) {
+        console.log('❌ Tabla de apoyos no encontrada');
+        return;
+    }
     
     tbody.innerHTML = '';
     
@@ -589,6 +593,15 @@ function renderizarApoyos() {
             <td>${apoyo.monto ? `$${parseFloat(apoyo.monto).toFixed(2)}` : '-'}</td>
             <td>${new Date(apoyo.fecha).toLocaleDateString()}</td>
             <td class="actions">
+                <!-- 🆕 BOTONES DE ACCIÓN COMPLETOS -->
+                <button class="edit" onclick="editarApoyo(${apoyo.id})" 
+                        style="background: #f39c12; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px; font-size: 0.8em;">
+                    ✏️ Editar
+                </button>
+                <button class="delete" onclick="eliminarApoyo(${apoyo.id})" 
+                        style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px; font-size: 0.8em;">
+                    🗑️ Eliminar
+                </button>
                 <button class="constancia" onclick="generarConstanciaApoyo(${apoyo.id})"
                         style="background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin: 2px; font-size: 0.8em;">
                     📄 Constancia
@@ -598,10 +611,208 @@ function renderizarApoyos() {
         
         tbody.appendChild(tr);
     });
+    
+    console.log('✅ Apoyos renderizados con acciones:', appState.apoyos.length);
 }
 
-function generarConstanciaApoyo(apoyoId) {
-    window.open(`/constancia-apoyo/${apoyoId}`, '_blank');
+// 🆕 FUNCIÓN PARA EDITAR APOYO
+async function editarApoyo(apoyoId) {
+    console.log('✏️ Editando apoyo ID:', apoyoId);
+    
+    const apoyo = appState.apoyos.find(a => a.id === apoyoId);
+    if (!apoyo) {
+        mostrarNotificacion('❌ Apoyo no encontrado', 'error');
+        return;
+    }
+    
+    // Mostrar formulario de apoyo
+    mostrarFormApoyo();
+    
+    // Esperar a que el formulario se cargue
+    setTimeout(async () => {
+        try {
+            // Cargar datos en el formulario
+            document.getElementById('apoyo-dirigente').value = apoyo.dirigente_id;
+            document.getElementById('apoyo-colaborador').value = apoyo.colaborador_id;
+            document.getElementById('apoyo-tipo').value = apoyo.tipo;
+            document.getElementById('apoyo-descripcion').value = apoyo.descripcion || '';
+            document.getElementById('apoyo-monto').value = apoyo.monto || '';
+            
+            // Configurar fecha
+            const fecha = new Date(apoyo.fecha);
+            const fechaFormateada = fecha.toISOString().split('T')[0];
+            document.getElementById('apoyo-fecha').value = fechaFormateada;
+            
+            // Cambiar el comportamiento del formulario para actualizar
+            const form = document.getElementById('apoyo-form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            // Guardar el ID del apoyo que estamos editando
+            form.dataset.editingApoyoId = apoyoId;
+            
+            // Cambiar texto del botón
+            submitBtn.textContent = '💾 Actualizar Apoyo';
+            submitBtn.style.background = '#f39c12';
+            
+            console.log('✅ Formulario listo para editar apoyo:', apoyo);
+            
+        } catch (error) {
+            console.error('❌ Error al preparar edición:', error);
+            mostrarNotificacion('❌ Error al cargar datos para editar', 'error');
+        }
+    }, 500);
+}
+
+// 🆕 FUNCIÓN PARA ELIMINAR APOYO
+async function eliminarApoyo(apoyoId) {
+    console.log('🗑️ Intentando eliminar apoyo ID:', apoyoId);
+    
+    const apoyo = appState.apoyos.find(a => a.id === apoyoId);
+    if (!apoyo) {
+        mostrarNotificacion('❌ Apoyo no encontrado', 'error');
+        return;
+    }
+    
+    const confirmacion = confirm(
+        `¿Está seguro de que desea ELIMINAR este apoyo?\n\n` +
+        `📋 Dirigente: ${apoyo.dirigente_nombre || 'Desconocido'}\n` +
+        `💰 Monto: $${apoyo.monto ? parseFloat(apoyo.monto).toFixed(2) : '0.00'}\n` +
+        `📅 Fecha: ${new Date(apoyo.fecha).toLocaleDateString()}\n\n` +
+        `⚠️ Esta acción NO se puede deshacer.`
+    );
+    
+    if (!confirmacion) {
+        console.log('❌ Eliminación cancelada por el usuario');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/apoyos/${apoyoId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Eliminar de los datos locales
+            appState.apoyos = appState.apoyos.filter(a => a.id !== apoyoId);
+            
+            // Actualizar la tabla
+            renderizarApoyos();
+            
+            // Actualizar dashboard
+            await cargarDashboard();
+            
+            mostrarNotificacion('✅ Apoyo eliminado exitosamente', 'success');
+            console.log('✅ Apoyo eliminado:', apoyoId);
+            
+        } else {
+            mostrarNotificacion(`❌ Error: ${data.error || 'No se pudo eliminar el apoyo'}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('💥 Error de conexión al eliminar apoyo:', error);
+        mostrarNotificacion('❌ Error de conexión al eliminar apoyo', 'error');
+    }
+}
+
+// 🆕 MODIFICAR LA FUNCIÓN registrarApoyo PARA SOPORTAR EDICIÓN
+async function registrarApoyo(event) {
+    event.preventDefault();
+    
+    const form = document.getElementById('apoyo-form');
+    const isEditing = form.dataset.editingApoyoId;
+    
+    const dirigenteId = document.getElementById('apoyo-dirigente').value;
+    const colaboradorId = document.getElementById('apoyo-colaborador').value;
+    const tipo = document.getElementById('apoyo-tipo').value;
+    const descripcion = document.getElementById('apoyo-descripcion').value;
+    const monto = document.getElementById('apoyo-monto').value;
+    const fecha = document.getElementById('apoyo-fecha').value;
+    
+    // Validaciones
+    if (!dirigenteId) {
+        mostrarNotificacion('❌ Debe seleccionar un dirigente', 'error');
+        return;
+    }
+    
+    if (!colaboradorId) {
+        mostrarNotificacion('❌ Debe seleccionar un colaborador', 'error');
+        return;
+    }
+    
+    if (!tipo) {
+        mostrarNotificacion('❌ Debe seleccionar el tipo de apoyo', 'error');
+        return;
+    }
+    
+    if (!monto || isNaN(parseFloat(monto)) || parseFloat(monto) <= 0) {
+        mostrarNotificacion('❌ Debe ingresar un monto válido mayor a 0', 'error');
+        return;
+    }
+    
+    const montoNumerico = parseFloat(monto);
+    const apoyoData = {
+        dirigente_id: dirigenteId,
+        colaborador_id: colaboradorId,
+        tipo,
+        descripcion: descripcion || `Apoyo ${tipo} registrado`,
+        monto: montoNumerico,
+        fecha: fecha
+    };
+    
+    try {
+        let response;
+        
+        if (isEditing) {
+            // 🆕 MODO EDICIÓN - Actualizar apoyo existente
+            console.log('✏️ Actualizando apoyo ID:', isEditing);
+            response = await fetch(`/api/apoyos/${isEditing}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(apoyoData)
+            });
+        } else {
+            // MODO NUEVO - Crear nuevo apoyo
+            console.log('🆕 Creando nuevo apoyo');
+            response = await fetch('/api/apoyos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(apoyoData)
+            });
+        }
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            const mensaje = isEditing ? 
+                `✅ Apoyo actualizado exitosamente por $${montoNumerico.toFixed(2)}` :
+                `✅ Apoyo ${tipo} registrado exitosamente por $${montoNumerico.toFixed(2)}`;
+            
+            mostrarNotificacion(mensaje, 'success');
+            
+            // Limpiar formulario
+            ocultarFormApoyo();
+            form.reset();
+            
+            // 🆕 Limpiar modo edición
+            delete form.dataset.editingApoyoId;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.textContent = 'Registrar';
+            submitBtn.style.background = '';
+            
+            // Recargar datos
+            await cargarApoyos();
+            await cargarDashboard();
+            
+        } else {
+            const mensajeError = data.error || (isEditing ? 'Error al actualizar el apoyo' : 'Error al registrar el apoyo');
+            mostrarNotificacion(`❌ ${mensajeError}`, 'error');
+        }
+    } catch (error) {
+        console.error('💥 Error de conexión:', error);
+        mostrarNotificacion('❌ Error de conexión con el servidor', 'error');
+    }
 }
 
 // 🆕 FUNCIÓN CORREGIDA PARA BUSCAR DIRIGENTE CON HISTORIAL
@@ -1111,5 +1322,6 @@ async function cargarDatos() {
         mostrarNotificacion('Error al cargar los datos del sistema', 'error');
     }
 }
+
 
 
