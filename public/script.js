@@ -217,7 +217,7 @@ async function cargarDatos() {
             inicializarFiltros();
             cargarCorregimientos();
             actualizarSelectDirigentes();
-            inicializarFiltrosApoyos();
+            // inicializarFiltrosApoyos();
             mostrarDashboard('dirigentes');
             console.log('✅ Todos los componentes inicializados');
         }, 100);
@@ -1766,6 +1766,7 @@ function inicializarFiltrosApoyosAvanzados() {
         }
     });
 }
+
 
 
 
