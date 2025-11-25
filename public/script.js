@@ -658,9 +658,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Event listeners configurados');
 });
 
-// FUNCIÓN LOGIN SUPER SEGURA
+// 🆕 FUNCIÓN LOGIN CORREGIDA Y MEJORADA
 async function login() {
-    console.log('🔄 Botón login presionado');
+    console.log('🔄 Botón login presionado - INICIANDO...');
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
@@ -670,18 +670,24 @@ async function login() {
         return;
     }
     
+    // 🆕 MOSTRAR INDICADOR DE CARGA
+    const loginBtn = document.querySelector('#login-form button');
+    const originalText = loginBtn.textContent;
+    loginBtn.textContent = '⏳ Iniciando sesión...';
+    loginBtn.disabled = true;
+    
     try {
-        console.log('📡 Enviando credenciales...');
+        console.log('📡 Enviando credenciales al servidor...');
         const response = await fetch('/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
         
-        console.log('📨 Respuesta recibida:', response.status);
+        console.log('📨 Respuesta del servidor recibida:', response.status);
         
         const data = await response.json();
-        console.log('📊 Datos respuesta:', data);
+        console.log('📊 Datos de respuesta:', data);
         
         if (data.success) {
             appState.isAuthenticated = true;
@@ -696,8 +702,12 @@ async function login() {
             mostrarNotificacion(data.error || 'Credenciales incorrectas', 'error');
         }
     } catch (error) {
-        console.error('💥 Error en login:', error);
-        mostrarNotificacion('Error al conectar con el servidor', 'error');
+        console.error('💥 Error grave en login:', error);
+        mostrarNotificacion('Error al conectar con el servidor. Verifica tu conexión.', 'error');
+    } finally {
+        // 🆕 RESTAURAR BOTÓN
+        loginBtn.textContent = originalText;
+        loginBtn.disabled = false;
     }
 }
 
@@ -2826,6 +2836,7 @@ function limpiarFiltros() {
     
     mostrarNotificacion('🧹 Filtros limpiados', 'success');
 }
+
 
 
 
