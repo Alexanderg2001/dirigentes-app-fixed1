@@ -217,8 +217,10 @@ async function cargarDatos() {
             inicializarFiltros();
             cargarCorregimientos();
             actualizarSelectDirigentes();
-            // inicializarFiltrosApoyos();
             mostrarDashboard('dirigentes');
+            // 🆕 NUEVA LÍNEA - Agregar esto AL FINAL:
+            setTimeout(inicializarFiltrosApoyos, 500);
+            
             console.log('✅ Todos los componentes inicializados');
         }, 100);
         
@@ -1799,3 +1801,4 @@ function limpiarFiltrosApoyos() {
     mostrarApoyosFiltrados(appState.apoyos);
     mostrarNotificacion('✅ Filtros limpiados - Mostrando todos los apoyos', 'success');
 }
+
