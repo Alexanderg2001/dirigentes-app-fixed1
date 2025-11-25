@@ -1627,7 +1627,6 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
 }
 
 // 🆕 FUNCIONES DE FILTROS PARA APOYOS - PEGAR AL FINAL DEL ARCHIVO
-
 function inicializarFiltrosApoyos() {
     console.log('🔄 Inicializando filtros para apoyos...');
     
@@ -1700,6 +1699,9 @@ function inicializarFiltrosApoyos() {
     listaApoyos.insertAdjacentHTML('afterbegin', filtrosHTML);
     
     console.log('✅ Filtros de apoyos instalados correctamente');
+    
+    // 🆕 NUEVA LÍNEA - Mostrar los apoyos después de instalar filtros
+    mostrarApoyosFiltrados(appState.apoyos);
 }
 
 function aplicarFiltrosApoyos() {
@@ -1801,4 +1803,5 @@ function limpiarFiltrosApoyos() {
     mostrarApoyosFiltrados(appState.apoyos);
     mostrarNotificacion('✅ Filtros limpiados - Mostrando todos los apoyos', 'success');
 }
+
 
