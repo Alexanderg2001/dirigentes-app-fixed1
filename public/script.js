@@ -943,3 +943,107 @@ window.addEventListener('error', function(e) {
 });
 
 console.log('✅ Script.js cargado correctamente');
+
+// 🆕 FUNCIÓN CORREGIDA PARA CARGAR DASHBOARD
+async function cargarDashboard() {
+    if (!appState.isAuthenticated) return;
+    
+    console.log('📊 Cargando dashboard...');
+    
+    try {
+        const response = await fetch('/api/estadisticas');
+        console.log('📡 Respuesta de estadísticas:', response.status);
+        
+        if (response.ok) {
+            const estadisticas = await response.json();
+            console.log('📈 Estadísticas recibidas:', estadisticas);
+            actualizarDashboard(estadisticas);
+        } else {
+            console.log('🔄 Usando cálculo local de estadísticas');
+            calcularEstadisticasLocales();
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar dashboard:', error);
+        calcularEstadisticasLocales();
+    }
+}
+
+// 🆕 FUNCIÓN MEJORADA PARA ACTUALIZAR DASHBOARD
+function actualizarDashboard(estadisticas) {
+    console.log('🎯 Actualizando dashboard con:', estadisticas);
+    
+    // Total de dirigentes
+    const totalDirigentes = estadisticas.totalDirigentes || appState.dirigentes.length;
+    document.getElementById('total-dirigentes').textContent = totalDirigentes;
+    console.log('👥 Total dirigentes:', totalDirigentes);
+    
+    // Total de apoyos
+    const totalApoyos = estadisticas.totalApoyos || appState.apoyos.length;
+    document.getElementById('total-apoyos').textContent = totalApoyos;
+    console.log('📦 Total apoyos:', totalApoyos);
+    
+    // Buena participación
+    let buenaParticipacion = 0;
+    if (estadisticas.participacion && Array.isArray(estadisticas.participacion)) {
+        const buena = estadisticas.participacion.find(p => p.participacion === 'buena');
+        buenaParticipacion = buena ? buena.total : 0;
+    } else {
+        buenaParticipacion = appState.dirigentes.filter(d => d.participacion === 'buena').length;
+    }
+    document.getElementById('buena-participacion').textContent = buenaParticipacion;
+    console.log('⭐ Buena participación:', buenaParticipacion);
+    
+    // Monto total
+    let totalMonto = 0;
+    if (estadisticas.totalMontoGeneral !== undefined) {
+        totalMonto = estadisticas.totalMontoGeneral;
+    } else if (estadisticas.apoyos && Array.isArray(estadisticas.apoyos)) {
+        totalMonto = estadisticas.apoyos.reduce((sum, apoyo) => sum + (apoyo.total_monto || 0), 0);
+    } else {
+        totalMonto = appState.apoyos.reduce((sum, apoyo) => sum + (parseFloat(apoyo.monto) || 0), 0);
+    }
+    
+    document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
+    console.log('💰 Monto total:', totalMonto);
+}
+
+// 🆕 REEMPLAZA la función cargarDatos con esta versión corregida:
+async function cargarDatos() {
+    if (!appState.isAuthenticated) return;
+    
+    console.log('📥 Cargando todos los datos...');
+    
+    try {
+        // Cargar datos en paralelo para mayor velocidad
+        await Promise.all([
+            cargarDirigentes(),
+            cargarColaboradores(), 
+            cargarApoyos()
+        ]);
+        
+        console.log('✅ Datos básicos cargados');
+        
+        // Cargar dashboard después de tener los datos
+        await cargarDashboard();
+        
+        // Inicializar componentes
+        setTimeout(() => {
+            renderizarDirigentes();
+            inicializarFiltros();
+            cargarCorregimientos();
+            actualizarSelectDirigentes();
+            mostrarDashboard('dirigentes');
+            
+            console.log('🎉 Todos los componentes inicializados');
+            console.log('📊 Resumen final:');
+            console.log('- Dirigentes:', appState.dirigentes.length);
+            console.log('- Apoyos:', appState.apoyos.length);
+            console.log('- Colaboradores:', appState.colaboradores.length);
+        }, 200);
+        
+    } catch (error) {
+        console.error('❌ Error al cargar datos:', error);
+        mostrarNotificacion('Error al cargar los datos del sistema', 'error');
+    }
+}
+
