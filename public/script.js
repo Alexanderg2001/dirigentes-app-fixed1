@@ -1622,10 +1622,15 @@ function mostrarDirigentesFiltrados(dirigentesFiltrados) {
     console.log('✅ Mostrando', dirigentesFiltrados.length, 'dirigentes filtrados');
 }
 
-// FUNCIÓN MEJORADA PARA FILTRADO LOCAL
-function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
+// 🆕 FUNCIÓN ACTUALIZADA PARA FILTRADO LOCAL
+function filtrarDirigentesLocalmente(query, corregimiento, participacion, coordinador) {
     
-    console.log('🔍 FILTRANDO con', appState.dirigentes.length, 'dirigentes totales');
+    console.log('🔍 FILTRANDO con:', {
+        query, 
+        corregimiento, 
+        participacion, 
+        coordinador // 🆕 NUEVO FILTRO
+    });
     
     let dirigentesFiltrados = [...appState.dirigentes];
     
@@ -1637,7 +1642,7 @@ function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
             (d.nombre && d.nombre.toLowerCase().includes(query)) ||
             (d.cedula && d.cedula.includes(query)) ||
             (d.comunidad && d.comunidad.toLowerCase().includes(query)) ||
-            (d.coordinador && d.coordinador.toLowerCase().includes(query))
+            (d.coordinador && d.coordinador.toLowerCase().includes(query)) // 🆕 BUSCAR TAMBIÉN EN COORDINADOR
         );
         console.log('📝 Después de búsqueda:', dirigentesFiltrados.length);
     }
@@ -1656,6 +1661,14 @@ function filtrarDirigentesLocalmente(query, corregimiento, participacion) {
             d.participacion && d.participacion === participacion
         );
         console.log('⭐ Después de participación:', dirigentesFiltrados.length);
+    }
+    
+    // 🆕 FILTRO POR COORDINADOR
+    if (coordinador) {
+        dirigentesFiltrados = dirigentesFiltrados.filter(d => 
+            d.coordinador && d.coordinador === coordinador
+        );
+        console.log('👥 Después de coordinador:', dirigentesFiltrados.length);
     }
     
     mostrarDirigentesFiltrados(dirigentesFiltrados);
@@ -2784,4 +2797,5 @@ function limpiarFiltros() {
     
     mostrarNotificacion('🧹 Filtros limpiados', 'success');
 }
+
 
