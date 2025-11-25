@@ -1634,6 +1634,136 @@ function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCed
     }, 3000);
 }
 
+// 🆕 FILTROS AVANZADOS - Versión más completa
+function inicializarFiltrosApoyosAvanzados() {
+    console.log('🔄 Inicializando filtros avanzados para apoyos...');
+    
+    const listaApoyos = document.getElementById('lista-apoyos');
+    if (!listaApoyos) return;
+    
+    const filtrosHTML = `
+        <div class="filtros-apoyos" style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e9ecef;">
+            <h3 style="margin-bottom: 15px; color: #2c3e50;">🔍 Filtros Avanzados de Apoyos</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <!-- Filtro por tipo -->
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                        📦 Tipo de Apoyo:
+                    </label>
+                    <select id="filtro-tipo-apoyo" style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+                        <option value="">Todos los tipos</option>
+                        <option value="economico">Económico</option>
+                        <option value="viveres">Víveres</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por colaborador -->
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                        👤 Colaborador:
+                    </label>
+                    <select id="filtro-colaborador-apoyo" style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+                        <option value="">Todos los colaboradores</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por monto -->
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                        💰 Monto mínimo:
+                    </label>
+                    <input type="number" id="filtro-monto-min" placeholder="Monto mínimo" 
+                           style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                        💰 Monto máximo:
+                    </label>
+                    <input type="number" id="filtro-monto-max" placeholder="Monto máximo" 
+                           style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 15px; align-items: end;">
+                <!-- Filtro por fecha -->
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                        📅 Desde:
+                    </label>
+                    <input type="date" id="filtro-fecha-desde" style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                        📅 Hasta:
+                    </label>
+                    <input type="date" id="filtro-fecha-hasta" style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <!-- Buscador por nombre -->
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #2c3e50;">
+                        🔍 Buscar dirigente:
+                    </label>
+                    <input type="text" id="filtro-nombre-apoyo" placeholder="Nombre o cédula..." 
+                           style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+                </div>
+                
+                <!-- Botones -->
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="aplicarFiltrosApoyosAvanzados()" 
+                            style="background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                        🔍 Aplicar
+                    </button>
+                    <button onclick="limpiarFiltrosApoyosAvanzados()" 
+                            style="background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                        🗑️ Limpiar
+                    </button>
+                    <button onclick="exportarApoyosFiltrados()" 
+                            style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                        📊 Exportar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Información y estadísticas -->
+            <div id="info-filtros-apoyos" class="info-resultados" style="display: none; margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <p style="margin: 0;">
+                        📋 Mostrando <span id="contador-apoyos-filtrados">0</span> de <span id="total-apoyos-registrados">0</span> apoyos |
+                        💰 Total filtrado: $<span id="total-monto-filtrado">0.00</span>
+                    </p>
+                    <button onclick="mostrarEstadisticasApoyos()" class="btn-ver-todos">
+                        📈 Ver Estadísticas
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    listaApoyos.insertAdjacentHTML('afterbegin', filtrosHTML);
+    cargarSelectColaboradores();
+    
+    // Event listeners
+    const elementosFiltro = [
+        'filtro-tipo-apoyo', 'filtro-colaborador-apoyo', 'filtro-monto-min', 
+        'filtro-monto-max', 'filtro-fecha-desde', 'filtro-fecha-hasta', 'filtro-nombre-apoyo'
+    ];
+    
+    elementosFiltro.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.addEventListener('change', aplicarFiltrosApoyosAvanzados);
+            elemento.addEventListener('input', function() {
+                clearTimeout(this.buscarTimeout);
+                this.buscarTimeout = setTimeout(aplicarFiltrosApoyosAvanzados, 500);
+            });
+        }
+    });
+}
 
 
 
