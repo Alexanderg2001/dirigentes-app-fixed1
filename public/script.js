@@ -1498,6 +1498,40 @@ async function cargarCorregimientos() {
     console.log('✅ Corregimientos fijos cargados:', corregimientosFijos.length);
 }
 
+// 🆕 FUNCIÓN PARA CARGAR COORDINADORES ÚNICOS
+function cargarCoordinadores() {
+    console.log('👥 Cargando lista de coordinadores...');
+    
+    // Obtener coordinadores únicos de los dirigentes
+    const coordinadores = [...new Set(appState.dirigentes.map(d => d.coordinador).filter(Boolean))].sort();
+    const selectCoordinador = document.getElementById('filtro-coordinador');
+    
+    if (selectCoordinador) {
+        // Guardar selección actual antes de limpiar
+        const seleccionActual = selectCoordinador.value;
+        
+        // Limpiar y agregar opciones
+        selectCoordinador.innerHTML = '<option value="">Todos los coordinadores</option>';
+        coordinadores.forEach(coordinador => {
+            const option = document.createElement('option');
+            option.value = coordinador;
+            option.textContent = coordinador;
+            selectCoordinador.appendChild(option);
+        });
+        
+        // 🆕 RESTAURAR SELECCIÓN GUARDADA
+        const filtrosGuardados = obtenerFiltrosGuardados();
+        if (filtrosGuardados.coordinador) {
+            selectCoordinador.value = filtrosGuardados.coordinador;
+        } else if (seleccionActual && coordinadores.includes(seleccionActual)) {
+            // Si había una selección y todavía existe, mantenerla
+            selectCoordinador.value = seleccionActual;
+        }
+        
+        console.log('✅ Coordinadores cargados:', coordinadores.length);
+    }
+}
+
 // FUNCIÓN MEJORADA PARA FILTRAR DIRIGENTES
 async function filtrarDirigentes() {
     const query = document.getElementById('buscar-dirigente')?.value.toLowerCase() || '';
@@ -2676,4 +2710,5 @@ async function registrarApoyo(event) {
         mostrarNotificacion('❌ Error de conexión con el servidor', 'error');
     }
 }
+
 
