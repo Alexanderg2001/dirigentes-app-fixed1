@@ -2926,6 +2926,21 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🔍 Función login disponible:', typeof login);
 });
 
+// 🆕 CONFIGURACIÓN DE SEGURIDAD - AGREGAR AL FINAL
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Página cargada - función login disponible:', typeof login);
+    
+    // Verificar que el botón de login funciona
+    const loginBtn = document.querySelector('#login-form button');
+    if (loginBtn) {
+        console.log('✅ Botón de login encontrado');
+        // Agregar event listener adicional por seguridad
+        loginBtn.addEventListener('click', function(e) {
+            console.log('🎯 Click en botón login detectado');
+            login();
+        });
+    }
+});
 
 
 
