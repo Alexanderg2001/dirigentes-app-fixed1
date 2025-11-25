@@ -1010,13 +1010,114 @@ async function buscarDirigente() {
     }
 }
 
+// 🆕 FUNCIÓN CORREGIDA PARA REGISTRAR APOYO DESDE VERIFICACIÓN
 function registrarApoyoDesdeVerificacion(dirigenteId, dirigenteNombre, dirigenteCedula) {
     if (!appState.isAuthenticated) {
         mostrarNotificacion('❌ Debe iniciar sesión para registrar apoyos', 'error');
+        document.getElementById('username').focus();
         return;
     }
     
-    mostrarFormApoyo(dirigenteId, dirigenteNombre);
+    console.log('🎯 Registrando apoyo para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
+    
+    // Asegurar que el panel de administración esté visible
+    const adminPanel = document.getElementById('admin-panel');
+    if (adminPanel && adminPanel.classList.contains('hidden')) {
+        adminPanel.classList.remove('hidden');
+    }
+    
+    // Mostrar dashboard de dirigentes primero
+    mostrarDashboard('dirigentes');
+    
+    // Esperar un poco y luego hacer scroll a la sección de apoyos
+    setTimeout(() => {
+        const seccionApoyos = document.getElementById('gestion-apoyos');
+        if (seccionApoyos) {
+            // Hacer scroll suave a la sección de apoyos
+            seccionApoyos.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start'
+            });
+            
+            // Resaltar la sección
+            highlightSection('gestion-apoyos');
+            
+            // Esperar un poco más y abrir el formulario
+            setTimeout(() => {
+                mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula);
+            }, 800);
+        }
+    }, 300);
+}
+
+// 🆕 FUNCIÓN MEJORADA PARA MOSTRAR FORMULARIO CON SCROLL
+function mostrarFormApoyoConDirigente(dirigenteId, dirigenteNombre, dirigenteCedula) {
+    console.log('📝 Abriendo formulario para:', { dirigenteId, dirigenteNombre, dirigenteCedula });
+    
+    const formApoyo = document.getElementById('form-apoyo');
+    if (!formApoyo) {
+        console.error('❌ No se encontró el formulario de apoyo');
+        return;
+    }
+    
+    // Mostrar formulario
+    formApoyo.classList.remove('hidden');
+    
+    // Configurar componentes básicos
+    configurarFechaAutomatica();
+    
+    // Esperar a que el select de dirigentes se cargue
+    const esperarSelect = setInterval(() => {
+        const selectDirigente = document.getElementById('apoyo-dirigente');
+        
+        if (selectDirigente && selectDirigente.options.length > 1) {
+            clearInterval(esperarSelect);
+            console.log('✅ Select de dirigentes cargado');
+            
+            // Buscar y seleccionar el dirigente
+            let encontrado = false;
+            for (let i = 0; i < selectDirigente.options.length; i++) {
+                const option = selectDirigente.options[i];
+                if (option.value == dirigenteId) {
+                    selectDirigente.value = dirigenteId;
+                    encontrado = true;
+                    console.log('✅ Dirigente seleccionado automáticamente');
+                    break;
+                }
+            }
+            
+            if (encontrado) {
+                mostrarNotificacion(`✅ Dirigente "${dirigenteNombre}" seleccionado`, 'success');
+            } else {
+                mostrarNotificacion(`ℹ️ Busque manualmente a "${dirigenteNombre}"`, 'info');
+            }
+            
+        } else if (selectDirigente && selectDirigente.options.length <= 1) {
+            console.log('⏳ Esperando carga de dirigentes...');
+        }
+    }, 100);
+    
+    // Timeout de seguridad
+    setTimeout(() => {
+        clearInterval(esperarSelect);
+    }, 3000);
+}
+
+// 🆕 FUNCIÓN PARA RESALTAR SECCIÓN
+function highlightSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        // Aplicar resaltado
+        section.style.border = '3px solid #9b59b6';
+        section.style.boxShadow = '0 0 20px rgba(155, 89, 182, 0.3)';
+        section.style.transition = 'all 0.5s ease';
+        
+        // Quitar el resaltado después de 3 segundos
+        setTimeout(() => {
+            section.style.border = '';
+            section.style.boxShadow = '';
+        }, 3000);
+    }
 }
 
 function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
@@ -1382,6 +1483,7 @@ async function cargarDatos() {
         mostrarNotificacion('Error al cargar los datos del sistema', 'error');
     }
 }
+
 
 
 
