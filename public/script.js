@@ -8,6 +8,7 @@ let appState = {
     userRol: null
 };
 
+// FUNCIÓN LOGIN
 async function login() {
     console.log('🔄 Botón login presionado');
     const username = document.getElementById('username').value;
@@ -31,7 +32,6 @@ async function login() {
             appState.isAuthenticated = true;
             appState.userRol = data.rol;
             actualizarUI();
-            await cargarDatos();
             mostrarNotificacion(`Sesión iniciada como ${data.rol}`, 'success');
         } else {
             mostrarNotificacion(data.error || 'Credenciales incorrectas', 'error');
@@ -41,6 +41,7 @@ async function login() {
     }
 }
 
+// FUNCIÓN LOGOUT
 async function logout() {
     try {
         await fetch('/logout');
@@ -58,6 +59,7 @@ function checkAuthStatus() {
     actualizarUI();
 }
 
+// ACTUALIZAR UI
 function actualizarUI() {
     const loginForm = document.getElementById('login-form');
     const userInfo = document.getElementById('user-info');
@@ -70,6 +72,9 @@ function actualizarUI() {
             document.getElementById('welcome-message').textContent = `Bienvenido, ${appState.userRol}`;
         }
         if (adminPanel) adminPanel.classList.remove('hidden');
+        
+        // Cargar datos después de iniciar sesión
+        cargarDatos();
     } else {
         if (loginForm) loginForm.classList.remove('hidden');
         if (userInfo) userInfo.classList.add('hidden');
@@ -77,15 +82,98 @@ function actualizarUI() {
     }
 }
 
+// CARGAR DASHBOARD (CORREGIDA)
+async function cargarDashboard() {
+    if (!appState.isAuthenticated) return;
+    
+    console.log('📊 Cargando dashboard...');
+    
+    try {
+        const response = await fetch('/api/estadisticas');
+        
+        if (response.ok) {
+            const estadisticas = await response.json();
+            console.log('📈 Estadísticas recibidas:', estadisticas);
+            
+            // Total de dirigentes
+            const totalDirigentes = estadisticas.totalDirigentes || appState.dirigentes.length;
+            document.getElementById('total-dirigentes').textContent = totalDirigentes;
+            
+            // Total de apoyos
+            const totalApoyos = estadisticas.totalApoyos || appState.apoyos.length;
+            document.getElementById('total-apoyos').textContent = totalApoyos;
+            
+            // Buena participación
+            let buenaParticipacion = 0;
+            if (estadisticas.participacion && Array.isArray(estadisticas.participacion)) {
+                const buena = estadisticas.participacion.find(p => p.participacion === 'buena');
+                buenaParticipacion = buena ? buena.total : 0;
+            } else {
+                buenaParticipacion = appState.dirigentes.filter(d => d.participacion === 'buena').length;
+            }
+            document.getElementById('buena-participacion').textContent = buenaParticipacion;
+            
+            // Monto total
+            let totalMonto = 0;
+            if (estadisticas.totalMontoGeneral !== undefined) {
+                totalMonto = estadisticas.totalMontoGeneral;
+            } else if (estadisticas.apoyos && Array.isArray(estadisticas.apoyos)) {
+                totalMonto = estadisticas.apoyos.reduce((sum, apoyo) => sum + (apoyo.total_monto || 0), 0);
+            } else {
+                totalMonto = appState.apoyos.reduce((sum, apoyo) => sum + (parseFloat(apoyo.monto) || 0), 0);
+            }
+            document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
+            
+            console.log('✅ Dashboard actualizado correctamente');
+        } else {
+            console.log('⚠️ Usando cálculo local de estadísticas');
+            calcularEstadisticasLocales();
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar dashboard:', error);
+        calcularEstadisticasLocales();
+    }
+}
+
+// CÁLCULO LOCAL DE ESTADÍSTICAS
+function calcularEstadisticasLocales() {
+    console.log('📊 Calculando estadísticas localmente...');
+    
+    const totalDirigentes = appState.dirigentes.length;
+    const totalApoyos = appState.apoyos.length;
+    const buenaParticipacion = appState.dirigentes.filter(d => d.participacion === 'buena').length;
+    const totalMonto = appState.apoyos.reduce((sum, apoyo) => {
+        return sum + (parseFloat(apoyo.monto) || 0);
+    }, 0);
+    
+    document.getElementById('total-dirigentes').textContent = totalDirigentes;
+    document.getElementById('total-apoyos').textContent = totalApoyos;
+    document.getElementById('buena-participacion').textContent = buenaParticipacion;
+    document.getElementById('total-monto').textContent = `$${totalMonto.toFixed(2)}`;
+    
+    console.log('✅ Dashboard actualizado localmente:', { totalDirigentes, totalApoyos, buenaParticipacion, totalMonto });
+}
+
+// CARGAR DATOS PRINCIPAL
 async function cargarDatos() {
     if (!appState.isAuthenticated) return;
+    
+    console.log('📥 Cargando todos los datos...');
     
     try {
         await Promise.all([
             cargarDirigentes(),
-            cargarColaboradores(),
+            cargarColaboradores(), 
             cargarApoyos()
         ]);
+        
+        console.log('✅ Datos básicos cargados:', {
+            dirigentes: appState.dirigentes.length,
+            apoyos: appState.apoyos.length,
+            colaboradores: appState.colaboradores.length
+        });
+        
+        await cargarDashboard();
         
         setTimeout(() => {
             renderizarDirigentes();
@@ -94,13 +182,16 @@ async function cargarDatos() {
             actualizarSelectDirigentes();
             mostrarDashboard('dirigentes');
             setTimeout(inicializarFiltrosApoyos, 500);
+            console.log('🎉 Todos los componentes inicializados correctamente');
         }, 200);
         
     } catch (error) {
-        console.error('Error al cargar datos:', error);
+        console.error('❌ Error al cargar datos:', error);
+        mostrarNotificacion('Error al cargar los datos del sistema', 'error');
     }
 }
 
+// CARGAR DIRIGENTES
 async function cargarDirigentes() {
     try {
         const response = await fetch('/api/dirigentes/todos');
@@ -108,12 +199,14 @@ async function cargarDirigentes() {
             const data = await response.json();
             appState.dirigentes = data;
             appState.todosLosDirigentes = data;
+            console.log('✅ Dirigentes cargados:', data.length);
         }
     } catch (error) {
         console.error('Error al cargar dirigentes:', error);
     }
 }
 
+// CARGAR COLABORADORES
 async function cargarColaboradores() {
     try {
         const response = await fetch('/api/colaboradores');
@@ -121,12 +214,14 @@ async function cargarColaboradores() {
             const data = await response.json();
             appState.colaboradores = data;
             actualizarSelectColaboradores();
+            console.log('✅ Colaboradores cargados:', data.length);
         }
     } catch (error) {
         console.error('Error al cargar colaboradores:', error);
     }
 }
 
+// CARGAR APOYOS
 async function cargarApoyos() {
     try {
         const response = await fetch('/api/apoyos');
@@ -134,12 +229,14 @@ async function cargarApoyos() {
             const data = await response.json();
             appState.apoyos = data;
             renderizarApoyos();
+            console.log('✅ Apoyos cargados:', data.length);
         }
     } catch (error) {
         console.error('Error al cargar apoyos:', error);
     }
 }
 
+// ACTUALIZAR SELECT COLABORADORES
 function actualizarSelectColaboradores() {
     const select = document.getElementById('apoyo-colaborador');
     if (!select) return;
@@ -153,6 +250,7 @@ function actualizarSelectColaboradores() {
     });
 }
 
+// ACTUALIZAR SELECT DIRIGENTES
 function actualizarSelectDirigentes(dirigentesFiltrados = null) {
     const select = document.getElementById('apoyo-dirigente');
     if (!select) return;
@@ -170,6 +268,7 @@ function actualizarSelectDirigentes(dirigentesFiltrados = null) {
     }
 }
 
+// MOSTRAR FORMULARIO DIRIGENTE
 function mostrarFormDirigente(dirigente = null) {
     const form = document.getElementById('form-dirigente');
     const title = document.getElementById('form-title');
@@ -202,6 +301,7 @@ function ocultarFormDirigente() {
     if (form) form.classList.add('hidden');
 }
 
+// GUARDAR DIRIGENTE
 async function guardarDirigente(event) {
     event.preventDefault();
     
@@ -244,6 +344,7 @@ async function guardarDirigente(event) {
             ocultarFormDirigente();
             await cargarDirigentes();
             await renderizarDirigentes();
+            await cargarDashboard();
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -252,6 +353,7 @@ async function guardarDirigente(event) {
     }
 }
 
+// ELIMINAR DIRIGENTE
 async function eliminarDirigente(id) {
     if (!confirm('¿Está seguro de que desea eliminar este dirigente?')) return;
     
@@ -263,6 +365,7 @@ async function eliminarDirigente(id) {
             mostrarNotificacion(data.message, 'success');
             await cargarDirigentes();
             await renderizarDirigentes();
+            await cargarDashboard();
         } else {
             mostrarNotificacion(data.error, 'error');
         }
@@ -271,6 +374,7 @@ async function eliminarDirigente(id) {
     }
 }
 
+// EDITAR DIRIGENTE
 function editarDirigente(id) {
     const dirigente = appState.dirigentes.find(d => d.id === id);
     if (dirigente) {
@@ -285,6 +389,7 @@ function editarDirigente(id) {
     }
 }
 
+// RENDERIZAR DIRIGENTES
 function renderizarDirigentes(mostrarTodos = false) {
     const tbody = document.getElementById('dirigentes-body');
     if (!tbody) return;
@@ -326,60 +431,33 @@ function obtenerUltimosDirigentes() {
     return [...appState.dirigentes].sort((a, b) => new Date(b.creado_en) - new Date(a.creado_en)).slice(0, 10);
 }
 
-function mostrarFormApoyo(dirigenteId = null, dirigenteNombre = null) {
-    const form = document.getElementById('form-apoyo');
-    if (!form) return;
-    
-    form.classList.remove('hidden');
-    configurarFechaAutomatica();
-    actualizarSelectDirigentes();
-    
-    if (dirigenteId && dirigenteNombre) {
-        setTimeout(() => {
-            const select = document.getElementById('apoyo-dirigente');
-            if (select) select.value = dirigenteId;
-        }, 100);
+// EXPORTAR DIRIGENTES A PDF
+function exportarDirigentesPDF() {
+    if (!appState.isAuthenticated) {
+        mostrarNotificacion('❌ Debe iniciar sesión para exportar', 'error');
+        return;
     }
-}
-
-function ocultarFormApoyo() {
-    const form = document.getElementById('form-apoyo');
-    if (form) form.classList.add('hidden');
-}
-
-function configurarFechaAutomatica() {
-    const fechaInput = document.getElementById('apoyo-fecha');
-    if (fechaInput) {
-        const hoy = new Date();
-        const fechaLocal = new Date(hoy.getTime() - (hoy.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        fechaInput.value = fechaLocal;
-    }
-}
-
-function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
-    mostrarFormApoyo(dirigenteId, dirigenteNombre);
-    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
-}
-
-function mostrarNotificacion(mensaje, tipo) {
-    const notificacionesExistentes = document.querySelectorAll('.notification');
-    notificacionesExistentes.forEach(notif => notif.remove());
     
-    const notificacion = document.createElement('div');
-    notificacion.className = `notification ${tipo}`;
-    notificacion.textContent = mensaje;
-    notificacion.style.cssText = `
-        position: fixed; top: 20px; right: 20px; padding: 15px 20px;
-        border-radius: 5px; color: white; z-index: 10000; font-weight: bold;
-        ${tipo === 'success' ? 'background: #27ae60;' : 'background: #e74c3c;'}
-    `;
+    const query = document.getElementById('buscar-dirigente')?.value || '';
+    const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
+    const participacion = document.getElementById('filtro-participacion')?.value || '';
+    const coordinador = document.getElementById('filtro-coordinador')?.value || '';
     
-    document.body.appendChild(notificacion);
-    setTimeout(() => {
-        if (notificacion.parentNode) notificacion.parentNode.removeChild(notificacion);
-    }, 4000);
+    const params = new URLSearchParams();
+    if (query) params.append('q', query);
+    if (corregimiento && corregimiento !== '') params.append('corregimiento', corregimiento);
+    if (participacion && participacion !== '') params.append('participacion', participacion);
+    if (coordinador && coordinador !== '') params.append('coordinador', coordinador);
+    
+    window.open(`/api/exportar-dirigentes-pdf?${params.toString()}`, '_blank');
 }
 
+// GENERAR CONSTANCIA DIRIGENTE
+function generarConstancia(dirigenteId) {
+    window.open(`/constancia/${dirigenteId}`, '_blank');
+}
+
+// INICIALIZAR FILTROS
 function inicializarFiltros() {
     const buscarInput = document.getElementById('buscar-dirigente');
     const filtroCorregimiento = document.getElementById('filtro-corregimiento');
@@ -491,47 +569,82 @@ function mostrarTodosLosDirigentes() {
     if (infoResultados) infoResultados.style.display = 'none';
 }
 
+// DASHBOARD
 function mostrarDashboard(tipo) {
-    document.getElementById('dashboard-dirigentes').classList.add('hidden');
-    document.getElementById('dashboard-electoral').classList.add('hidden');
-    document.getElementById('btn-dirigentes').style.background = '#3498db';
-    document.getElementById('btn-electoral').style.background = '#9b59b6';
+    const dashboardDirigentes = document.getElementById('dashboard-dirigentes');
+    const dashboardElectoral = document.getElementById('dashboard-electoral');
+    const btnDirigentes = document.getElementById('btn-dirigentes');
+    const btnElectoral = document.getElementById('btn-electoral');
+    
+    if (dashboardDirigentes) dashboardDirigentes.classList.add('hidden');
+    if (dashboardElectoral) dashboardElectoral.classList.add('hidden');
+    if (btnDirigentes) btnDirigentes.style.background = '#3498db';
+    if (btnElectoral) btnElectoral.style.background = '#9b59b6';
     
     if (tipo === 'dirigentes') {
-        document.getElementById('dashboard-dirigentes').classList.remove('hidden');
-        document.getElementById('btn-dirigentes').style.background = '#2980b9';
+        if (dashboardDirigentes) dashboardDirigentes.classList.remove('hidden');
+        if (btnDirigentes) btnDirigentes.style.background = '#2980b9';
     } else if (tipo === 'electoral') {
-        document.getElementById('dashboard-electoral').classList.remove('hidden');
-        document.getElementById('btn-electoral').style.background = '#8e44ad';
+        if (dashboardElectoral) dashboardElectoral.classList.remove('hidden');
+        if (btnElectoral) btnElectoral.style.background = '#8e44ad';
     }
 }
 
-function generarConstancia(dirigenteId) {
-    window.open(`/constancia/${dirigenteId}`, '_blank');
-}
-
-// 🆕 EXPORTAR DIRIGENTES A PDF
-function exportarDirigentesPDF() {
-    if (!appState.isAuthenticated) {
-        mostrarNotificacion('❌ Debe iniciar sesión para exportar', 'error');
-        return;
+// APOYOS
+function mostrarFormApoyo(dirigenteId = null, dirigenteNombre = null) {
+    const form = document.getElementById('form-apoyo');
+    if (!form) return;
+    
+    form.classList.remove('hidden');
+    configurarFechaAutomatica();
+    actualizarSelectDirigentes();
+    
+    if (dirigenteId && dirigenteNombre) {
+        setTimeout(() => {
+            const select = document.getElementById('apoyo-dirigente');
+            if (select) select.value = dirigenteId;
+        }, 100);
     }
-    
-    const query = document.getElementById('buscar-dirigente')?.value || '';
-    const corregimiento = document.getElementById('filtro-corregimiento')?.value || '';
-    const participacion = document.getElementById('filtro-participacion')?.value || '';
-    const coordinador = document.getElementById('filtro-coordinador')?.value || '';
-    
-    const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (corregimiento && corregimiento !== '') params.append('corregimiento', corregimiento);
-    if (participacion && participacion !== '') params.append('participacion', participacion);
-    if (coordinador && coordinador !== '') params.append('coordinador', coordinador);
-    
-    window.open(`/api/exportar-dirigentes-pdf?${params.toString()}`, '_blank');
 }
 
-// Funciones de apoyos
+function ocultarFormApoyo() {
+    const form = document.getElementById('form-apoyo');
+    if (form) form.classList.add('hidden');
+}
+
+function configurarFechaAutomatica() {
+    const fechaInput = document.getElementById('apoyo-fecha');
+    if (fechaInput) {
+        const hoy = new Date();
+        const fechaLocal = new Date(hoy.getTime() - (hoy.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        fechaInput.value = fechaLocal;
+    }
+}
+
+function registrarApoyoDirigente(dirigenteId, dirigenteNombre) {
+    mostrarFormApoyo(dirigenteId, dirigenteNombre);
+    mostrarNotificacion(`Dirigente "${dirigenteNombre}" seleccionado para registro de apoyo`, 'success');
+}
+
+function mostrarNotificacion(mensaje, tipo) {
+    const notificacionesExistentes = document.querySelectorAll('.notification');
+    notificacionesExistentes.forEach(notif => notif.remove());
+    
+    const notificacion = document.createElement('div');
+    notificacion.className = `notification ${tipo}`;
+    notificacion.textContent = mensaje;
+    notificacion.style.cssText = `
+        position: fixed; top: 20px; right: 20px; padding: 15px 20px;
+        border-radius: 5px; color: white; z-index: 10000; font-weight: bold;
+        ${tipo === 'success' ? 'background: #27ae60;' : 'background: #e74c3c;'}
+    `;
+    
+    document.body.appendChild(notificacion);
+    setTimeout(() => {
+        if (notificacion.parentNode) notificacion.parentNode.removeChild(notificacion);
+    }, 4000);
+}
+
 function renderizarApoyos() {
     const tbody = document.getElementById('apoyos-body');
     if (!tbody) return;
@@ -607,6 +720,7 @@ async function eliminarApoyo(apoyoId) {
         if (response.ok) {
             appState.apoyos = appState.apoyos.filter(a => a.id !== apoyoId);
             renderizarApoyos();
+            await cargarDashboard();
             mostrarNotificacion('✅ Apoyo eliminado exitosamente', 'success');
         } else {
             mostrarNotificacion(`❌ Error: ${data.error || 'No se pudo eliminar'}`, 'error');
@@ -668,6 +782,7 @@ async function registrarApoyo(event) {
             submitBtn.textContent = 'Registrar';
             submitBtn.style.background = '';
             await cargarApoyos();
+            await cargarDashboard();
         } else {
             mostrarNotificacion(`❌ ${data.error || 'Error'}`, 'error');
         }
@@ -687,7 +802,7 @@ function inicializarFiltrosApoyos() {
                 <div><label style="display:block;margin-bottom:5px;font-weight:bold;">📦 Tipo:</label><select id="filtro-tipo-apoyo" style="width:100%;padding:8px;"><option value="">Todos</option><option value="economico">Económico</option><option value="viveres">Víveres</option><option value="otro">Otro</option></select></div>
                 <div><label style="display:block;margin-bottom:5px;font-weight:bold;">📅 Desde:</label><input type="date" id="filtro-fecha-desde" style="width:100%;padding:8px;"></div>
                 <div><label style="display:block;margin-bottom:5px;font-weight:bold;">📅 Hasta:</label><input type="date" id="filtro-fecha-hasta" style="width:100%;padding:8px;"></div>
-                <div style="display:flex;gap:10px;"><button onclick="aplicarFiltrosApoyos()" style="background:#3498db;color:white;border:none;padding:8px15px;border-radius:5px;cursor:pointer;">🔍 Aplicar</button><button onclick="limpiarFiltrosApoyos()" style="background:#95a5a6;color:white;border:none;padding:8px15px;border-radius:5px;cursor:pointer;">🗑️ Limpiar</button></div>
+                <div style="display:flex;gap:10px;"><button onclick="aplicarFiltrosApoyos()" style="background:#3498db;color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">🔍 Aplicar</button><button onclick="limpiarFiltrosApoyos()" style="background:#95a5a6;color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;">🗑️ Limpiar</button></div>
             </div>
         </div>
     `;
@@ -714,7 +829,7 @@ function mostrarApoyosFiltrados(apoyosFiltrados) {
     
     tbody.innerHTML = '';
     if (apoyosFiltrados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">🔍 No se encontraron apoyos</td></tr>';
+        tbody.innerHTML = '</tr><td colspan="6" style="text-align:center;padding:20px;">🔍 No se encontraron apoyos</td></tr>';
         return;
     }
     
@@ -744,8 +859,32 @@ function limpiarFiltrosApoyos() {
     mostrarNotificacion('✅ Filtros limpiados', 'success');
 }
 
-// Inicialización
+// FUNCIONES ELECTORALES (placeholder)
+function mostrarFormularioElectoral() {
+    const formulario = document.getElementById('formulario-electoral');
+    if (formulario) formulario.classList.remove('hidden');
+}
+
+function ocultarFormularioElectoral() {
+    const formulario = document.getElementById('formulario-electoral');
+    if (formulario) formulario.classList.add('hidden');
+}
+
+function calcularTotales() {
+    alert('Función en desarrollo');
+}
+
+function aplicarBusquedaElectoral() {
+    console.log('Búsqueda electoral - en desarrollo');
+}
+
+function limpiarBusquedaElectoral() {
+    console.log('Limpiar búsqueda electoral - en desarrollo');
+}
+
+// INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM cargado, inicializando sistema...');
     checkAuthStatus();
     
     const formDirigente = document.getElementById('dirigente-form');
@@ -762,4 +901,82 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') login();
         });
     }
+    
+    console.log('✅ Sistema inicializado correctamente');
 });
+
+// FUNCIÓN DE BÚSQUEDA PÚBLICA
+async function buscarDirigente() {
+    const cedula = document.getElementById('search-cedula').value.trim();
+    const searchResult = document.getElementById('search-result');
+    
+    if (!cedula) {
+        mostrarNotificacion('Por favor ingrese un número de cédula', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/buscar-dirigente?cedula=${cedula}`);
+        const data = await response.json();
+        
+        searchResult.classList.remove('hidden');
+        
+        if (data.encontrado) {
+            const dirigente = data.dirigente;
+            const apoyos = data.apoyos || [];
+            const claseParticipacion = `participacion-${dirigente.participacion}`;
+            
+            let historialHTML = '';
+            if (apoyos.length > 0) {
+                historialHTML = `
+                    <div style="margin-top:20px;">
+                        <h4>📦 Historial de Apoyos (${apoyos.length})</h4>
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Entregado por</th></tr></thead>
+                            <tbody>
+                                ${apoyos.map(a => `<tr><td>${new Date(a.fecha).toLocaleDateString()}</td><td>${a.tipo}</td><td>${a.monto ? `$${parseFloat(a.monto).toFixed(2)}` : '-'}</td><td>${a.colaborador_nombre || '-'}</td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            searchResult.innerHTML = `
+                <div class="result-found">
+                    <h3>✅ Dirigente encontrado</h3>
+                    <p><strong>Nombre:</strong> ${dirigente.nombre}</p>
+                    <p><strong>Cédula:</strong> ${dirigente.cedula}</p>
+                    <p><strong>Teléfono:</strong> ${dirigente.telefono || 'No registrado'}</p>
+                    <p><strong>Corregimiento:</strong> ${dirigente.corregimiento}</p>
+                    <p><strong>Comunidad:</strong> ${dirigente.comunidad}</p>
+                    <p><strong>Coordinador:</strong> ${dirigente.coordinador}</p>
+                    <p><strong>Participación:</strong> <span class="${claseParticipacion}">${dirigente.participacion}</span></p>
+                    ${dirigente.informacion_adicional ? `<p><strong>Notas:</strong> ${dirigente.informacion_adicional}</p>` : ''}
+                    ${historialHTML}
+                    <button onclick="registrarApoyoDesdeVerificacion(${dirigente.id}, '${dirigente.nombre}', '${dirigente.cedula}')">➕ Registrar Apoyo</button>
+                </div>
+            `;
+        } else {
+            searchResult.innerHTML = `<div class="result-not-found"><h3>❌ Dirigente no encontrado</h3><p>Cédula: ${cedula}</p></div>`;
+        }
+    } catch (error) {
+        searchResult.innerHTML = `<div class="result-not-found"><h3>⚠️ Error en la búsqueda</h3></div>`;
+    }
+}
+
+function registrarApoyoDesdeVerificacion(dirigenteId, dirigenteNombre, dirigenteCedula) {
+    if (!appState.isAuthenticated) {
+        mostrarNotificacion('❌ Debe iniciar sesión para registrar apoyos', 'error');
+        document.getElementById('username').focus();
+        return;
+    }
+    
+    mostrarDashboard('dirigentes');
+    setTimeout(() => {
+        const seccionApoyos = document.getElementById('gestion-apoyos');
+        if (seccionApoyos) {
+            seccionApoyos.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => mostrarFormApoyo(dirigenteId, dirigenteNombre), 800);
+        }
+    }, 300);
+}
