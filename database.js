@@ -27,7 +27,6 @@ function inicializarTablas() {
     console.log('🔄 Verificando estructura de la base de datos...');
     
     const tablas = [
-        // 🆕 MODIFICADA tabla de administradores con rol
         `CREATE TABLE IF NOT EXISTS administradores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -46,6 +45,7 @@ function inicializarTablas() {
             comunidad TEXT NOT NULL,
             coordinador TEXT NOT NULL,
             participacion TEXT DEFAULT 'regular',
+            informacion_adicional TEXT,
             creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
         )`,
         
@@ -62,7 +62,6 @@ function inicializarTablas() {
             FOREIGN KEY (colaborador_id) REFERENCES colaboradores (id)
         )`,
         
-        // 🆕 NUEVA tabla de colaboradores
         `CREATE TABLE IF NOT EXISTS colaboradores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
@@ -105,7 +104,6 @@ function inicializarTablas() {
         )`
     ];
 
-    // Crear tablas una por una
     let tablasCreadas = 0;
     tablas.forEach((sql, index) => {
         db.run(sql, function(err) {
@@ -116,7 +114,6 @@ function inicializarTablas() {
                 console.log(`✅ Tabla ${index + 1} verificada/creada`);
             }
             
-            // Cuando todas las tablas estén procesadas
             if (index === tablas.length - 1) {
                 console.log(`🎉 Base de datos inicializada: ${tablasCreadas}/${tablas.length} tablas listas`);
                 insertarDatosIniciales();
@@ -125,12 +122,10 @@ function inicializarTablas() {
     });
 }
 
-// Función para insertar datos iniciales SOLO si no existen
 function insertarDatosIniciales() {
-    // Verificar si existe el administrador
     db.get('SELECT COUNT(*) as count FROM administradores WHERE username = ?', ['admin'], (err, row) => {
         if (err) {
-            console.log('⚠️  No se pudo verificar administrador:', err.message);
+            console.log('⚠️ No se pudo verificar administrador:', err.message);
             return;
         }
         
@@ -156,10 +151,9 @@ function insertarDatosIniciales() {
         }
     });
 
-    // Insertar colaboradores de ejemplo
     db.get('SELECT COUNT(*) as count FROM colaboradores', (err, row) => {
         if (err) {
-            console.log('⚠️  Tabla colaboradores no disponible aún:', err.message);
+            console.log('⚠️ Tabla colaboradores no disponible aún:', err.message);
             return;
         }
         
@@ -192,11 +186,10 @@ function insertarDatosIniciales() {
         }
     });
 
-    // Crear usuario colaborador de ejemplo
     setTimeout(() => {
         db.get('SELECT COUNT(*) as count FROM administradores WHERE username = ?', ['colaborador'], (err, row) => {
             if (err) {
-                console.log('⚠️  No se pudo verificar usuario colaborador:', err.message);
+                console.log('⚠️ No se pudo verificar usuario colaborador:', err.message);
                 return;
             }
             
@@ -209,7 +202,7 @@ function insertarDatosIniciales() {
                     db.run('INSERT INTO administradores (username, password, rol) VALUES (?, ?, ?)', 
                         ['colaborador', hash, 'colaborador'], function(err) {
                         if (err) {
-                            console.log('⚠️  Error creando usuario colaborador:', err.message);
+                            console.log('⚠️ Error creando usuario colaborador:', err.message);
                         } else {
                             console.log('👤 Usuario colaborador creado: colaborador / colab123');
                         }
@@ -221,15 +214,14 @@ function insertarDatosIniciales() {
         });
     }, 1000);
     
-    // Verificar y insertar corregimientos SOLO si la tabla está vacía
     db.get('SELECT COUNT(*) as count FROM corregimientos', (err, row) => {
         if (err) {
-            console.log('⚠️  No se pudo verificar corregimientos:', err.message);
+            console.log('⚠️ No se pudo verificar corregimientos:', err.message);
             return;
         }
         
         if (row.count === 0) {
-            console.log('🏘️  Insertando corregimientos por defecto...');
+            console.log('🏘️ Insertando corregimientos por defecto...');
             const corregimientosDefault = ['San Francisco', 'El Valle', 'Bethania', 'Pacora', 'Tocumen'];
             
             let insertados = 0;
@@ -248,58 +240,52 @@ function insertarDatosIniciales() {
                 });
             });
         } else {
-            console.log(`🏘️  Ya existen ${row.count} corregimientos, omitiendo inserción`);
+            console.log(`🏘️ Ya existen ${row.count} corregimientos, omitiendo inserción`);
         }
     });
 }
 
-// 🆕 FUNCIÓN PARA ACTUALIZAR TABLAS EXISTENTES (VERSIÓN SIMPLIFICADA Y SEGURA)
 function actualizarTablasExistente() {
     console.log('🔄 Verificando actualizaciones de tablas existentes...');
     
-    // Intentar agregar columnas directamente (si falla, es porque ya existen)
     db.run("ALTER TABLE administradores ADD COLUMN rol TEXT DEFAULT 'admin'", (err) => {
         if (err) {
             console.log('✅ Columna "rol" ya existe en administradores');
         } else {
             console.log('✅ Columna "rol" agregada a tabla administradores');
-            // Actualizar administrador existente
             db.run("UPDATE administradores SET rol = 'admin' WHERE username = 'admin'", (err) => {
-                if (err) {
-                    console.log('⚠️  No se pudo actualizar administrador:', err.message);
-                } else {
-                    console.log('✅ Administrador actualizado con rol "admin"');
-                }
+                if (err) console.log('⚠️ No se pudo actualizar administrador:', err.message);
+                else console.log('✅ Administrador actualizado con rol "admin"');
             });
         }
     });
 
     setTimeout(() => {
         db.run("ALTER TABLE administradores ADD COLUMN activo BOOLEAN DEFAULT TRUE", (err) => {
-            if (err) {
-                console.log('✅ Columna "activo" ya existe en administradores');
-            } else {
-                console.log('✅ Columna "activo" agregada a tabla administradores');
-            }
+            if (err) console.log('✅ Columna "activo" ya existe en administradores');
+            else console.log('✅ Columna "activo" agregada a tabla administradores');
         });
     }, 100);
 
     setTimeout(() => {
         db.run("ALTER TABLE apoyos ADD COLUMN colaborador_id INTEGER", (err) => {
-            if (err) {
-                console.log('✅ Columna "colaborador_id" ya existe en apoyos');
-            } else {
-                console.log('✅ Columna "colaborador_id" agregada a tabla apoyos');
-            }
+            if (err) console.log('✅ Columna "colaborador_id" ya existe en apoyos');
+            else console.log('✅ Columna "colaborador_id" agregada a tabla apoyos');
         });
     }, 200);
+    
+    setTimeout(() => {
+        db.run("ALTER TABLE dirigentes ADD COLUMN informacion_adicional TEXT", (err) => {
+            if (err) console.log('✅ Columna "informacion_adicional" ya existe en dirigentes');
+            else console.log('✅ Columna "informacion_adicional" agregada a tabla dirigentes');
+        });
+    }, 300);
 }
 
-// Inicializar la base de datos cuando se conecte
 db.on('open', () => {
     console.log('🔗 Conectado a la base de datos:', dbPath);
     inicializarTablas();
-    actualizarTablasExistente(); // 🆕 Agregar esta línea
+    actualizarTablasExistente();
 });
 
 db.on('error', (err) => {
